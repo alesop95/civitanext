@@ -18,7 +18,7 @@ cronologico corretto senza una mappa manuale mese-stringa → numero, niente mod
 rispondere a "quali eventi sono tra il 10 e il 20 del mese prossimo" senza logica di parsing
 scritta a mano.
 
-## Dopo (`webapp/prisma/schema.prisma`)
+## Dopo (`prisma/schema.prisma`)
 
 ```prisma
 model Event {

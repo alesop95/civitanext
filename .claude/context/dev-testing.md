@@ -3,7 +3,7 @@ generated-from-commit: 7ba6100
 generated-from-branch: main
 generated-date: 2026-07-10
 covers-paths:
-  - webapp/**
+  - src/**
 last-verified-commit: 7ba6100
 ---
 
@@ -24,7 +24,7 @@ specifica di test pronta per i flussi utente.
 
 ## Rotte e dati mockati
 
-`webapp/src/app/api/diag-fase0/route.ts`: route diagnostica temporanea (non applicativa),
+`src/app/api/diag-fase0/route.ts`: route diagnostica temporanea (non applicativa),
 verifica bcryptjs e la connessione Prisma. Da rimuovere quando la verifica del runtime
 Cloudflare reale (ADR-006) sarà stata eseguita almeno una volta con esito noto. Nessun altro
 dato mockato: a differenza del prototipo (`design_handoff_civitanext/civitanext-data.jsx`, array
@@ -33,5 +33,5 @@ statici), l'app reale non introduce dati finti propri.
 ## Hook e controlli di qualità
 
 Nessun hook pre-commit installato in Fase 0 (pacchetto opzionale `hooks-starter` non ancora
-istanziato, valutabile più avanti). Prima di un commit su `webapp/`, eseguire a mano
-`npx tsc --noEmit`, `npm run build`, `npm run lint`.
+istanziato, valutabile più avanti). Prima di un commit, eseguire a mano dalla radice del
+repository `npx tsc --noEmit`, `npm run build`, `npm run lint`.

@@ -26,7 +26,7 @@ SPA client-side (React montato via `ReactDOM.createRoot` su un'unica pagina), qu
 interazione (cambio tab, voto, apertura di un pannello) causa un re-render che, senza
 memoizzazione, ricalcolerebbe il path SVG da zero anche se le prop non sono cambiate.
 
-## Dopo (`webapp/src/components/ui/Starburst.tsx`)
+## Dopo (`src/components/ui/Starburst.tsx`)
 
 ```tsx
 export function Starburst({

@@ -189,3 +189,33 @@ ambiente di test per le migrazioni Prisma prima di applicarle al branch di produ
 migrazione va applicata direttamente in produzione senza prima averla verificata sul branch di
 sviluppo. Il dettaglio dei nomi di variabile d'ambiente per ambiente si fissa quando si arriva
 al primo deploy reale (fuori dal perimetro stretto di Fase 0).
+
+## ADR-008 — Applicazione alla radice del repository, non in una sottocartella `webapp/`
+
+Data: 2026-07-10
+Stato: accettata
+Contesto: il bootstrap di Fase 0 (ADR-004/005/006) aveva scaffoldato il progetto Next.js in una
+sottocartella `webapp/`, per tenere separato il codice reale dal materiale di design in
+`design_handoff_civitanext/` durante la fase di validazione dello stack. L'utente ha richiesto
+esplicitamente di appiattire la struttura: l'applicazione alla radice del repository invece che
+annidata, e i quattro file HTML di mockup monolitici storicamente in radice spostati in
+`_notes/` (non versionati) invece che lasciati li' o spostati in `design_handoff_civitanext/`.
+Decisione: spostato tutto il contenuto applicativo (config, `src/`, `prisma/`, `public/`,
+dipendenze) dalla sottocartella alla radice del repository; `.gitignore` di radice e di
+`webapp/` fusi in un solo file; i quattro mockup HTML rimossi dal tracciamento e spostati in
+`_notes/`. `design_handoff_civitanext/` resta invariata: contiene il materiale di design vero e
+proprio (componenti, dati demo, README, ROADMAP), non semplici snapshot statici.
+Motivazione: con un solo progetto applicativo nel repository (non un monorepo con più
+pacchetti), non c'e' un motivo strutturale per annidarlo in una sottocartella; farlo aggiunge
+solo un livello di indirezione nei percorsi e nei comandi. I mockup HTML sono export statici del
+prototipo (900 KB - 2,2 MB ciascuno), utili come riferimento visivo locale ma non come sorgente
+da mantenere in git: `_notes/` (gia' usata per materiale privato non versionato) e' la
+collocazione coerente con quel ruolo.
+Conseguenze: tutti i riferimenti a percorsi `webapp/...` nelle schede di stato (`STACK.md`,
+`deployment.md`, `design-and-security.md`, `dev-testing.md`, `current-work.md`) sono stati
+aggiornati per rimuovere il prefisso. I riferimenti `webapp/...` nelle voci gia' scritte di
+questo registro e di `memory/progress.md` NON sono stati riscritti retroattivamente, coerenti
+con la natura append-only di entrambi i registri: descrivono lo stato reale al momento in cui
+furono scritti. Una cartella `webapp/` residua, con i soli artefatti di build rigenerabili,
+resta da eliminare manualmente (bloccata da un processo che tiene occupato un file al suo
+interno al momento di questa voce).

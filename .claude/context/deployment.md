@@ -3,9 +3,9 @@ generated-from-commit: 7ba6100
 generated-from-branch: main
 generated-date: 2026-07-10
 covers-paths:
-  - webapp/wrangler.jsonc
-  - webapp/open-next.config.ts
-  - webapp/prisma.config.ts
+  - wrangler.jsonc
+  - open-next.config.ts
+  - prisma.config.ts
 last-verified-commit: 7ba6100
 ---
 
@@ -30,22 +30,23 @@ questa macchina (Windows nativo, non WSL2): un bug di bundling di OpenNext, non 
 codice applicativo, restituisce 500 su ogni rotta (vedi `memory/progress.md`, voce del
 2026-07-10, e ADR-006). Lo sviluppo quotidiano usa `next dev`/`next build` (Node standard, nessun
 problema riscontrato); la verifica del comportamento specifico su Cloudflare si sposta al primo
-deploy reale o a un'esecuzione automatica su un runner Linux, non disponibile finché il
-repository resta senza remote GitHub collegato (scelta esplicita dell'utente per ora).
+deploy reale o a un'esecuzione automatica su un runner Linux (il remote GitHub `alesop95/civitanext`
+è collegato e già ricevuto un push, quindi una pipeline CI è predisponibile quando serve, non
+ancora fatto in Fase 0).
 
 ## Comandi
 
-Sviluppo: `npm run dev` (in `webapp/`). Build standard: `npm run build` / `npm run start`.
-Build e pacchettizzazione per Cloudflare: `npm run preview` (build OpenNext + `wrangler dev`
-locale, oggi non funzionante su questa macchina) e `npm run deploy` (build OpenNext +
-`wrangler deploy`, mai eseguito). Migrazioni schema: `npx prisma migrate dev` dentro `webapp/`,
-contro il `DATABASE_URL` attivo (locale in Fase 0, poi branch Neon di sviluppo, mai
-direttamente in produzione).
+Sviluppo: `npm run dev` dalla radice del repository. Build standard: `npm run build` /
+`npm run start`. Build e pacchettizzazione per Cloudflare: `npm run preview` (build OpenNext +
+`wrangler dev` locale, oggi non funzionante su questa macchina) e `npm run deploy` (build
+OpenNext + `wrangler deploy`, mai eseguito). Migrazioni schema: `npx prisma migrate dev` dalla
+radice del repository, contro il `DATABASE_URL` attivo (locale in Fase 0, poi branch Neon di
+sviluppo, mai direttamente in produzione).
 
 ## Variabili d'ambiente e segreti
 
-`webapp/.env` (ignorato da git, mai letto dall'agente per regola di `settings.json`): contiene
-almeno `DATABASE_URL`. `webapp/.dev.vars` (creato dall'adapter Cloudflare per le variabili lette
+`.env` (ignorato da git, mai letto dall'agente per regola di `settings.json`): contiene
+almeno `DATABASE_URL`. `.dev.vars` (creato dall'adapter Cloudflare per le variabili lette
 in emulazione locale Workers): `NEXTJS_ENV`. Variabili ancora da introdurre quando si apriranno
 le fasi corrispondenti: `AUTH_SECRET` (NextAuth, un valore distinto per ambiente test/
 produzione), credenziali R2 (Fase 4). Nessun valore reale va mai scritto in una scheda tracciata

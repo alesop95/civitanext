@@ -6,6 +6,30 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-10 — Riorganizzazione struttura: applicazione portata alla radice del repository
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: tutto il contenuto applicativo di `webapp/` (config, `src/`, `prisma/`, `public/`,
+`package.json`, ecc.) spostato alla radice del repository, eliminando quel livello di cartella;
+`webapp/.gitignore` e `webapp/CLAUDE.md` (il solo "@AGENTS.md") superati e rimossi, il loro
+contenuto rispettivamente fuso nel `.gitignore` di radice e riportato come nota in `CLAUDE.md`;
+i quattro file HTML di mockup monolitici in radice (`CivitaNext Guida mockup (file unico).html`,
+`CivitaNext mockup (desktop).html`, `CivitaNext mockup (mobile).html`, `Flusso di Test.html`)
+spostati in `_notes/` e rimossi dal tracciamento git, perché snapshot statici del prototipo non
+necessari come sorgente versionata; tutte le schede `.claude/context/*.md` (schede di stato, non
+i registri append-only) aggiornate per rimuovere il prefisso `webapp/` dai percorsi. Artefatti
+rigenerabili (`node_modules`, `.next`, `.open-next`, `.wrangler`, `next-env.d.ts`,
+`tsconfig.tsbuildinfo`) rimossi dove possibile; una cartella `webapp/` residua con questi soli
+artefatti resta da eliminare manualmente dall'utente perché un processo `workerd.exe` (legato al
+Postgres locale di `prisma dev`, ancora in uso) tiene occupato un file al suo interno.
+Motivo: richiesta esplicita dell'utente di appiattire la struttura, un solo livello invece di
+`repository-root/webapp/`, e di non versionare i mockup HTML legacy.
+Nota per chi legge le voci precedenti a questa: i riferimenti a percorsi tipo `webapp/src/...`
+nelle voci di lavoro sopra e negli ADR in `memory/decisions.md` descrivono lo stato reale al
+momento in cui furono scritti, prima di questa riorganizzazione; non sono stati riscritti
+retroattivamente, coerentemente con la natura append-only di questi due registri. Da questa voce
+in poi, i percorsi non hanno più il prefisso `webapp/`.
+
 ## 2026-07-10 — Riscrittura completa della storia git e force-push di correzione
 
 Commit di riferimento: `d619e8b` (root, unico commit su `main`, locale e remoto).

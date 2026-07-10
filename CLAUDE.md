@@ -8,14 +8,20 @@ CivitaNext e' la piattaforma di partecipazione civica per l'associazione di giov
 Civitanova Marche (eventi, quiz civici, forum, proposte e votazioni, profilo socio, sezioni
 citta' e community). Il repository contiene il prototipo di design ad alta fedelta' in
 `design_handoff_civitanext/` (React 18 + Babel via CDN, dati statici, auth finta in
-localStorage: riferimento di sola lettura, non codice di produzione), alcuni file `.html` di
-mockup monolitici in radice, e da questo blocco di lavoro (Fase 0, fondamenta) un progetto reale
-in `webapp/` (Next.js + TypeScript). Lo stack effettivo e' documentato in
-`.claude/context/STACK.md`; questa scheda non assume funzionalita' non verificate.
+localStorage: riferimento di sola lettura, non codice di produzione) e, da questo blocco di
+lavoro (Fase 0, fondamenta), il progetto reale in Next.js + TypeScript alla radice del
+repository stesso (non in una sottocartella: vedi ADR in `memory/decisions.md` sulla
+riorganizzazione). I mockup HTML monolitici del prototipo storico vivono in `_notes/`, non
+tracciati. Lo stack effettivo e' documentato in `.claude/context/STACK.md`; questa scheda non
+assume funzionalita' non verificate.
+
+**Prima di scrivere codice Next.js**, leggere `AGENTS.md` in radice: la versione di Next.js
+installata (16.x) ha cambiamenti sostanziali rispetto alle convenzioni piu' note, e quel file
+rimanda alla documentazione reale inclusa nel pacchetto (`node_modules/next/dist/docs/`).
 
 ## Sviluppo e identita
 
-git locale, identita `alesop95` / `alessio.sopranzi.95@gmail.com`, alias SSH `github-personal`. Remoto gia' collegato (`git@github-personal:alesop95/civitanext.git`), ancora senza alcun push. Commit e push restano manuali.
+git locale, identita `alesop95` / `alessio.sopranzi.95@gmail.com`, alias SSH `github-personal`. Remoto gia' collegato e pushato (`git@github-personal:alesop95/civitanext.git`, repository pubblico). Commit e push restano manuali.
 
 ## Standard
 

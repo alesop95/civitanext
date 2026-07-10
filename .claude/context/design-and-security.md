@@ -3,8 +3,8 @@ generated-from-commit: 7ba6100
 generated-from-branch: main
 generated-date: 2026-07-10
 covers-paths:
-  - webapp/src/**
-  - webapp/prisma/**
+  - src/**
+  - prisma/**
 last-verified-commit: 7ba6100
 ---
 
@@ -41,7 +41,7 @@ database, non solo di validazione applicativa: non è aggirabile da una richiest
 
 Punto aperto, non ancora deciso: la tabella `Vote` usa `targetId` come riferimento generico
 (pattern polimorfico), senza vincolo di chiave esterna reale verso `Thread`/`Proposal`/`Poll` —
-un compromesso deliberato (vedi `webapp/prisma/schema.prisma`, commento sul modello `Vote`) che
+un compromesso deliberato (vedi `prisma/schema.prisma`, commento sul modello `Vote`) che
 va tenuto presente quando si scriverà la validazione applicativa in Fase 1/2: il database da
 solo non garantisce che `targetId` punti a un record esistente del tipo dichiarato in
 `targetType`.

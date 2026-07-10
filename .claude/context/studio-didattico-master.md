@@ -9,7 +9,7 @@
 ## 1. Il tema colore come variabile CSS, non come classe Tailwind statica
 
 Contesto. Il design system di Fase 0 porta i token del prototipo (`design_handoff_civitanext/README.md`)
-in `webapp/src/app/globals.css` e nei componenti di `webapp/src/components/ui/`.
+in `src/app/globals.css` e nei componenti di `src/components/ui/`.
 
 Com'era e perché era fragile. Nel prototipo (`civitanext-ui.jsx`), l'accento colore è già una
 variabile CSS (`var(--accent)`) usata da JavaScript sparso in ogni componente grafico. La
@@ -20,7 +20,7 @@ testati come alternative). Con un valore statico, cambiare tema significherebbe 
 sostituire la stessa stringa esadecimale in decine di file.
 
 Il salto senior e perché è meglio. La variabile resta un'unica fonte di verità in `:root`
-(`webapp/src/app/globals.css`), e Tailwind la referenzia tramite `@theme inline` invece di
+(`src/app/globals.css`), e Tailwind la referenzia tramite `@theme inline` invece di
 duplicarne il valore: `--color-accent: var(--accent)` genera comunque le utility `bg-accent`,
 `text-accent`, ecc., ma il colore vero resta definito in un solo punto. Cambiare tema, anche a
 runtime con un futuro selettore, significa riassegnare quella singola variabile, non toccare il
@@ -32,7 +32,7 @@ Dove leggere il dettaglio: `refactor-01-tema-runtime.md`.
 ## 2. Le grafiche decorative come Server Component, non componenti client con `useMemo`
 
 Contesto. Le grafiche brand del prototipo (`Starburst`, generazione procedurale di un poligono a
-raggi SVG) sono state ricostruite in `webapp/src/components/ui/Starburst.tsx`.
+raggi SVG) sono state ricostruite in `src/components/ui/Starburst.tsx`.
 
 Com'era e perché era fragile. Nel prototipo (`civitanext-ui.jsx`), `Starburst` gira dentro una
 SPA React interamente client-side: il calcolo del path SVG è avvolto in `useMemo` per evitare di
@@ -53,7 +53,7 @@ Dove leggere il dettaglio: `refactor-02-server-component-grafiche.md`.
 
 ## 3. La data di un evento come `DateTime` unico, non come coppia di stringhe `day`/`month`
 
-Contesto. Lo schema Prisma di Fase 0 (`webapp/prisma/schema.prisma`) definisce il modello
+Contesto. Lo schema Prisma di Fase 0 (`prisma/schema.prisma`) definisce il modello
 `Event` per la futura feature calendario.
 
 Com'era e perché era fragile. Nei dati demo del prototipo (`civitanext-data.jsx`), ogni evento

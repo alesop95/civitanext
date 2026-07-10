@@ -30,6 +30,6 @@ Fase 0 (fondamenta) sostanzialmente chiusa e committata in un unico commit radic
 dopo una riscrittura completa della storia git per rimuovere un'email aziendale trapelata nei
 commit originali (vedi `progress.md`) e un force-push di correzione sul remote pubblico, già
 verificato senza residui. Resta aperto un solo punto: impostare `DATABASE_URL` locale in
-`webapp/.env` (azione dell'utente) per lanciare `prisma migrate dev` e chiudere lo Step 5 dello
+`.env` (azione dell'utente) per lanciare `prisma migrate dev` e chiudere lo Step 5 dello
 schema dati. `memory/progress.md` ha una voce non ancora committata che documenta la riscrittura
 della storia: va incluso nel prossimo commit.

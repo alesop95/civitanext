@@ -10,7 +10,7 @@ rispettata perché il codice client controlla una chiave prima di permettere un 
 perché il sistema lo impedisca strutturalmente. Se quella chiave viene persa, corrotta, o il
 controllo ha un bug, nulla a un livello più basso impedisce un doppio voto.
 
-## Dopo (`webapp/prisma/schema.prisma`)
+## Dopo (`prisma/schema.prisma`)
 
 ```prisma
 enum VoteTargetType {

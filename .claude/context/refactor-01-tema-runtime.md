@@ -23,7 +23,7 @@ scritto a mano. La tentazione, ricostruendo con Tailwind, sarebbe stata di risol
 valore esadecimale in build (`#E8503A`) e usarlo in classi statiche tipo `bg-[#E8503A]`, perché è
 il modo più immediato di scrivere Tailwind senza pensare a variabili.
 
-## Dopo (`webapp/src/app/globals.css`)
+## Dopo (`src/app/globals.css`)
 
 ```css
 :root {
@@ -39,7 +39,7 @@ il modo più immediato di scrivere Tailwind senza pensare a variabili.
 
 Tailwind v4 genera comunque `bg-accent`, `text-accent`, `border-accent` come utility di prima
 classe, ma il valore vero resta un'unica riga in `:root`. Un componente come
-`webapp/src/components/ui/Btn.tsx` usa `bg-accent` nella classe, non un valore esadecimale:
+`src/components/ui/Btn.tsx` usa `bg-accent` nella classe, non un valore esadecimale:
 
 ```ts
 const KIND_CLASSES: Record<BtnKind, string> = {
