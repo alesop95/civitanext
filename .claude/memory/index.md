@@ -8,7 +8,7 @@
 
 ```
 Branch attivo:        main
-Commit di riferimento: 7ba6100
+Commit di riferimento: d619e8b
 Data snapshot:        2026-07-10
 ```
 
@@ -16,19 +16,20 @@ Data snapshot:        2026-07-10
 
 | Scheda | last-verified | Stato |
 |---|---|---|
-| STACK.md | 7ba6100 | aggiornata (working tree Fase 0, non ancora committata) |
-| design-and-security.md | 7ba6100 | aggiornata (working tree Fase 0, non ancora committata) |
-| deployment.md | 7ba6100 | aggiornata (working tree Fase 0, non ancora committata) |
-| dev-testing.md | 7ba6100 | aggiornata (working tree Fase 0, non ancora committata) |
-| current-work.md | 7ba6100 | aggiornata (working tree Fase 0, non ancora committata) |
-| roadmap.md | 7ba6100 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
-| studio-didattico-master.md | 7ba6100 | nuova, 4 voci (working tree Fase 0, non ancora committata) |
+| STACK.md | d619e8b | aggiornata |
+| design-and-security.md | d619e8b | aggiornata |
+| deployment.md | d619e8b | aggiornata |
+| dev-testing.md | d619e8b | aggiornata |
+| current-work.md | d619e8b | aggiornata |
+| roadmap.md | d619e8b | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
+| studio-didattico-master.md | d619e8b | 4 voci |
 
 ## Punto di ripresa
 
-Fase 0 (fondamenta) quasi chiusa: allineamento `.claude`, scelta stack (ADR-004/005/006),
-bootstrap Next.js+TypeScript, design system, schema Prisma e schede `context/` tutti fatti nel
-working tree corrente. Restano aperti, in ordine: impostare `DATABASE_URL` locale in
-`webapp/.env` (azione dell'utente) per lanciare `prisma migrate dev`; scrivere la sintesi non
-tecnica per lo stakeholder (Step 2bis); eseguire `sync-context` e il primo commit reale di
-questo blocco, che ancorerà tutte le voci "7ba6100 (working tree)" sopra al commit vero.
+Fase 0 (fondamenta) sostanzialmente chiusa e committata in un unico commit radice (`d619e8b`),
+dopo una riscrittura completa della storia git per rimuovere un'email aziendale trapelata nei
+commit originali (vedi `progress.md`) e un force-push di correzione sul remote pubblico, già
+verificato senza residui. Resta aperto un solo punto: impostare `DATABASE_URL` locale in
+`webapp/.env` (azione dell'utente) per lanciare `prisma migrate dev` e chiudere lo Step 5 dello
+schema dati. `memory/progress.md` ha una voce non ancora committata che documenta la riscrittura
+della storia: va incluso nel prossimo commit.

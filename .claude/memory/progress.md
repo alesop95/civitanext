@@ -6,7 +6,27 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
-## 2026-07-10 — Audit anonimizzazione pre-commit, `.env.example`, revisione nota stakeholder
+## 2026-07-10 — Riscrittura completa della storia git e force-push di correzione
+
+Commit di riferimento: `d619e8b` (root, unico commit su `main`, locale e remoto).
+File toccati: nessuno (operazione di sola storia git, contenuto invariato rispetto al commit
+precedente di questa stessa giornata).
+Motivo: verifica di anonimizzazione emersa come incompleta. Due file già scrubati nel working
+tree (`rules/git-identity-and-repo.md`, `skills/init-project-system/SKILL.md`) contenevano
+ancora, nella storia già committata fin dal primissimo commit (`4e4447a`), un indirizzo email
+aziendale dell'utente. Verifica con `git ls-remote`/`git fetch` ha corretto un'assunzione
+sbagliata fatta in precedenza in questa stessa sessione ("nessun push mai avvenuto"): il remote
+`alesop95/civitanext` su GitHub, **pubblico**, aveva davvero ricevuto push fino al commit
+`53c7f95` in un momento precedente non tracciato in questa conversazione. I quattro commit
+originali (`4e4447a`, `f9c5fe3`, `53c7f95`, `7ba6100`) sono stati sostituiti da un singolo commit
+radice ricostruito dal working tree già ripulito (`git checkout --orphan` + `git add -A` +
+commit + `git branch -D`/`-m` + `git reflog expire` + `git gc --prune=now --aggressive`), poi
+`git push --force-with-lease origin main` ha aggiornato il remoto pubblico. Verificato con
+`git ls-remote` e `git grep` su tutta la storia raggiungibile (locale e remota) che nessun
+oggetto contiene più la stringa incriminata.
+Limite dichiarato, non risolvibile da qui: se il repository e' stato clonato o forkato durante
+la finestra in cui era pubblico con il vecchio contenuto, quella copia resta fuori controllo;
+segnalato all'utente in chat, non un'azione eseguita.
 
 Commit di riferimento: working tree in corso.
 File toccati: rimossi i nomi di altri progetti personali e l'email aziendale da
