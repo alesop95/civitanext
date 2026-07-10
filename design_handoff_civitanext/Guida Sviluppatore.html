@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivitaNext · Guida per lo sviluppatore</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700;8..60,900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F5F0E4; --paper-card: #FCF9F1; --ink: #1E3A5F; --ink-soft: #5A6E85; --accent: #E8503A;
+    --serif: 'Source Serif 4', Georgia, serif; --sans: 'Archivo', Helvetica, sans-serif;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--serif); padding: 56px 24px 90px; line-height: 1.5; }
+  .doc { max-width: 860px; margin: 0 auto; }
+  .kicker { font-family: var(--sans); font-weight: 700; font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 10px; }
+  h1 { font-size: 48px; font-weight: 900; line-height: 1.05; letter-spacing: -0.5px; }
+  .lead { font-size: 18px; line-height: 1.55; margin: 18px 0 8px; max-width: 44em; }
+  hr { border: none; border-top: 3px solid var(--ink); margin: 32px 0; }
+  h2 { font-size: 26px; font-weight: 900; margin: 40px 0 14px; padding-bottom: 8px; border-bottom: 3px solid var(--ink); }
+  h3 { font-size: 19px; font-weight: 700; margin: 24px 0 8px; }
+  p { margin-bottom: 12px; }
+  .callout { background: var(--paper-card); border: 2.5px solid var(--accent); border-radius: 3px; padding: 18px 22px; box-shadow: 5px 5px 0 rgba(232,80,58,0.18); margin: 18px 0; }
+  .callout b { color: var(--accent); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 14.5px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1.5px solid rgba(30,58,95,0.18); vertical-align: top; }
+  th { font-family: var(--sans); font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-soft); border-bottom: 2.5px solid var(--ink); }
+  tr td:first-child { font-family: var(--sans); font-weight: 700; white-space: nowrap; }
+  code { font-family: ui-monospace, monospace; font-size: 13px; background: rgba(30,58,95,0.08); padding: 2px 7px; border-radius: 3px; }
+  .swatches { display: flex; gap: 10px; flex-wrap: wrap; margin: 14px 0; }
+  .sw { border: 2px solid var(--ink); border-radius: 3px; overflow: hidden; width: 130px; }
+  .sw .chip { height: 56px; }
+  .sw .lab { font-family: var(--sans); font-size: 11px; padding: 6px 8px; background: var(--paper-card); }
+  .sw .lab b { display: block; font-size: 13px; }
+  ul.plain { list-style: none; padding: 0; margin: 12px 0; }
+  ul.plain li { padding: 7px 0 7px 26px; position: relative; font-size: 15.5px; border-bottom: 1px solid rgba(30,58,95,0.12); }
+  ul.plain li:last-child { border: none; }
+  ul.plain li::before { content: ''; position: absolute; left: 4px; top: 14px; width: 9px; height: 9px; background: var(--accent); border-radius: 999px; }
+  .phase { background: var(--paper-card); border: 2.5px solid var(--ink); border-radius: 3px; padding: 18px 22px; margin: 14px 0; box-shadow: 5px 5px 0 rgba(30,58,95,0.14); }
+  .phase h3 { margin-top: 0; display: flex; align-items: center; gap: 12px; }
+  .phase .badge { font-family: var(--sans); font-weight: 900; font-size: 13px; color: #fff; background: var(--ink); padding: 4px 12px; border-radius: 999px; flex: none; }
+  .phase .dur { font-family: var(--sans); font-size: 12px; color: var(--ink-soft); font-weight: 700; margin-left: auto; }
+  .phase ol { margin: 8px 0 0 20px; font-size: 15px; }
+  .phase ol li { margin-bottom: 5px; }
+  .dep { font-family: var(--sans); font-size: 12.5px; color: var(--ink-soft); margin-top: 10px; padding-top: 8px; border-top: 1.5px dashed rgba(30,58,95,0.3); }
+  pre.tree { background: var(--ink); color: var(--paper); font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.7; padding: 18px 20px; border-radius: 3px; overflow-x: auto; }
+  .note { font-family: var(--sans); font-size: 14px; color: var(--ink-soft); }
+  @media (max-width: 640px) { h1 { font-size: 34px; } table { font-size: 13px; } th, td { padding: 7px 8px; } }
+  @media print { body { padding: 0; } .phase, .callout { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="doc">
+  <span class="kicker">CivitaNext · Handoff tecnico</span>
+  <h1>Guida per lo<br>sviluppatore</h1>
+  <p class="lead">Tutto il necessario per trasformare il prototipo HTML in un prodotto reale: direzione di design, architettura dei file di riferimento, modello dati e la sequenza di sviluppo consigliata per dipendenze.</p>
+
+  <div class="callout">
+    <p style="margin:0"><b>I file del bundle sono riferimenti di design, non codice di produzione.</b> Sono prototipi in HTML/React+Babel che mostrano aspetto e comportamento desiderati. Vanno <b>ricostruiti</b> nel codebase di destinazione con i suoi pattern e librerie, non copiati così come sono. Auth, dati e persistenza sono finti (utenti hardcoded, array statici, localStorage): vanno sostituiti con auth reale, database e backend.</p>
+  </div>
+
+  <hr>
+
+  <h2>Direzione di design</h2>
+  <p>Stile "collage editoriale": carta crema con texture, accenti corallo, grafiche fatte a mano (starburst a raggi, onde, sottolineature ondulate), <b>ombre dure</b> (offset, mai sfocate), niente gradienti, niente emoji. Alta fedeltà: colori, tipografia e spaziature sono definitivi.</p>
+
+  <h3>Colori</h3>
+  <div class="swatches">
+    <div class="sw"><div class="chip" style="background:#F5F0E4"></div><div class="lab"><b>#F5F0E4</b>paper · sfondo</div></div>
+    <div class="sw"><div class="chip" style="background:#FCF9F1"></div><div class="lab"><b>#FCF9F1</b>paper-card</div></div>
+    <div class="sw"><div class="chip" style="background:#1E3A5F"></div><div class="lab" style="color:#1E3A5F"><b>#1E3A5F</b>ink · testo/bordi</div></div>
+    <div class="sw"><div class="chip" style="background:#5A6E85"></div><div class="lab"><b>#5A6E85</b>ink-soft · meta</div></div>
+    <div class="sw"><div class="chip" style="background:#E8503A"></div><div class="lab" style="color:#E8503A"><b>#E8503A</b>accent · CTA</div></div>
+  </div>
+  <p class="note">L'accento è tematizzabile. Alternative testate: <code>#2A6FDB</code> blu, <code>#1F8A5B</code> verde, <code>#7C4DB8</code> viola.</p>
+
+  <h3>Tipografia</h3>
+  <table>
+    <tr><th>Ruolo</th><th>Font</th><th>Pesi</th></tr>
+    <tr><td>Titoli / display</td><td>Source Serif 4</td><td>600 / 700 / 900</td></tr>
+    <tr><td>UI / corpo / meta</td><td>Archivo</td><td>500 / 700 / 900</td></tr>
+    <tr><td>Accenti a mano</td><td>Caveat</td><td>700</td></tr>
+  </table>
+
+  <h3>Forma e ombre</h3>
+  <ul class="plain">
+    <li>Radius <b>2px</b> di default (angoli netti); tweak "morbido" ~14px.</li>
+    <li>Bordi <code>2px</code>/<code>2.5px solid var(--ink)</code> sulle card.</li>
+    <li>Ombra dura <code>5px 5px 0 rgba(30,58,95,0.14)</code>, nessun blur.</li>
+    <li>Grafiche brand (starburst, onde, logo) generate in <code>civitanext-ui.jsx</code>: riutilizzabili come componenti SVG.</li>
+  </ul>
+
+  <h2>Architettura dei file di riferimento</h2>
+  <table>
+    <tr><th>File</th><th>Contenuto</th></tr>
+    <tr><td>CivitaNext Piattaforma.html</td><td>Entry point desktop (1920px), carica tutti gli script.</td></tr>
+    <tr><td>CivitaNext Mobile.html</td><td>Entry point mobile (frame iPhone/Android, toggle nei tweak).</td></tr>
+    <tr><td>civitanext-ui.jsx</td><td>Grafiche brand + componenti base (Btn, Chip, Avatar, Tag, ShareToast, useShare).</td></tr>
+    <tr><td>civitanext-data.jsx</td><td>Dati demo + funzioni auth finte + proposte.</td></tr>
+    <tr><td>civitanext-pages.jsx</td><td>Pagine pubbliche desktop: Home, Eventi, Quiz, Forum.</td></tr>
+    <tr><td>civitanext-features.jsx</td><td>Login, iscrizione, profilo, sondaggio, classifica, galleria, mappa, documenti, notifiche, proposte, città.</td></tr>
+    <tr><td>civitanext-features2.jsx</td><td>Mentorship, timeline, attuazione, rassegna, spazi, webinar, competenze, community.</td></tr>
+    <tr><td>civitanext-admin.jsx</td><td>Pannello admin: 7 sezioni.</td></tr>
+    <tr><td>civitanext-app.jsx</td><td>Shell desktop: nav, routing, utente, tweaks.</td></tr>
+    <tr><td>civitanext-mobile.jsx</td><td>Shell mobile: tab bar, sotto-pagine, frame device.</td></tr>
+    <tr><td>civitanext-features.css</td><td>Stili condivisi.</td></tr>
+  </table>
+
+  <h2>Da prototipo a produzione</h2>
+  <table>
+    <tr><th>Demo (localStorage)</th><th>Produzione</th></tr>
+    <tr><td>cn_user (sessione)</td><td>Auth provider (NextAuth/Clerk/Supabase), session cookie</td></tr>
+    <tr><td>cn_proposals</td><td>Tabella <code>proposals</code></td></tr>
+    <tr><td>cn_page</td><td>URL / router</td></tr>
+    <tr><td>cn_digest, cn_gcal</td><td>Tabella <code>user_preferences</code></td></tr>
+    <tr><td>voti sondaggio/thread</td><td>Tabella <code>votes</code>, vincolo unico (user, item)</td></tr>
+    <tr><td>notifiche lette</td><td>Tabella <code>notifications</code>, flag read</td></tr>
+  </table>
+
+  <h3>Entità principali</h3>
+  <p class="note">User · Event · Thread + Reply · Quiz + Question · Proposal (status: revisione | votazione | approvata + implementationSteps) · Poll · Notification · Badge · Mentor · Skill · Webinar · PressItem · Space · TimelineEntry · Document · GalleryAlbum.</p>
+
+  <h2>Roadmap per dipendenze</h2>
+  <p>L'ordine è per <b>dipendenze tecniche</b> e valore consegnabile, non per peso visivo. Ogni fase produce qualcosa di usabile e testabile. Principio: prima le fondamenta (auth + dati + una feature verticale completa), poi le feature una alla volta riusando le stesse fondamenta.</p>
+
+  <div class="phase">
+    <h3><span class="badge">Fase 0</span> Fondamenta tecniche <span class="dur">1-2 settimane</span></h3>
+    <ol>
+      <li>Stack: <b>Next.js (App Router) + React + TypeScript</b>; DB Postgres (Supabase/Neon) + Prisma.</li>
+      <li>Setup repo, lint/format, CI base.</li>
+      <li>Design system: token in CSS/Tailwind; componenti base e grafiche SVG.</li>
+      <li>Schema DB iniziale: User, Event, Thread, Reply, Proposal.</li>
+    </ol>
+    <p class="dep">Sblocca tutto il resto.</p>
+  </div>
+
+  <div class="phase">
+    <h3><span class="badge">Fase 1</span> MVP autenticato <span class="dur">3-4 settimane</span></h3>
+    <ol>
+      <li>Auth reale, ruoli socio/admin (login separati nel comportamento).</li>
+      <li>Iscrizione a 3 passi (pagamento simulato finché non serve Stripe).</li>
+      <li>Profilo socio: tessera, preferenze su DB.</li>
+      <li>Eventi (lettura + RSVP): prima feature verticale completa.</li>
+      <li>Forum: thread, risposte, voto unico.</li>
+    </ol>
+    <p class="dep">Esce un prodotto già usabile. Dipende da Fase 0.</p>
+  </div>
+
+  <div class="phase">
+    <h3><span class="badge">Fase 2</span> Partecipazione civica <span class="dur">3-4 settimane</span></h3>
+    <ol>
+      <li>Proposte e votazioni (form soci, stati, voto unico).</li>
+      <li>Coda di approvazione admin: ciclo revisione → votazione → approvata.</li>
+      <li>Pannello admin: panoramica, proposte, moderazione, gestione eventi.</li>
+      <li>Quiz: motore domande/risposte + gestione admin.</li>
+      <li>Attuazione proposte (feedback loop).</li>
+    </ol>
+    <p class="dep">Il cuore della missione. Dipende da auth (Fase 1).</p>
+  </div>
+
+  <div class="phase">
+    <h3><span class="badge">Fase 3</span> Mobile e PWA <span class="dur">2-3 settimane</span></h3>
+    <ol>
+      <li>Responsive o shell mobile dedicata; rimuovere il toggle iOS/Android del prototipo.</li>
+      <li>PWA installabile, cache offline, service worker.</li>
+      <li>Notifiche in-app, poi push (Web Push).</li>
+    </ol>
+    <p class="dep">Ha senso dopo le feature core (Fase 1-2).</p>
+  </div>
+
+  <div class="phase">
+    <h3><span class="badge">Fase 4</span> Community e città <span class="dur">3-4 settimane</span></h3>
+    <ol>
+      <li>Città: mappa (Leaflet/Mapbox), spazi, galleria (upload reale), documenti (PDF), timeline.</li>
+      <li>Community: mentorship, competenze, webinar (video), rassegna stampa.</li>
+      <li>Reputazione e badge (calcolano sui dati delle feature precedenti, quindi per ultimi).</li>
+      <li>Sondaggi rapidi, sync Google Calendar reale, email digest (cron + Resend/SendGrid).</li>
+    </ol>
+    <p class="dep">Alto valore, non bloccanti. Riusano i pattern già costruiti.</p>
+  </div>
+
+  <div class="phase">
+    <h3><span class="badge">Fase 5</span> Analytics, testing, deploy <span class="dur">continuo</span></h3>
+    <ol>
+      <li>Analytics admin (engagement, retention, trend): query aggregate + grafici.</li>
+      <li>Testing: unit (voti, auth, stati proposte) + e2e (Playwright) sui casi di <code>Flusso di Test.html</code>.</li>
+      <li>Deploy: Vercel/Firebase, DB gestito, storage immagini, env per le chiavi.</li>
+      <li>Hardening: rate limiting, validazione server-side, GDPR, backup.</li>
+    </ol>
+  </div>
+
+  <h3>Dipendenze in breve</h3>
+  <pre class="tree">Fase 0 (fondamenta)
+   --> Fase 1 (auth, profilo, eventi, forum)
+          --> Fase 2 (proposte, admin, quiz, attuazione)
+                 --> Fase 3 (mobile / PWA / notifiche)
+                 --> Fase 4 (community, citta, reputazione, email)
+                        --> Fase 5 (analytics, testing, deploy)</pre>
+
+  <div class="callout">
+    <p style="margin:0"><b>Note pratiche.</b> Non costruire tutte le UI prima del backend: una feature alla volta, verticale (DB → API → UI). La timeline storica ha voci "da completare": è raccolta contenuti con tempi lunghi non tecnici, avviarla presto in parallelo. <code>Flusso di Test.html</code> è insieme guida di QA manuale e mappa dei casi e2e: tenerlo aggiornato.</p>
+  </div>
+
+  <hr>
+  <p class="note">Documentazione completa in <code>README.md</code> e <code>ROADMAP.md</code> nella cartella di handoff.</p>
+</div>
+</body>
+</html>

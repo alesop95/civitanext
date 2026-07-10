@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivitaNext · Guida per il cliente</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Caveat:wght@700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700;8..60,900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F5F0E4; --paper-card: #FCF9F1; --ink: #1E3A5F; --ink-soft: #5A6E85; --accent: #E8503A;
+    --serif: 'Source Serif 4', Georgia, serif; --sans: 'Archivo', Helvetica, sans-serif; --hand: 'Caveat', cursive;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--serif); padding: 56px 24px 90px; line-height: 1.5; }
+  .doc { max-width: 800px; margin: 0 auto; }
+  .kicker { font-family: var(--sans); font-weight: 700; font-size: 13px; letter-spacing: 2.5px; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 10px; }
+  h1 { font-size: 52px; font-weight: 900; line-height: 1.04; letter-spacing: -0.5px; }
+  .lead { font-size: 19px; line-height: 1.55; margin: 18px 0 8px; max-width: 42em; }
+  .hand { font-family: var(--hand); font-size: 26px; color: var(--accent); transform: rotate(-1.5deg); display: inline-block; }
+  hr { border: none; border-top: 3px solid var(--ink); margin: 34px 0; }
+  h2 { font-size: 28px; font-weight: 900; margin: 38px 0 14px; display: flex; align-items: baseline; gap: 12px; }
+  h2 .n { font-family: var(--sans); font-size: 15px; font-weight: 900; color: #fff; background: var(--accent); width: 34px; height: 34px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; flex: none; transform: translateY(-2px); }
+  h3 { font-size: 20px; font-weight: 700; margin: 22px 0 6px; }
+  p { margin-bottom: 12px; }
+  .card { background: var(--paper-card); border: 2.5px solid var(--ink); border-radius: 3px; padding: 22px 24px; box-shadow: 5px 5px 0 rgba(30,58,95,0.14); margin: 18px 0; }
+  .accounts { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 18px 0; }
+  .acc { background: var(--ink); color: var(--paper); border-radius: 3px; padding: 18px 20px; }
+  .acc .role { font-family: var(--sans); font-weight: 700; font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: #E8A99E; margin-bottom: 8px; }
+  .acc .cred { font-family: ui-monospace, monospace; font-size: 14px; line-height: 1.7; }
+  .acc .cred b { color: #fff; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+  .feat { background: var(--paper-card); border: 2px solid var(--ink); border-radius: 3px; padding: 14px 16px; }
+  .feat h4 { font-family: var(--sans); font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+  .feat p { font-size: 14px; color: var(--ink-soft); margin: 0; line-height: 1.4; }
+  ol.steps { counter-reset: s; list-style: none; padding: 0; margin: 16px 0; }
+  ol.steps li { position: relative; padding: 10px 0 10px 44px; border-bottom: 1.5px dashed rgba(30,58,95,0.3); font-size: 16px; }
+  ol.steps li:last-child { border-bottom: none; }
+  ol.steps li::before { counter-increment: s; content: counter(s); position: absolute; left: 0; top: 9px; width: 30px; height: 30px; background: var(--ink); color: var(--paper); font-family: var(--sans); font-weight: 900; font-size: 14px; border-radius: 999px; display: flex; align-items: center; justify-content: center; }
+  ul.plain { list-style: none; padding: 0; margin: 12px 0; }
+  ul.plain li { padding: 7px 0 7px 26px; position: relative; font-size: 16px; border-bottom: 1px solid rgba(30,58,95,0.12); }
+  ul.plain li:last-child { border: none; }
+  ul.plain li::before { content: ''; position: absolute; left: 4px; top: 15px; width: 9px; height: 9px; background: var(--accent); border-radius: 999px; }
+  code { font-family: ui-monospace, monospace; font-size: 13px; background: rgba(30,58,95,0.08); padding: 2px 7px; border-radius: 3px; }
+  .note { font-family: var(--sans); font-size: 14px; color: var(--ink-soft); }
+  .tag { display: inline-block; font-family: var(--sans); font-weight: 700; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; background: var(--accent); color: #fff; padding: 3px 9px; border-radius: 999px; }
+  @media (max-width: 640px) { .accounts, .grid { grid-template-columns: 1fr; } h1 { font-size: 38px; } }
+  @media print { body { padding: 0; } .card, .acc, .feat { break-inside: avoid; } }
+</style>
+<template id="__bundler_thumbnail" data-bg-color="#F5F0E4">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#F5F0E4"/>
+    <g transform="translate(600,330)">
+      <g fill="none" stroke="#E8503A" stroke-width="14">
+        <line x1="0" y1="-150" x2="0" y2="-96"/>
+        <line x1="106" y1="-106" x2="68" y2="-68"/>
+        <line x1="150" y1="0" x2="96" y2="0"/>
+        <line x1="106" y1="106" x2="68" y2="68"/>
+        <line x1="0" y1="150" x2="0" y2="96"/>
+        <line x1="-106" y1="106" x2="-68" y2="68"/>
+        <line x1="-150" y1="0" x2="-96" y2="0"/>
+        <line x1="-106" y1="-106" x2="-68" y2="-68"/>
+      </g>
+      <circle r="30" fill="#E8503A"/>
+    </g>
+    <text x="600" y="560" font-family="Georgia, serif" font-size="64" font-weight="900" text-anchor="middle" fill="#1E3A5F">Guida per il cliente</text>
+    <text x="600" y="620" font-family="Georgia, serif" font-size="28" text-anchor="middle" fill="#5A6E85">CivitaNext</text>
+  </svg>
+</template>
+</head>
+<body>
+<div class="doc">
+  <span class="kicker">CivitaNext · Prototipo dimostrativo</span>
+  <h1>Guida al mockup<br>per il cliente</h1>
+  <p class="lead">Questo documento spiega, senza tecnicismi, cosa è il prototipo di CivitaNext, come aprirlo, come muoversi dentro e cosa potrà fare la piattaforma una volta sviluppata.</p>
+  <p class="hand">Un giro guidato, dalla A alla Z.</p>
+
+  <hr>
+
+  <h2><span class="n">1</span> Cos'è questo</h2>
+  <p>È un <b>mockup interattivo</b>: una simulazione realistica e cliccabile della futura piattaforma di CivitaNext. Si guarda e si tocca come se fosse il sito vero, ma i dati sono di esempio e l'iscrizione, i pagamenti e gli accessi sono finti, pensati solo per mostrare come funzionerà.</p>
+  <p>Serve a <b>vedere e decidere</b>: l'aspetto, le sezioni, i percorsi degli utenti. È la base su cui poi partirà lo sviluppo vero e proprio.</p>
+  <div class="card">
+    <p style="margin:0"><span class="tag">Importante</span></p>
+    <p style="margin-top:10px;margin-bottom:0">Tutto quello che vedi è <b>modificabile</b>. Colori, testi, sezioni: niente è definitivo finché non lo confermiamo insieme. Questo è il momento giusto per chiedere cambiamenti.</p>
+  </div>
+
+  <h2><span class="n">2</span> Come si apre</h2>
+  <p>Ci sono due versioni da guardare. Si aprono con un doppio clic, in un normale browser (Chrome, Edge, Safari).</p>
+  <div class="grid">
+    <div class="feat"><h4>Versione desktop</h4><p>File <code>CivitaNext Piattaforma.html</code> · come si vedrà da computer.</p></div>
+    <div class="feat"><h4>Versione mobile</h4><p>File <code>CivitaNext Mobile.html</code> · come si vedrà su telefono (iPhone e Android).</p></div>
+  </div>
+  <p class="note">Nella versione mobile, in alto a destra c'è il pannello "Tweaks" dove si può passare da iPhone ad Android e cambiare il colore d'accento, giusto per vedere le alternative.</p>
+
+  <h2><span class="n">3</span> Gli accessi di prova</h2>
+  <p>Per provare le parti riservate puoi entrare con due profili finti. Premi "Accedi" e usa una di queste coppie:</p>
+  <div class="accounts">
+    <div class="acc">
+      <div class="role">Socio · cittadino iscritto</div>
+      <div class="cred">email · <b>socio@civitanext.it</b><br>password · <b>civita2026</b></div>
+    </div>
+    <div class="acc">
+      <div class="role">Admin · chi gestisce</div>
+      <div class="cred">email · <b>admin@civitanext.it</b><br>password · <b>admin2026</b></div>
+    </div>
+  </div>
+  <p class="note">Il socio vede il proprio profilo, la tessera e può proporre idee. L'admin vede in più il pannello di controllo per gestire tutto.</p>
+
+  <h2><span class="n">4</span> Un giro consigliato</h2>
+  <p>Se è la prima volta, segui questo percorso per vedere le cose principali:</p>
+  <ol class="steps">
+    <li>Parti dalla <b>Home</b>: scorri prossimi eventi, discussioni e il quiz in evidenza. Prova a votare il sondaggio rapido.</li>
+    <li>Vai su <b>Eventi</b>: guarda il calendario, filtra per categoria, premi "Partecipo".</li>
+    <li>Apri <b>Quiz</b>: fai un quiz fino al risultato, poi guarda la classifica.</li>
+    <li>Entra nel <b>Forum</b>: apri una discussione, vota, scrivi una risposta.</li>
+    <li>Vai su <b>Proposte</b>: vota un'idea e guarda la scheda "Attuazione".</li>
+    <li>Esplora <b>Città</b> e <b>Community</b>: mappa, spazi, timeline, mentorship, competenze.</li>
+    <li>Fai <b>login come socio</b> e guarda profilo, tessera e badge.</li>
+    <li>Fai <b>login come admin</b> e apri il pannello: approva una proposta e guarda come diventa pubblica.</li>
+  </ol>
+  <p class="note">C'è anche un file <b>Flusso di Test.html</b> con una lista completa e spuntabile di tutto ciò che si può provare, passo per passo.</p>
+
+  <h2><span class="n">5</span> Cosa contiene la piattaforma</h2>
+  <p>Tutte le funzioni previste, già visibili nel mockup:</p>
+  <div class="grid">
+    <div class="feat"><h4>Eventi e calendario</h4><p>Calendario, filtri, partecipazione, sincronizzazione con Google Calendar.</p></div>
+    <div class="feat"><h4>Quiz civici</h4><p>Quiz a domande con spiegazioni, punteggio e classifica mensile.</p></div>
+    <div class="feat"><h4>Forum</h4><p>Discussioni per categoria, voti, risposte, moderazione.</p></div>
+    <div class="feat"><h4>Proposte e voti</h4><p>I cittadini propongono idee, le votano, ne seguono l'attuazione.</p></div>
+    <div class="feat"><h4>Profilo socio</h4><p>Tessera digitale, badge, reputazione, preferenze, iscrizione online.</p></div>
+    <div class="feat"><h4>Pannello admin</h4><p>Statistiche, approvazioni, moderazione, gestione eventi/quiz/utenti, analytics.</p></div>
+    <div class="feat"><h4>La città</h4><p>Mappa, spazi civici, timeline storica, galleria foto, documenti ufficiali.</p></div>
+    <div class="feat"><h4>Community</h4><p>Mentorship, scambio di competenze, webinar, rassegna stampa.</p></div>
+    <div class="feat"><h4>Notifiche</h4><p>Avvisi e promemoria su eventi e proposte.</p></div>
+    <div class="feat"><h4>Mobile dedicato</h4><p>Esperienza pensata per telefono, iPhone e Android.</p></div>
+  </div>
+
+  <h2><span class="n">6</span> Cosa è finto, per ora</h2>
+  <ul class="plain">
+    <li>Gli <b>accessi</b> e l'iscrizione: nessun account reale, nessun pagamento vero.</li>
+    <li>I <b>contenuti</b> (eventi, discussioni, foto) sono esempi per riempire le pagine.</li>
+    <li>Le <b>foto</b> sono segnaposto: andranno fornite quelle reali.</li>
+    <li>La <b>timeline storica</b> della città ha voci "da completare": vanno raccolti i materiali (foto e date) insieme alla biblioteca o agli archivi.</li>
+  </ul>
+  <p>Tutto questo diventa reale nella fase di sviluppo, descritta nella guida tecnica.</p>
+
+  <hr>
+  <p class="hand">Hai dubbi o vuoi cambiare qualcosa? Annota e ne parliamo.</p>
+  <p class="note">CivitaNext · documento dimostrativo. Versione desktop e mobile incluse nel pacchetto.</p>
+</div>
+</body>
+</html>

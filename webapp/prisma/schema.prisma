@@ -1,0 +1,111 @@
+// Schema iniziale di Fase 0 (fondamenta): solo le entita' indicate dal
+// ROADMAP di design_handoff_civitanext/ROADMAP.md (User, Event, Thread,
+// Reply, Proposal) piu' Vote, anticipata per definizione di schema perche'
+// il vincolo di voto unico per utente attraversa piu' feature (sondaggi,
+// forum, proposte) e cosi' si evita una migrazione di rottura quando in
+// Fase 1/2 il voto verra' davvero cablato a UI e API. Nessuna feature
+// utente in questa fase: solo struttura dati.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  SOCIO
+  ADMIN
+}
+
+enum ProposalStatus {
+  REVISIONE
+  VOTAZIONE
+  APPROVATA
+}
+
+enum VoteTargetType {
+  THREAD
+  PROPOSAL
+  POLL
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  passwordHash  String
+  name          String
+  role          Role     @default(SOCIO)
+  tesseraNumero String?  @unique
+  memberSince   DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  threads   Thread[]
+  replies   Reply[]
+  proposals Proposal[]
+  votes     Vote[]
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  date        DateTime
+  location    String
+  category    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Thread {
+  id        String   @id @default(cuid())
+  title     String
+  category  String
+  body      String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  replies   Reply[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Reply {
+  id        String   @id @default(cuid())
+  threadId  String
+  thread    Thread   @relation(fields: [threadId], references: [id])
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  body      String
+  createdAt DateTime @default(now())
+}
+
+model Proposal {
+  id          String         @id @default(cuid())
+  title       String
+  category    String
+  description String
+  authorId    String
+  author      User           @relation(fields: [authorId], references: [id])
+  status      ProposalStatus @default(REVISIONE)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+}
+
+// Vincolo di voto unico per utente, condiviso da piu' feature (sondaggi,
+// thread, proposte). targetId non e' una foreign key vera perche' punta a
+// modelli diversi a seconda di targetType (pattern polimorfico): si perde
+// l'integrita' referenziale a livello di database su quel campo, un
+// compromesso deliberato per evitare tre tabelle di voto quasi identiche.
+model Vote {
+  id         String         @id @default(cuid())
+  userId     String
+  user       User           @relation(fields: [userId], references: [id])
+  targetType VoteTargetType
+  targetId   String
+  createdAt  DateTime       @default(now())
+
+  @@unique([userId, targetType, targetId])
+}

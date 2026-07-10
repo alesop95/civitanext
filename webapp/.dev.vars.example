@@ -1,0 +1,3 @@
+# Modello delle variabili lette in emulazione locale Workers (wrangler dev/preview).
+# .dev.vars resta locale e ignorato da git.
+NEXTJS_ENV=development

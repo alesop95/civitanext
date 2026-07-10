@@ -1,0 +1,16 @@
+﻿node_modules/
+dist/
+build/
+.vite/
+*.local
+.env
+.env.*
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# === Claude standard privato ===
+_notes/
+CLAUDE.local.md
+.claude/settings.local.json
+.claude/memory/*.local.md

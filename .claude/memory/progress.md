@@ -1,0 +1,92 @@
+# Work-log
+
+> Append-only, in ordine cronologico inverso (la voce più recente in alto). Ogni passo
+> significativo di codice e ogni intervento manuale rilevante lascia una voce con data, file
+> toccati, motivo e commit di riferimento. Qui confluisce anche il log di riconciliazione dei
+> documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
+> sopravvive a un clone.
+
+## 2026-07-10 — Audit anonimizzazione pre-commit, `.env.example`, revisione nota stakeholder
+
+Commit di riferimento: working tree in corso.
+File toccati: rimossi i nomi di altri progetti personali e l'email aziendale da
+`memory/progress.md`, `memory/decisions.md` (ADR-007), `context/current-work.md`,
+`.claude/PROJECT-SYSTEM.md` (esempio KEEP genericizzato) e `rules/git-identity-and-repo.md`
+(la sola parte aggiunta in questa sessione); creati `webapp/.env.example` e
+`webapp/.dev.vars.example` (solo nomi di variabili, nessun valore) con l'eccezione corrispondente
+aggiunta a `webapp/.gitignore` (`!.env.example`), perché la regola `.env*` generata da
+`create-next-app` li escludeva entrambi per errore; confermato con `git add --dry-run` che
+nessun file `.env` reale finirebbe in un commit. Revisionato il contenuto di
+`_notes/stakeholder-brief-fase-0.html` (non versionato) su richiesta dell'utente: prosa più
+scorrevole al posto di liste frammentate, apertura più diretta.
+Motivo: richiesta esplicita dell'utente di verificare la predisposizione di credenziali, segreti
+e anonimizzazione prima del primo commit. Trovati e corretti nomi di altri repository personali
+e un indirizzo email aziendale in file altrimenti tracciati.
+Punto lasciato aperto, segnalato all'utente in chat non qui: `rules/git-identity-and-repo.md`
+(sezione "Profilo di lavoro") e `skills/init-project-system/SKILL.md` contengono lo stesso
+indirizzo email aziendale, ma erano già committati nel primissimo commit (`4e4447a`), prima di
+questa sessione; correggerli richiede modificare storia già scritta (nessun push ancora
+avvenuto), quindi resta una decisione dell'utente, non un'azione fatta unilateralmente qui.
+
+## 2026-07-10 — Schema dati, separazione ambienti, schede context/ popolate, studio-didattico adottato
+
+Commit di riferimento: working tree in corso (nessun commit ancora su questo blocco).
+File toccati: `webapp/prisma/schema.prisma` (User, Event, Thread, Reply, Proposal, Vote, enum
+Role/ProposalStatus/VoteTargetType, validato con `prisma validate`); le sei schede
+`.claude/context/*.md` popolate con contenuto reale (STACK.md, deployment.md,
+design-and-security.md, roadmap.md, current-work.md, dev-testing.md); adottato il livello
+didattico opzionale, `studio-didattico-master.md` con quattro voci e i relativi deep-dive
+`refactor-01..04-*.md`; `CLAUDE.md` aggiornato per riflettere lo scaffold reale e l'adozione del
+livello didattico; registrato ADR-007 in `memory/decisions.md` sulla separazione ambienti
+test/produzione (branch Neon + deployment di anteprima Cloudflare, invece di duplicare
+infrastruttura o disciplinare solo i branch di codice).
+Motivo: chiusura di Fase 0. Confronto didattico privato con altri progetti personali svolto e
+scritto in `_notes/studio-didattico-confronto-ambienti.md`, deliberatamente non tracciato e
+senza nominarli qui perché tocca dettagli di repository altrui; durante quell'esplorazione un
+sub-agente ha generato un avviso di sicurezza (lettura di un `.env` altrui via `grep`/`awk`,
+aggirando la regola `deny` su `Read`), annotato sia nella nota privata sia segnalato all'utente
+in chat.
+Ancora aperto: migrazione Prisma reale (in attesa che l'utente imposti `DATABASE_URL` locale in
+`webapp/.env`), sintesi non tecnica per lo stakeholder, verifica del runtime Cloudflare reale.
+
+## 2026-07-10 — Test di validazione Cloudflare Workers: esito negativo, non per Prisma/bcrypt
+
+Commit di riferimento: working tree in corso (nessun commit ancora su questo blocco).
+File toccati: `webapp/` bootstrap completo (Next.js 16.2.10 + TypeScript, adapter
+`@opennextjs/cloudflare`, Prisma 7.8 con `@prisma/adapter-pg`, `bcryptjs`, `next-auth` beta),
+route diagnostica temporanea `webapp/src/app/api/diag-fase0/route.ts`.
+Esito: `npx opennextjs-cloudflare build` completa senza errori; ma `wrangler dev` locale
+restituisce 500 su **ogni** rotta, compresa la home page senza alcun codice Prisma/bcrypt
+coinvolto (`ChunkLoadError: Failed to load chunk ... [externals]__0gmzu6y._.js`, poi
+`TypeError: components.ComponentMod.handler is not a function`). Non e' quindi l'attrito
+Prisma/bcrypt su Workers ipotizzato in ADR-004/005 (mai arrivato a essere testato: il worker
+non serve nemmeno la home page), ma un problema di risoluzione dei chunk piu' a monte, coerente
+con l'avviso esplicito emesso dallo stesso tool in fase di build e migrate ("OpenNext is not
+fully compatible with Windows... could encounter unpredictable failures during runtime").
+Motivo della voce: onestita' del contenuto, non si presenta un esito positivo non verificato;
+questo e' il punto di decisione previsto da ADR-004 in caso di test negativo, da riportare
+all'utente prima di proseguire.
+
+## 2026-07-10 — Allineamento del sistema di progetto e avvio Fase 0
+
+Commit di riferimento: 7ba6100 (main, working tree pulito).
+File toccati: `.claude/PROJECT-SYSTEM.md` e `.claude/rules/token-economy.md` sincronizzati alla
+versione corrente di `E:\template-claude-developing` (generalizzazione ingestione documenti
+voluminosi oltre ai soli `.docx`, menzione dei pacchetti opzionali `hooks-starter`,
+`stack-profiles`, `doc-ingest`, `notebooklm-bridge`); `.claude/rules/git-identity-and-repo.md`
+integrato con la sezione mancante sull'asse account Claude Code/OAuth, mantenendo i valori reali
+già instanziati per questo repository (identità git personale `alesop95`) invece di sostituirli
+con i placeholder generici del template; `.claude/memory/index.md` ancorato all'HEAD reale.
+Motivo: `CLAUDE.md` dichiarava "Frontend React costruito con Vite" senza che esistesse alcuno
+scaffold applicativo reale, e la memoria di progetto non era mai stata ancorata a un commit
+nonostante 4 commit già presenti. Avvio del blocco di lavoro "Fase 0 - fondamenta" del ROADMAP
+di `design_handoff_civitanext/`, con vincolo di infrastruttura interamente gratuita da
+confrontare esplicitamente prima di scegliere (vedi ADR-004 quando registrata).
+
+## 2026-06-19 — Inizializzazione del sistema di progetto
+
+Commit: 4e4447a
+File toccati: anatomia di `.claude`, `CLAUDE.md`, `.gitignore`, schede di `context/`.
+Motivo: installazione del sistema portabile di contesto, documentazione e version control
+descritto in `.claude/PROJECT-SYSTEM.md`. Schede create con struttura e frontmatter, da popolare
+leggendo il codice nelle sessioni successive.

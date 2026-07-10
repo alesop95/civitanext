@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CivitaNext · Piattaforma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700;8..60,900&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<link href="civitanext-features.css" rel="stylesheet">
+<style>
+  :root {
+    --paper: #F5F0E4;
+    --paper-card: #FCF9F1;
+    --ink: #1E3A5F;
+    --ink-soft: #5A6E85;
+    --accent: #E8503A;
+    --radius: 2px;
+    --serif: 'Source Serif 4', Georgia, serif;
+    --sans: 'Archivo', Helvetica, sans-serif;
+    --hand: 'Caveat', cursive;
+  }
+  * { margin: 0; box-sizing: border-box; }
+  body { background: var(--paper); color: var(--ink); font-family: var(--serif); }
+  button { font-family: inherit; cursor: pointer; }
+
+  .cn-root { min-height: 100vh; display: flex; flex-direction: column; }
+  .cn-root.has-texture {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.012' numOctaves='3'/%3E%3CfeColorMatrix values='0 0 0 0 0.45 0 0 0 0 0.42 0 0 0 0 0.36 0 0 0 0.16 0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- Nav ---------- */
+  .cn-nav {
+    display: flex; align-items: center; justify-content: space-between; gap: 24px;
+    padding: 18px 40px; border-bottom: 3px solid var(--ink);
+    position: sticky; top: 0; background: var(--paper); z-index: 50;
+  }
+  .cn-logo { display: inline-flex; align-items: center; gap: 10px; }
+  .cn-logo-word { font-family: var(--sans); font-weight: 900; font-size: 19px; letter-spacing: 0.5px; line-height: 0.95; display: inline-flex; flex-direction: column; }
+  .cn-logo-word b { color: var(--ink); }
+  .cn-logo-word i { color: var(--accent); font-style: normal; }
+  .cn-nav-tabs { display: flex; gap: 2px; }
+  .cn-nav-tab {
+    background: none; border: none; font-family: var(--sans); font-weight: 700;
+    font-size: 14.5px; color: var(--ink-soft); padding: 10px 11px; min-height: 44px;
+  }
+  .cn-nav-tab.is-active { color: var(--ink); }
+  .cn-nav-right { display: flex; gap: 12px; align-items: center; }
+  .cn-bell { position: relative; background: none; border: 2px solid var(--ink); border-radius: 999px; font-family: var(--sans); font-weight: 700; font-size: 13px; color: var(--ink); padding: 8px 16px; min-height: 44px; }
+  .cn-bell.is-active { background: var(--ink); color: var(--paper); }
+  .cn-bell-dot { position: absolute; top: -3px; right: -3px; width: 10px; height: 10px; border-radius: 999px; background: var(--accent); }
+  .cn-userbtn { display: flex; align-items: center; gap: 8px; background: none; border: none; font-family: var(--sans); font-weight: 700; font-size: 14px; color: var(--ink); min-height: 44px; }
+
+  /* ---------- Layout ---------- */
+  .cn-main { flex: 1; width: 100%; max-width: 1060px; margin: 0 auto; padding: 36px 40px 72px; }
+  .cn-section { margin-top: 56px; }
+  .cn-section-split { display: grid; grid-template-columns: 1.6fr 1fr; gap: 32px; align-items: start; }
+
+  .cn-section-title { margin-bottom: 24px; }
+  .cn-section-title h2 { font-size: 36px; font-weight: 900; display: inline-block; margin-right: 14px; }
+  .cn-kicker {
+    display: block; font-family: var(--sans); font-weight: 700; font-size: 13px;
+    letter-spacing: 2px; text-transform: uppercase; color: var(--accent); margin-bottom: 4px;
+  }
+  .cn-hand { font-family: var(--hand); font-size: 22px; color: var(--ink); }
+
+  /* ---------- Hero ---------- */
+  .cn-hero { position: relative; padding: 64px 0 88px; overflow: visible; }
+  .cn-hero h1 { font-size: 64px; font-weight: 900; line-height: 1.02; letter-spacing: -1px; max-width: 13em; }
+  .cn-hero-kicker { font-size: 14px; }
+  .cn-hero-sub { font-size: 22px; line-height: 1.45; max-width: 30em; margin-top: 20px; }
+  .cn-hero-cta { display: flex; gap: 14px; margin-top: 30px; }
+  .cn-hero-hand { position: absolute; right: 60px; bottom: 60px; font-size: 26px; transform: rotate(-6deg); }
+
+  /* ---------- Bottoni e chip ---------- */
+  .cn-btn {
+    font-family: var(--sans); font-weight: 700; font-size: 16px; border-radius: var(--radius);
+    padding: 13px 24px; min-height: 44px; border: 2.5px solid var(--ink);
+    background: var(--accent); color: #fff; border-color: var(--accent);
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .cn-btn:hover { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--ink); }
+  .cn-btn-ghost { background: transparent; color: var(--ink); border-color: var(--ink); }
+  .cn-btn-paper { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  .cn-btn-done { background: var(--ink); border-color: var(--ink); }
+  .cn-btn-sm { font-size: 14px; padding: 9px 16px; }
+
+  .cn-chip-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .cn-chip {
+    font-family: var(--sans); font-weight: 700; font-size: 14px; min-height: 44px;
+    padding: 8px 18px; border: 2px solid var(--ink); border-radius: 999px;
+    background: transparent; color: var(--ink);
+  }
+  .cn-chip.is-active { background: var(--ink); color: var(--paper); }
+
+  .cn-tag {
+    display: inline-block; font-family: var(--sans); font-weight: 700; font-size: 11px;
+    letter-spacing: 1.2px; text-transform: uppercase; border: 1.5px solid;
+    padding: 3px 8px; border-radius: 999px; margin-bottom: 8px;
+  }
+  .cn-meta { font-family: var(--sans); font-size: 13.5px; color: var(--ink-soft); }
+
+  /* ---------- Card eventi ---------- */
+  .cn-event-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+  .cn-event-card, .cn-event-full {
+    background: var(--paper-card); border: 2.5px solid var(--ink); border-radius: var(--radius);
+    padding: 22px; display: flex; gap: 18px; box-shadow: 5px 5px 0 rgba(30,58,95,0.14);
+  }
+  .cn-event-card { flex-direction: column; cursor: pointer; transition: transform 0.12s ease; }
+  .cn-event-card:hover { transform: translateY(-3px); }
+  .cn-event-card h3, .cn-event-full h3 { font-size: 20px; font-weight: 700; line-height: 1.2; margin: 2px 0 6px; }
+  .cn-event-date {
+    flex: none; width: 62px; height: 62px; background: var(--ink); color: var(--paper);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    border-radius: var(--radius); font-family: var(--sans);
+  }
+  .cn-event-date b { font-size: 24px; line-height: 1; }
+  .cn-event-date span { font-size: 11px; letter-spacing: 2px; font-weight: 700; }
+
+  .cn-eventi-layout { display: grid; grid-template-columns: 320px 1fr; gap: 36px; align-items: start; }
+  .cn-event-list { display: flex; flex-direction: column; gap: 18px; }
+  .cn-event-full-body { flex: 1; }
+  .cn-event-desc { margin: 10px 0 14px; line-height: 1.5; font-size: 16.5px; }
+  .cn-event-actions { display: flex; gap: 10px; }
+
+  /* ---------- Calendario ---------- */
+  .cn-cal-card {
+    background: var(--paper-card); border: 2.5px solid var(--ink); border-radius: var(--radius);
+    padding: 22px; box-shadow: 5px 5px 0 rgba(30,58,95,0.14); position: sticky; top: 96px;
+  }
+  .cn-cal-head { font-family: var(--sans); font-weight: 900; font-size: 18px; margin-bottom: 14px; }
+  .cn-cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
+  .cn-cal-dow { font-family: var(--sans); font-weight: 700; font-size: 11px; color: var(--ink-soft); padding: 4px 0; }
+  .cn-cal-day {
+    position: relative; font-family: var(--sans); font-size: 14px; padding: 8px 0;
+    border-radius: 999px;
+  }
+  .cn-cal-day.has-event { font-weight: 700; }
+  .cn-cal-day.is-today { background: var(--ink); color: var(--paper); }
+  .cn-cal-dot {
+    position: absolute; left: 50%; bottom: 1px; transform: translateX(-50%);
+    width: 5px; height: 5px; border-radius: 999px; background: var(--accent);
+  }
+
+  /* ---------- Quiz ---------- */
+  .cn-quiz-promo {
+    position: relative; background: var(--ink); color: var(--paper); border-radius: var(--radius);
+    padding: 28px; cursor: pointer; overflow: visible;
+    display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+  }
+  .cn-home-aside { display: flex; flex-direction: column; gap: 20px; margin-top: 64px; }
+  .cn-quiz-promo h3 { font-size: 24px; font-weight: 900; }
+  .cn-quiz-promo p { font-size: 16px; opacity: 0.85; }
+
+  .cn-quiz-list { display: flex; flex-direction: column; gap: 16px; max-width: 640px; }
+  .cn-quiz-card {
+    display: flex; align-items: center; justify-content: space-between; gap: 18px;
+    background: var(--paper-card); border: 2.5px solid var(--ink); border-radius: var(--radius);
+    padding: 20px 24px; box-shadow: 5px 5px 0 rgba(30,58,95,0.14);
+  }
+  .cn-quiz-card h3 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+  .cn-quiz-card.is-locked { opacity: 0.55; box-shadow: none; }
+  .cn-locked-label { font-style: italic; }
+
+  .cn-quiz-stage { max-width: 640px; margin: 0 auto; padding-top: 16px; }
+  .cn-quiz-progress { display: flex; flex-direction: column; gap: 8px; margin-bottom: 28px; font-family: var(--sans); font-weight: 700; font-size: 13px; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-soft); }
+  .cn-progress-track { height: 8px; background: rgba(30,58,95,0.15); border-radius: 999px; }
+  .cn-progress-fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width 0.3s ease; }
+  .cn-quiz-q { font-size: 30px; font-weight: 900; line-height: 1.2; margin-bottom: 24px; }
+  .cn-quiz-opts { display: flex; flex-direction: column; gap: 12px; }
+  .cn-quiz-opt {
+    display: flex; align-items: center; gap: 14px; text-align: left;
+    font-family: var(--serif); font-size: 17px; color: var(--ink);
+    background: var(--paper-card); border: 2.5px solid var(--ink); border-radius: var(--radius);
+    padding: 14px 18px; min-height: 44px; transition: transform 0.12s ease;
+  }
+  .cn-quiz-opt:not(:disabled):hover { transform: translate(-2px, -2px); box-shadow: 3px 3px 0 var(--ink); }
+  .cn-opt-letter {
+    flex: none; width: 30px; height: 30px; border-radius: 999px; border: 2px solid var(--ink);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--sans); font-weight: 700; font-size: 14px;
+  }
+  .cn-quiz-opt.is-correct { background: var(--ink); color: var(--paper); }
+  .cn-quiz-opt.is-correct .cn-opt-letter { border-color: var(--paper); }
+  .cn-quiz-opt.is-wrong { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .cn-quiz-opt.is-wrong .cn-opt-letter { border-color: #fff; }
+  .cn-quiz-opt.is-muted { opacity: 0.45; }
+  .cn-quiz-why { margin-top: 24px; border-top: 2px dashed var(--ink); padding-top: 18px; display: flex; flex-direction: column; gap: 14px; align-items: flex-start; }
+  .cn-quiz-why p { font-size: 17px; line-height: 1.5; }
+  .cn-quiz-result { text-align: center; padding-top: 24px; }
+  .cn-quiz-score { font-size: 72px; font-weight: 900; margin: 16px 0 6px; }
+  .cn-quiz-result-text { font-size: 20px; margin-bottom: 28px; }
+
+  /* ---------- Forum ---------- */
+  .cn-thread-list, .cn-thread-mini-list { display: flex; flex-direction: column; gap: 14px; }
+  .cn-thread-row {
+    display: flex; align-items: center; gap: 18px; cursor: pointer;
+    background: var(--paper-card); border: 2.5px solid var(--ink); border-radius: var(--radius);
+    padding: 18px 22px; box-shadow: 5px 5px 0 rgba(30,58,95,0.14); transition: transform 0.12s ease;
+  }
+  .cn-thread-row:hover { transform: translateY(-2px); }
+  .cn-thread-row-main { flex: 1; }
+  .cn-thread-row h3 { font-size: 19px; font-weight: 700; margin-bottom: 4px; }
+  .cn-thread-arrow { font-family: var(--sans); font-weight: 900; font-size: 20px; color: var(--accent); }
+  .cn-vote-btn {
+    flex: none; font-family: var(--sans); font-weight: 700; font-size: 14px;
+    border: 2px solid var(--ink); background: transparent; color: var(--ink);
+    border-radius: var(--radius); padding: 8px 12px; min-height: 44px; min-width: 56px;
+  }
+  .cn-vote-btn.is-voted { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .cn-votes-pill {
+    flex: none; font-family: var(--sans); font-weight: 700; font-size: 13px;
+    border: 2px solid var(--ink); border-radius: 999px; padding: 4px 10px;
+  }
+  .cn-thread-mini { display: flex; gap: 14px; align-items: center; cursor: pointer; background: var(--paper-card); border: 2px solid var(--ink); border-radius: var(--radius); padding: 14px 18px; }
+  .cn-thread-mini h4 { font-size: 17px; font-weight: 700; }
+
+  .cn-thread-detail { max-width: 720px; }
+  .cn-back { background: none; border: none; font-family: var(--sans); font-weight: 700; font-size: 14px; color: var(--accent); padding: 8px 0; min-height: 44px; margin-bottom: 8px; }
+  .cn-thread-title { font-size: 34px; font-weight: 900; line-height: 1.12; margin: 6px 0 8px; }
+  .cn-thread-body { font-size: 18px; line-height: 1.55; margin: 18px 0; }
+  .cn-thread-actions { display: flex; gap: 12px; align-items: center; margin-bottom: 36px; }
+  .cn-replies-head { font-family: var(--sans); font-weight: 900; font-size: 16px; letter-spacing: 0.5px; text-transform: uppercase; border-top: 3px solid var(--ink); padding-top: 18px; margin-bottom: 18px; }
+  .cn-replies { display: flex; flex-direction: column; gap: 20px; margin-bottom: 28px; }
+  .cn-reply { display: flex; gap: 14px; }
+  .cn-reply-text { font-size: 16.5px; line-height: 1.5; margin-top: 4px; }
+  .cn-avatar { flex: none; border-radius: 999px; color: #fff; font-family: var(--sans); font-weight: 700; display: inline-flex; align-items: center; justify-content: center; }
+  .cn-composer { display: flex; flex-direction: column; gap: 12px; align-items: flex-end; }
+  .cn-composer textarea {
+    width: 100%; font-family: var(--serif); font-size: 16px; color: var(--ink);
+    background: var(--paper-card); border: 2.5px solid var(--ink); border-radius: var(--radius);
+    padding: 14px; resize: vertical;
+  }
+  .cn-composer textarea:focus { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  /* ---------- Toast + footer ---------- */
+  .cn-toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translate(-50%, 80px);
+    background: var(--ink); color: var(--paper); font-family: var(--sans); font-weight: 700;
+    font-size: 14px; padding: 12px 22px; border-radius: 999px; transition: transform 0.25s ease;
+    z-index: 100; pointer-events: none;
+  }
+  .cn-toast.is-visible { transform: translate(-50%, 0); }
+
+  .cn-footer {
+    border-top: 3px solid var(--ink); padding: 28px 40px; display: flex;
+    align-items: center; gap: 24px; font-family: var(--sans); font-size: 14px;
+  }
+
+  @media (max-width: 900px) {
+    .cn-main { padding: 24px 20px 56px; }
+    .cn-nav { padding: 14px 20px; }
+    .cn-hero h1 { font-size: 42px; }
+    .cn-event-row, .cn-section-split, .cn-eventi-layout { grid-template-columns: 1fr; }
+    .cn-cal-card { position: static; }
+    .cn-hero-hand { display: none; }
+  }
+</style>
+<template id="__bundler_thumbnail" data-bg-color="#F5F0E4">
+  <svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+    <rect width="1200" height="800" fill="#F5F0E4"/>
+    <g transform="translate(600,360)">
+      <g fill="none" stroke="#E8503A" stroke-width="14">
+        <line x1="0" y1="-170" x2="0" y2="-110"/>
+        <line x1="120" y1="-120" x2="78" y2="-78"/>
+        <line x1="170" y1="0" x2="110" y2="0"/>
+        <line x1="120" y1="120" x2="78" y2="78"/>
+        <line x1="0" y1="170" x2="0" y2="110"/>
+        <line x1="-120" y1="120" x2="-78" y2="78"/>
+        <line x1="-170" y1="0" x2="-110" y2="0"/>
+        <line x1="-120" y1="-120" x2="-78" y2="-78"/>
+      </g>
+      <circle r="34" fill="#E8503A"/>
+    </g>
+    <text x="600" y="610" font-family="Georgia, serif" font-size="92" font-weight="900" text-anchor="middle" fill="#1E3A5F" letter-spacing="2">CIVITANEXT</text>
+    <text x="600" y="670" font-family="Georgia, serif" font-size="30" text-anchor="middle" fill="#5A6E85">caricamento della piattaforma</text>
+  </svg>
+</template>
+</head>
+<body>
+<div id="root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="civitanext-ui.jsx"></script>
+<script type="text/babel" src="civitanext-data.jsx"></script>
+<script type="text/babel" src="civitanext-features.jsx"></script>
+<script type="text/babel" src="civitanext-features2.jsx"></script>
+<script type="text/babel" src="civitanext-admin.jsx"></script>
+<script type="text/babel" src="civitanext-pages.jsx"></script>
+<script type="text/babel" src="civitanext-app.jsx"></script>
+</body>
+</html>

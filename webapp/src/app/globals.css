@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens di CivitaNext, portati da design_handoff_civitanext/README.md.
+ * L'accento resta una variabile CSS (non un valore Tailwind statico) perche' il
+ * prototipo lo tratta come rideclinabile a runtime (pannello Tweaks): con la
+ * variabile in :root sia le utility Tailwind sia il CSS puro leggono lo stesso
+ * unico punto di modifica. Vedi studio-didattico per il confronto con
+ * l'alternativa (classi Tailwind statiche) e perche' e' stata scartata.
+ */
+:root {
+  --paper: #f5f0e4;
+  --paper-card: #fcf9f1;
+  --ink: #1e3a5f;
+  --ink-soft: #5a6e85;
+  --accent: #e8503a;
+  --shadow-hard-color: rgba(30, 58, 95, 0.14);
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-card: var(--paper-card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-accent: var(--accent);
+
+  --font-display: var(--font-source-serif-4);
+  --font-ui: var(--font-archivo);
+  --font-hand: var(--font-caveat);
+
+  /* Angoli netti per default: coerente con l'identita' "collage editoriale",
+     niente gradiente, niente ombre morbide diffuse. */
+  --radius-cn: 2px;
+
+  /* Ombra dura offset, mai sfocata. */
+  --shadow-hard: 5px 5px 0 var(--shadow-hard-color);
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
