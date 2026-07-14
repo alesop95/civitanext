@@ -15,9 +15,13 @@ datasource db {
   provider = "postgresql"
 }
 
+// Il ruolo e' l'asse di autorizzazione (cosa un account puo' fare), indipendente dal
+// tesseramento (se e' un socio verificato dell'associazione, tracciato da User.tesseraNumero).
+// Un UTENTE puo' avere tesseraNumero valorizzato o nullo: essere socio non e' un ruolo.
 enum Role {
-  SOCIO
+  SUPERADMIN
   ADMIN
+  UTENTE
 }
 
 enum ProposalStatus {
@@ -33,20 +37,59 @@ enum VoteTargetType {
 }
 
 model User {
-  id            String   @id @default(cuid())
-  email         String   @unique
-  passwordHash  String
+  id            String    @id @default(cuid())
+  email         String    @unique
+  // Nullable: un utente registrato solo via provider OAuth (Google) non ha mai impostato
+  // una password propria.
+  passwordHash  String?
   name          String
-  role          Role     @default(SOCIO)
-  tesseraNumero String?  @unique
-  memberSince   DateTime @default(now())
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  role          Role      @default(UTENTE)
+  tesseraNumero String?   @unique
+  memberSince   DateTime  @default(now())
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   threads   Thread[]
   replies   Reply[]
   proposals Proposal[]
   votes     Vote[]
+  accounts  Account[]
+}
+
+// Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
+// User.passwordHash, oppure OAuth). Richiesto da @auth/prisma-adapter; i campi che rispecchiano
+// la risposta del provider OAuth (refresh_token, access_token, ecc.) mantengono i nomi esatti
+// che l'adapter scrive, non la convenzione camelCase del resto dello schema.
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// Richiesto da @auth/prisma-adapter per la verifica email/reset password via link a scadenza.
+// Nessun modello Session: la strategia di sessione e' JWT (ADR-010), quindi @auth/prisma-adapter
+// non invoca mai i metodi che lo richiederebbero.
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
 }
 
 model Event {

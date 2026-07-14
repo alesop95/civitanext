@@ -59,9 +59,44 @@ Da verificare quando esisterà un branch Neon di sviluppo (ADR-007): se il bug u
 `migrate dev` contro lo shadow database (ADR-009) si manifesta anche contro un Postgres reale in
 rete o è specifico del server locale `prisma dev` di questa macchina.
 
+## Feature: Fase 1 — autenticazione reale e ruoli
+
+Cosa fa: introduce l'autenticazione reale (NextAuth) con tre livelli di autorizzazione
+(`SUPERADMIN`, `ADMIN`, `UTENTE`) e il tesseramento come dato indipendente dal ruolo, prima
+decisione della prima feature verticale di Fase 1 secondo `roadmap.md`.
+
+File da creare:
+
+```
+src/auth.ts (o equivalente)          configurazione NextAuth (provider, callback jwt/session), non ancora scritto
+src/app/api/auth/[...nextauth]/...   route handler NextAuth, non ancora scritto
+```
+
+File da modificare:
+
+```
+prisma/schema.prisma   Role (SUPERADMIN/ADMIN/UTENTE), passwordHash nullable, emailVerified/image, modelli Account e VerificationToken, fatto
+package.json           dipendenza @auth/prisma-adapter, non ancora aggiunta
+```
+
+Definition of done:
+
+- [x] Modello ruoli/tesseramento deciso e applicato allo schema (ADR-010)
+- [x] Strategia di sessione decisa (JWT con scadenza breve + ricontrollo ruolo al rinnovo, ADR-010)
+- [x] Provider di autenticazione decisi (credenziali + Google, ADR-010)
+- [x] Migrazione applicata al Postgres locale (procedura ADR-009)
+- [ ] Dipendenza `@auth/prisma-adapter` installata
+- [ ] Configurazione NextAuth scritta (`auth.ts`, route handler, callback `jwt`/`session`)
+- [ ] Pagine di accesso/registrazione (credenziali + pulsante Google)
+- [ ] Sintesi stakeholder di Fase 1 aggiornata quando la feature sarà utilizzabile end-to-end
+      (bozza della sola decisione già in `_notes/stakeholder-brief-fase-1-autenticazione.md`)
+
+Domande aperte: nessuna bloccante al momento.
+
 ## Riconciliazione
 
-Ultima verifica: 2026-07-13, al commit `4da8cf9`. Migrazione Prisma applicata al Postgres locale
-dedicato di questo progetto (schema sincronizzato, cronologia tracciata in `prisma/migrations/`),
-non ancora committata al momento di questa nota: vedi `memory/progress.md` e ADR-009 in
-`memory/decisions.md` per il dettaglio dell'indagine e del workaround.
+Ultima verifica: 2026-07-14, al commit `4da8cf9` (le modifiche di questa voce non ancora
+committate al momento della nota). Migrazione Prisma applicata al Postgres locale dedicato di
+questo progetto (schema sincronizzato, cronologia tracciata in `prisma/migrations/`): vedi
+`memory/progress.md` e ADR-009/ADR-010 in `memory/decisions.md` per il dettaglio delle due
+indagini/decisioni.

@@ -276,3 +276,64 @@ basato su PGlite, il bug potrebbe essere specifico di quest'ultimo, e il workaro
 superfluo fuori da questa macchina — non verificato, da controllare quando accadrà. Limite
 dichiarato: l'issue upstream resta "non confermata" dal team Prisma al momento di questa voce;
 se viene risolta in una versione futura, questa ADR va rivista.
+
+## ADR-010 — Fase 1: modello ruoli/tesseramento e strategia di autenticazione (NextAuth)
+
+Data: 2026-07-14
+Stato: accettata
+Contesto: apertura di Fase 1 (auth reale, iscrizione socio, eventi, forum). Una prima analisi,
+poi corretta dall'utente, assumeva una popolazione di soli soci verificati (stima "centinaia"),
+con il tesseramento trattato implicitamente come coincidente con il ruolo utente (schema
+originario, `Role { SOCIO, ADMIN }`, default `SOCIO`). Lo scenario reale è diverso: tre
+popolazioni distinte, `SUPERADMIN` (gestione complessiva), `ADMIN` (moderazione/approvazione),
+utenti di una piattaforma pubblica che possono o meno essere soci tesserati dell'associazione;
+stima massima 10.000 utenti; il tesseramento resta un dato opzionale (`tesseraNumero`, già
+nullable nello schema), indipendente dal ruolo.
+Decisione, in quattro parti.
+Primo, modello ruoli/tesseramento: `Role` ridotto a un puro asse di autorizzazione, `SUPERADMIN`,
+`ADMIN`, `UTENTE`, default `UTENTE`. Il tesseramento resta un dato distinto (`tesseraNumero`
+nullable, invariato): un `UTENTE` con tessera è un socio, uno senza è un partecipante pubblico
+non tesserato, senza che questo implichi alcuna differenza di autorizzazione nel sistema.
+Secondo, strategia di sessione: JWT, non sessione su database per tutti gli utenti, ma con
+scadenza breve (dell'ordine di un'ora, non i 30 giorni di default di NextAuth) e un ricontrollo
+del ruolo dal database nel callback `jwt` a ogni rinnovo del token, invece di fidarsi ciecamente
+del valore incorporato nel token fino a scadenza. Scartata la sessione su database per tutti i
+10.000 utenti (una query aggiuntiva per ogni richiesta autenticata, un costo su tutto il
+traffico per un beneficio, la revoca istantanea, che serve davvero solo per gli account
+`ADMIN`/`SUPERADMIN`, una minoranza). Scartato anche il JWT puro a lunga scadenza della prima
+analisi, accettabile quando ogni utente era un socio a basso rischio, non più accettabile con un
+ruolo che modera o approva contenuti.
+Terzo, provider di autenticazione: credenziali (email e password, `bcryptjs` già in dipendenza)
+più un provider OAuth, Google. Le credenziali restano necessarie per `SUPERADMIN`/`ADMIN`
+(account legati a un processo di nomina, non a un self-service) e per i soci con iscrizione
+verificata; OAuth abbassa l'attrito di registrazione per l'utenza pubblica, rilevante ora che
+quella fascia esiste davvero e la scala (10.000, non centinaia) rende quell'attrito una variabile
+che conta.
+Quarto, adapter: `@auth/prisma-adapter` adottato per collegare più metodi di accesso allo stesso
+utente (un partecipante potrebbe registrarsi con Google e in seguito impostare anche una
+password). Verificato sul sorgente del pacchetto, non solo sulla documentazione (esplicita solo
+in parte su questo punto), che con strategia `jwt` il modello `Session` non è necessario: i
+metodi dell'adapter che lo userebbero (`createSession`, `getSessionAndUser`, `updateSession`,
+`deleteSession`) restano codice morto, mai invocato dal core di Auth.js quando la sessione non è
+basata su database. Schema quindi limitato a `Account` e `VerificationToken` oltre a `User`,
+senza `Session`.
+Conseguenze sullo schema: `Role` riscritto (enum e default); `User.passwordHash` reso opzionale
+(un utente arrivato solo via OAuth non ne ha mai impostata una); aggiunti `User.emailVerified` e
+`User.image` (scritti dall'adapter per gli utenti OAuth); aggiunti i modelli `Account` (con i
+campi che rispecchiano la risposta del provider OAuth, `refresh_token`/`access_token`/eccetera,
+nomi imposti dall'adapter e non convertibili alla convenzione camelCase del resto dello schema) e
+`VerificationToken`. Migrazione generata e applicata con la procedura di ADR-009 (`migrate diff
+--from-config-datasource --to-schema` seguito da `migrate deploy`, non `migrate dev`), verificata
+con `prisma migrate status`.
+Motivazione: la combinazione bilancia il costo per richiesta (JWT, non una query di sessione su
+ogni richiesta per 10.000 utenti su un'infrastruttura serverless a risorse gratuite) con
+l'esigenza di revoca che l'esistenza di ruoli privilegiati introduce (finestra di esposizione
+ridotta a minuti/un'ora invece che a giorni), e riflette la reale composizione dell'utenza
+(pubblica e mista, non solo soci) nel modello dati e nella scelta dei provider, invece di forzare
+uno schema pensato per uno scenario più piccolo e più omogeneo.
+Conseguenze operative: il pacchetto `@auth/prisma-adapter` non è stato ancora installato né è
+stato scritto il file di configurazione NextAuth (`auth.ts`, route handler, callback
+`jwt`/`session`, provider Credentials/Google): resta il prossimo passo implementativo di Fase 1,
+fuori dal perimetro di questa ADR. Se in futuro emergesse un requisito di revoca istantanea per
+`ADMIN`/`SUPERADMIN` che il bounded-JWT non soddisfa, l'alternativa diretta è una sessione su
+database limitata a quei due ruoli soltanto, non ancora necessaria.

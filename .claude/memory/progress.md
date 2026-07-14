@@ -6,6 +6,42 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-14 — Fase 1 aperta: modello ruoli/tesseramento e strategia di autenticazione decisi e applicati
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: `prisma/schema.prisma` (`Role` riscritto in `SUPERADMIN`/`ADMIN`/`UTENTE` con
+default `UTENTE`; `User.passwordHash` reso opzionale; aggiunti `User.emailVerified`,
+`User.image`, i modelli `Account` e `VerificationToken`); nuova migrazione
+`prisma/migrations/20260714000000_ruoli_e_account_nextauth/migration.sql` generata e applicata;
+client Prisma rigenerato; `memory/decisions.md` (nuova ADR-010); `studio-didattico-master.md`
+(voce 6) e nuovo `refactor-06-ruoli-tesseramento-sessione.md`; `current-work.md` (nuova sezione
+Feature Fase 1) e `roadmap.md` aggiornati; nuova nota
+`_notes/stakeholder-brief-fase-1-autenticazione.md` (non versionata).
+Motivo/racconto: discussa in chat la scelta di autenticazione per Fase 1 (NextAuth) partendo da
+un'assunzione poi corretta dall'utente: non solo soci verificati in numero contenuto, ma tre
+popolazioni reali (un responsabile generale, dei moderatori/admin, e utenti di una piattaforma
+pubblica che possono o non possono essere soci tesserati), con una stima massima di 10.000
+utenti. La correzione ha richiesto rifare da capo il confronto tra le alternative (già impostato
+una prima volta assumendo lo scenario più piccolo): separare il ruolo (autorizzazione) dal
+tesseramento (dato di appartenenza, già nullable in schema ma confuso dal default `SOCIO` sul
+ruolo), e ricalibrare la strategia di sessione — non più JWT a lunga scadenza senza ripensamenti
+(accettabile senza ruoli sensibili), né sessione su database per tutti (costosa su 10.000 utenti
+per un rischio concentrato su pochi account), ma JWT a scadenza breve con ricontrollo del ruolo al
+rinnovo. Verificato sul sorgente di `@auth/prisma-adapter` (non solo sulla documentazione) che il
+modello `Session` è omettibile con strategia `jwt`. Applicata la modifica allo schema, generata e
+applicata la migrazione incrementale con la procedura già stabilita in ADR-009
+(`migrate diff --from-config-datasource --to-schema` + `migrate deploy`, evitando di nuovo lo
+shadow database), registrata come ADR-010. Scritta in parallelo, su richiesta esplicita
+dell'utente, sia la voce di studio didattico (il principio generale: ruolo e attributo di
+dominio che gli somiglia vanno su assi separati; una scelta stateless/stateful va calibrata sul
+rischio reale, non decisa da manuale) sia la sintesi non tecnica per lo stakeholder della stessa
+decisione.
+Ancora aperto: dipendenza `@auth/prisma-adapter` non ancora installata; configurazione NextAuth
+(`auth.ts`, route handler, callback `jwt`/`session`) e pagine di accesso/registrazione non ancora
+scritte — prossimo passo implementativo di Fase 1. Sintesi stakeholder generale di Fase 0
+(distinta da questa, specifica alla sola decisione di auth) e verifica del runtime Cloudflare
+reale restano invariate e aperte (vedi voce precedente).
+
 ## 2026-07-13 — Migrazione Prisma sbloccata: bug noto di `migrate dev` sullo shadow database, workaround `migrate diff` + `migrate deploy`
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

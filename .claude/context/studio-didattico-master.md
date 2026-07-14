@@ -133,3 +133,38 @@ sotto-domande indipendenti (causa nota, test locale, versioni disponibili), para
 lo stesso tempo di una ricerca sola ma produce una convergenza che funge da verifica incrociata.
 
 Dove leggere il dettaglio: `refactor-05-migrazione-shadow-database.md`.
+
+## 6. Autorizzazione e tesseramento come assi separati, e la sessione calibrata sul rischio reale, non su un aut-aut da manuale
+
+Contesto. L'apertura di Fase 1 richiedeva decidere come autenticare con NextAuth tre popolazioni
+reali (superadmin, admin, utenti pubblici eventualmente tesserati), prima di scrivere qualunque
+route.
+
+Com'era e perché era fragile. Lo schema di Fase 0 (`Role { SOCIO, ADMIN }`, default `SOCIO`)
+trattava "essere socio" come se fosse un livello di permesso invece che un dato di appartenenza:
+comodo finché si immagina che ogni utente registrato sia per definizione un socio, ma la
+piattaforma reale ammette anche partecipanti pubblici non tesserati, per cui quel default
+avrebbe reso ogni nuovo utente "socio" per errore strutturale, non per scelta. Nella stessa prima
+analisi, la scelta della sessione era stata impostata come un aut-aut tra due sole opzioni da
+manuale (JWT senza stato, oppure sessione su database), decisa guardando solo al costo per
+richiesta su un'infrastruttura serverless gratuita, senza che esistesse ancora un ruolo
+abbastanza sensibile da rendere quel costo un compromesso vero da soppesare.
+
+Il salto e perché è meglio. Quando lo scenario è stato corretto (tre popolazioni, tesseramento
+indipendente dal ruolo, scala di 10.000 utenti), la stessa domanda ha prodotto risposte diverse
+proprio perché il modello ora distingue due cose che prima erano fuse: l'autorizzazione (`Role`,
+cosa un account può fare) e il tesseramento (`tesseraNumero`, un dato nullable su chi è
+quell'account rispetto all'associazione). Un utente pubblico non tesserato e un socio tesserato
+hanno esattamente lo stesso ruolo di default; la differenza è solo un campo, non un ramo diverso
+del sistema di permessi. Sulla sessione, invece di scegliere tra i due estremi del manuale, la
+soluzione calibrata sul rischio reale è un punto intermedio: JWT (evita una query di sessione per
+ognuna delle richieste di 10.000 utenti) con scadenza breve e un ricontrollo mirato del ruolo al
+rinnovo (limita a minuti, non a giorni, la finestra in cui un admin rimosso resta operativo). Il
+principio generale: un ruolo utente e un attributo di dominio che gli somiglia (qui, l'appartenenza
+a un'associazione) vanno tenuti su assi separati anche quando nella pratica coincidono spesso,
+perché smettono di coincidere proprio nel caso che conta (l'utente pubblico non tesserato); e una
+scelta binaria da manuale (stateless contro stateful) è quasi sempre una semplificazione dei casi
+reali, che ammettono un punto intermedio calibrato sul profilo di rischio specifico, non sulla
+ricetta generica.
+
+Dove leggere il dettaglio: `refactor-06-ruoli-tesseramento-sessione.md`.
