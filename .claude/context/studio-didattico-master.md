@@ -94,3 +94,42 @@ voto ma non che `targetId` esista davvero nella tabella dichiarata da `targetTyp
 verifica resta responsabilità del codice applicativo che scriverà i voti, in Fase 1/2.
 
 Dove leggere il dettaglio: `refactor-04-vincolo-voto-unico.md`.
+
+## 5. Diagnosticare un bug di tooling con agenti paralleli, non accontentarsi del primo workaround
+
+Contesto. Lo Step 5 di Fase 0 (schema dati) richiedeva applicare `prisma/schema.prisma` a un
+Postgres reale locale (`npx prisma dev`) con `prisma migrate dev`, il comando che oltre a creare
+le tabelle scrive un file di migrazione tracciato in `prisma/migrations/`.
+
+Com'era e perché era fragile. Il comando falliva sempre con un errore criptico (`P1017`,
+"Server has closed the connection"), che suona come un problema di rete o di connessione. Di
+fronte a un errore così, la reazione più immediata sarebbe stata o riprovare alla cieca cambiando
+parametri a caso nella stringa di connessione, oppure accontentarsi della prima alternativa che
+funziona: `prisma db push`, che applica davvero lo schema al database ma non scrive alcun file di
+migrazione. Sarebbe stato un downgrade silenzioso dell'obiettivo originale, da "cronologia di
+migrazione tracciata e versionabile" a "schema sincronizzato al volo", senza nemmeno aver capito
+perché il comando giusto non funzionasse.
+
+Il salto senior e perché è meglio. Prima di accettare il downgrade, isolare la causa esatta con
+log verboso (`DEBUG=prisma:*`): l'errore non era nella connessione in sé, dato che una query
+singola (`prisma db execute`) funzionava perfettamente, ma in una chiamata interna specifica
+(`devDiagnostic`) che il motore nativo di migrazione fa contro lo shadow database, il database
+temporaneo che Prisma usa per calcolare il diff tra la cronologia di migrazioni esistente e lo
+schema dichiarato. Isolato il punto esatto del fallimento, la ricerca della causa è stata
+distribuita su tre agenti paralleli invece che su un'indagine seriale: uno cercava la causa nota
+all'esterno (issue tracker, changelog ufficiale); uno testava chirurgicamente in locale quali
+operazioni sullo shadow database funzionassero e quali no, senza mai eseguire il comando
+incriminato per intero, apposta per non contaminare i risultati con tentativi concorrenti sullo
+stesso server; uno verificava se una versione più recente del pacchetto risolvesse il problema. I
+tre risultati indipendenti si sono confermati a vicenda sulla stessa causa (un bug tracciato ma
+non confermato dal team Prisma) invece di lasciare a un solo canale di ricerca la parola finale.
+Trovato il workaround esatto già riportato da chi aveva segnalato lo stesso bug (`migrate diff` +
+`migrate deploy`, due comandi che non interpellano mai lo shadow database), l'obiettivo originale
+è stato raggiunto per intero: esiste una cronologia di migrazione reale in `prisma/migrations/`,
+non solo uno schema sincronizzato senza tracciamento. Il principio generale: quando un comando
+fallisce con un errore che sembra ambientale, conviene isolare il livello esatto del fallimento
+prima di declassare l'obiettivo a "quello che funziona per ora"; e quando l'indagine si divide in
+sotto-domande indipendenti (causa nota, test locale, versioni disponibili), parallelizzarle costa
+lo stesso tempo di una ricerca sola ma produce una convergenza che funge da verifica incrociata.
+
+Dove leggere il dettaglio: `refactor-05-migrazione-shadow-database.md`.

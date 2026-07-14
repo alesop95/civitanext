@@ -1,11 +1,11 @@
 ---
-generated-from-commit: 7ba6100
+generated-from-commit: 4da8cf9
 generated-from-branch: main
 generated-date: 2026-07-10
 covers-paths:
   - src/**
   - .claude/**
-last-verified-commit: 7ba6100
+last-verified-commit: 4da8cf9
 stato: in verifica
 ---
 
@@ -43,22 +43,25 @@ Definition of done:
 - [x] Bootstrap Next.js+TypeScript verificato (`npm run build`/`start` puliti)
 - [x] Design system visibile su homepage (`npm run build` + verifica HTML)
 - [x] Schema Prisma scritto e validato (`prisma validate`)
-- [ ] Migrazione Prisma eseguita contro un Postgres reale (in attesa che l'utente imposti
-      `DATABASE_URL` locale in `.env`, vedi Domande aperte)
+- [x] Migrazione Prisma eseguita contro un Postgres reale (server locale dedicato
+      `npx prisma dev -n civitanext`, porte 51218/51219; `migrate dev` non utilizzabile per un
+      bug noto upstream, workaround `migrate diff` + `migrate deploy` adottato e verificato,
+      vedi ADR-009 e `refactor-05-migrazione-shadow-database.md`)
 - [ ] Sintesi non tecnica per lo stakeholder (Step 2bis del piano)
 - [ ] Verifica del runtime Cloudflare reale (bloccata su questa macchina Windows, rimandata a
       deploy/CI, vedi ADR-006)
 
 Domande aperte:
 
-In attesa dell'utente: valore di `DATABASE_URL` in `.env` puntato al Postgres locale di
-`npx prisma dev` (connection string già fornita in chat, non scritta qui perché questa scheda è
-tracciata). Da decidere più avanti, non bloccante per Fase 0: accesso a un ulteriore progetto
-personale ai fini del solo confronto didattico privato in `_notes/` (dettagli non tracciati qui
-di proposito).
+Da decidere più avanti, non bloccante per Fase 0: accesso a un ulteriore progetto personale ai
+fini del solo confronto didattico privato in `_notes/` (dettagli non tracciati qui di proposito).
+Da verificare quando esisterà un branch Neon di sviluppo (ADR-007): se il bug upstream di
+`migrate dev` contro lo shadow database (ADR-009) si manifesta anche contro un Postgres reale in
+rete o è specifico del server locale `prisma dev` di questa macchina.
 
 ## Riconciliazione
 
-Ultima verifica: 2026-07-10, al commit `d619e8b` (storia riscritta, vedi `memory/progress.md`
-e `memory/decisions.md`). Riorganizzazione struttura repository (app alla radice invece che in
-`webapp/`) fatta nello stesso giorno, non ancora committata al momento di questa nota.
+Ultima verifica: 2026-07-13, al commit `4da8cf9`. Migrazione Prisma applicata al Postgres locale
+dedicato di questo progetto (schema sincronizzato, cronologia tracciata in `prisma/migrations/`),
+non ancora committata al momento di questa nota: vedi `memory/progress.md` e ADR-009 in
+`memory/decisions.md` per il dettaglio dell'indagine e del workaround.

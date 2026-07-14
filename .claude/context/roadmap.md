@@ -1,9 +1,9 @@
 ---
-generated-from-commit: 7ba6100
+generated-from-commit: 4da8cf9
 generated-from-branch: main
 generated-date: 2026-07-10
 covers-paths: []
-last-verified-commit: 7ba6100
+last-verified-commit: 4da8cf9
 ---
 
 # Roadmap

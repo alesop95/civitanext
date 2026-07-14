@@ -1,12 +1,12 @@
 ---
-generated-from-commit: 7ba6100
+generated-from-commit: 4da8cf9
 generated-from-branch: main
 generated-date: 2026-07-10
 covers-paths:
   - wrangler.jsonc
   - open-next.config.ts
   - prisma.config.ts
-last-verified-commit: 7ba6100
+last-verified-commit: 4da8cf9
 ---
 
 # Deployment
@@ -39,9 +39,27 @@ ancora fatto in Fase 0).
 Sviluppo: `npm run dev` dalla radice del repository. Build standard: `npm run build` /
 `npm run start`. Build e pacchettizzazione per Cloudflare: `npm run preview` (build OpenNext +
 `wrangler dev` locale, oggi non funzionante su questa macchina) e `npm run deploy` (build
-OpenNext + `wrangler deploy`, mai eseguito). Migrazioni schema: `npx prisma migrate dev` dalla
-radice del repository, contro il `DATABASE_URL` attivo (locale in Fase 0, poi branch Neon di
-sviluppo, mai direttamente in produzione).
+OpenNext + `wrangler deploy`, mai eseguito).
+
+Migrazioni schema: **non** `npx prisma migrate dev` su questa macchina. Un bug noto e non
+confermato dal team Prisma (`prisma/prisma#29366`) fa fallire `migrate dev` con `P1017` contro lo
+shadow database del server locale `npx prisma dev` (vedi ADR-009 e
+`refactor-05-migrazione-shadow-database.md`). Procedura effettiva a ogni cambio di schema:
+
+```
+npx prisma migrate diff --from-empty --to-schema=prisma/schema.prisma --script \
+  > prisma/migrations/<timestamp>_<nome>/migration.sql
+npx prisma migrate deploy
+```
+
+(`migrate diff` genera l'SQL confrontando lo schema con la cronologia esistente senza toccare lo
+shadow database; per una modifica incrementale il `--from-empty` va sostituito con
+`--from-schema-datamodel`/`--from-migrations` puntato alla cronologia già applicata, non ancora
+verificato in questo progetto perché finora esiste una sola migrazione, `init`). `migrate deploy`
+applica e registra in `_prisma_migrations`, verificabile con `prisma migrate status`. Contro il
+`DATABASE_URL` attivo (locale in Fase 0, poi branch Neon di sviluppo, mai direttamente in
+produzione) — da riverificare se `migrate dev` torna utilizzabile contro un Postgres reale in
+rete (Neon), vedi Conseguenze di ADR-009.
 
 ## Variabili d'ambiente e segreti
 

@@ -6,6 +6,62 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-13 — Migrazione Prisma sbloccata: bug noto di `migrate dev` sullo shadow database, workaround `migrate diff` + `migrate deploy`
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: creati `prisma/migrations/20260713000000_init/migration.sql` e
+`prisma/migrations/migration_lock.toml` (nuova cronologia di migrazione tracciata); database del
+server locale dedicato `npx prisma dev -n civitanext` (porte 51218 principale, 51219 shadow)
+resettato e ripopolato tramite quella migrazione; rigenerato il client Prisma in
+`src/generated/prisma` (`prisma generate`, nessuna differenza di output); aggiornati
+`current-work.md` (checkbox Definition of Done e Domande aperte), `decisions.md` (nuova
+ADR-009), `studio-didattico-master.md` (voce 5) e creato `refactor-05-migrazione-shadow-database.md`.
+Motivo/racconto: l'utente ha impostato `DATABASE_URL`/`SHADOW_DATABASE_URL` in `.env` puntate a
+un'istanza `npx prisma dev` avviata con `-n civitanext` apposta per non condividere porte con
+un'istanza già attiva su un altro progetto dell'utente (porte 51213-51215, non toccate). Il primo
+tentativo di applicare lo schema, `npx prisma migrate dev --name init`, ha fallito due volte con
+`Error: P1017 / Server has closed the connection`. Con `DEBUG=prisma:*` isolato il fallimento
+esatto: il binario nativo `schema-engine-windows.exe` fallisce sulla chiamata RPC `devDiagnostic`
+(quella che usa lo shadow database per il diff delle migrazioni) con un errore Rust
+(`quaint::connector::postgres::native: UnexpectedMessage`), mentre connessioni singole
+(`prisma db execute --stdin`) funzionavano regolarmente su entrambe le porte. Su richiesta
+esplicita dell'utente di risolvere subito invece di limitarsi al workaround più semplice
+(`db push`, già provato in un primo momento come verifica ma scartato perché non lascia
+cronologia), lanciati tre agenti in parallelo: uno di ricerca esterna sulla causa nota, uno di
+diagnostica chirurgica in locale sulle stesse porte 51218/51219 (mai eseguendo `migrate dev` per
+intero, per non generare conflitti con gli altri agenti sullo stesso server condiviso), uno di
+verifica versioni/changelog del pacchetto `prisma`. Tutti e tre convergenti sulla stessa causa:
+bug tracciato ma non confermato dal team Prisma, issue GitHub `prisma/prisma#29366` ("Command
+prisma migrate dev gives P1017 against local PGlite"), firma d'errore identica, nessun fix nella
+versione installata (`7.8.0`, anche l'ultima stabile pubblicata). Applicato il workaround
+riportato nell'issue stessa: generata la migrazione con `prisma migrate diff --from-empty
+--to-schema=prisma/schema.prisma --script`, scritta nella struttura di cartella attesa da Prisma
+Migrate; il database (già sincronizzato in un primo tentativo diagnostico con `db push`, senza
+cronologia) resettato con `DROP SCHEMA public CASCADE; CREATE SCHEMA public;` via `db execute`,
+poi applicato con `prisma migrate deploy`; verificato con `prisma migrate status` ("Database
+schema is up to date!"). Registrato come ADR-009 il workaround e la procedura da seguire per le
+prossime modifiche di schema su questa macchina.
+Ancora aperto: sintesi non tecnica per lo stakeholder; verifica del runtime Cloudflare reale
+(ADR-006, invariato); verificare se il bug persiste anche contro il branch Neon di sviluppo
+quando esisterà (vedi ADR-009, Conseguenze). Apertura di Fase 1 avviata in parallelo a questo
+blocco, non ancora dettagliata in questo registro.
+
+## 2026-07-13 — Sincronizzazione delle schede context/ dopo l'orfanaggio di 7ba6100
+
+Commit di riferimento: `4da8cf9` (main, working tree pulito).
+File toccati: frontmatter di `STACK.md`, `current-work.md`, `deployment.md`,
+`design-and-security.md`, `dev-testing.md`, `roadmap.md` (bump `generated-from-commit` e
+`last-verified-commit` da `7ba6100` a `4da8cf9`); `memory/index.md` (snapshot riportato a
+`4da8cf9`, tabella di stato aggiornata, punto di ripresa riscritto).
+Motivo: `sync-context` a inizio sessione ha rilevato che tutte le schede puntavano ancora
+all'hash `7ba6100`, un commit reso orfano dalla riscrittura completa della storia (vedi voce
+sotto): `git diff 7ba6100..HEAD` falliva con "bad revision". Ricalcolato il drift da `d619e8b`
+(l'hash valido più vicino, già usato da `memory/index.md`) fino a HEAD: i soli file toccati
+sotto `covers-paths` erano quelli spostati da `webapp/` alla radice nel commit di
+riorganizzazione, e le schede risultavano già corrette per quel rename (confermato con
+`grep -n "webapp/"`, nessun residuo se non nei registri append-only che per natura non si
+riscrivono). Drift quindi di sola forma: nessun contenuto riscritto, solo bump del checkpoint.
+
 ## 2026-07-10 — Riorganizzazione struttura: applicazione portata alla radice del repository
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

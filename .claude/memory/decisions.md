@@ -219,3 +219,60 @@ con la natura append-only di entrambi i registri: descrivono lo stato reale al m
 furono scritti. Una cartella `webapp/` residua, con i soli artefatti di build rigenerabili,
 resta da eliminare manualmente (bloccata da un processo che tiene occupato un file al suo
 interno al momento di questa voce).
+
+## ADR-009 — Migrazioni Prisma locali via `migrate diff` + `migrate deploy`, non `migrate dev`, per un bug noto dello shadow database
+
+Data: 2026-07-13
+Stato: accettata
+Contesto: sbloccato l'ultimo punto sospeso di Fase 0 (`DATABASE_URL` impostata dall'utente in
+`.env`, puntata a un server locale dedicato `npx prisma dev -n civitanext` su porte 51218
+principale/51219 shadow, isolato di proposito da un'istanza già attiva su un altro progetto
+dell'utente sulle porte 51213-51215), il comando naturale per applicare lo schema per la prima
+volta, `npx prisma migrate dev --name init`, ha fallito in modo riproducibile con `Error: P1017
+/ Server has closed the connection`. Con log verboso (`DEBUG=prisma:*`) il fallimento è stato
+isolato al binario nativo `schema-engine-windows.exe` durante la chiamata RPC `devDiagnostic`,
+quella con cui lo schema-engine usa lo shadow database per calcolare il diff delle migrazioni e
+rilevare drift, con errore Rust `quaint::connector::postgres::native: UnexpectedMessage`.
+Connessioni singole (`prisma db execute --stdin`) funzionavano regolarmente su entrambe le
+porte, isolando il problema alla sequenza multi-round-trip di `devDiagnostic`, non a un parametro
+di connessione o a un guasto di rete banale.
+Indagine: lanciati tre agenti in parallelo invece di un'indagine seriale, per non perdere tempo
+a caso su un errore criptico. Un agente ha cercato la causa nota all'esterno (issue tracker,
+changelog ufficiale); un secondo ha testato chirurgicamente in locale, sulle stesse porte
+51218/51219, quali operazioni sullo shadow database funzionassero e quali no, senza mai eseguire
+`migrate dev` per intero (per non generare un file di migrazione a metà o in conflitto con gli
+altri due agenti in corso sullo stesso server); un terzo ha verificato se una versione più
+recente del pacchetto `prisma` risolvesse il problema. I tre risultati indipendenti sono
+convergenti sulla stessa causa: un bug tracciato ma non confermato dal team Prisma (issue GitHub
+`prisma/prisma#29366`, "Command prisma migrate dev gives P1017 against local PGlite"),
+riproducibile con la firma d'errore identica, senza fix noto nemmeno nell'ultima versione stabile
+pubblicata (`7.8.0`, quella già installata in questo progetto). Il workaround riportato
+nell'issue stessa: generare l'SQL con `prisma migrate diff` e applicarlo con `prisma migrate
+deploy`, entrambi comandi a singolo round-trip che non interpellano mai lo shadow database.
+Decisione: adottato quel workaround come procedura di riferimento per le migrazioni locali su
+questa macchina, finché il bug upstream non si risolve o non si verifica se persiste anche
+contro un Postgres reale in rete. Concretamente: `npx prisma migrate diff --from-empty
+--to-schema=prisma/schema.prisma --script` genera l'SQL della migrazione confrontando uno schema
+vuoto con lo stato dichiarato in `schema.prisma`; l'SQL va scritto a mano nella struttura di
+cartella che Prisma Migrate si aspetta (`prisma/migrations/<timestamp>_<nome>/migration.sql`,
+accompagnato da `prisma/migrations/migration_lock.toml` con `provider = "postgresql"`); il
+database, già sincronizzato in un primo tentativo diagnostico con `prisma db push` (che non
+lascia alcuna cronologia), è stato resettato con `DROP SCHEMA public CASCADE; CREATE SCHEMA
+public;` via `prisma db execute --stdin`; infine `npx prisma migrate deploy` ha applicato la
+migrazione e l'ha registrata nella tabella `_prisma_migrations`, verificato con `prisma migrate
+status` ("Database schema is up to date!").
+Motivazione: preserva l'obiettivo originale dello Step 5 di Fase 0, una cronologia di migrazione
+tracciata e versionabile, invece di accontentarsi di uno schema sincronizzato al volo come
+farebbe `db push` da solo (che non scrive alcun file e quindi non produce nulla da versionare in
+`prisma/migrations/`); aggira un bug esterno non risolvibile da questo progetto senza rinunciare
+al risultato che quel bug impedirebbe.
+Conseguenze: per ogni futura modifica allo schema durante Fase 0/1/2 su questa macchina, il
+flusso di lavoro locale è `migrate diff` (genera l'SQL in una nuova cartella
+`prisma/migrations/<timestamp>_<nome>/`) seguito da `migrate deploy` (applica e registra), non
+`migrate dev`; questo va seguito come procedura operativa corrente finché non cambia questa ADR.
+Da riverificare quando esisterà un vero branch Neon di sviluppo (ADR-007): se `migrate dev`
+funziona contro un Postgres reale raggiunto in rete, invece del server locale `prisma dev`
+basato su PGlite, il bug potrebbe essere specifico di quest'ultimo, e il workaround diventerebbe
+superfluo fuori da questa macchina — non verificato, da controllare quando accadrà. Limite
+dichiarato: l'issue upstream resta "non confermata" dal team Prisma al momento di questa voce;
+se viene risolta in una versione futura, questa ADR va rivista.
