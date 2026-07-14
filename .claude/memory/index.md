@@ -9,7 +9,7 @@
 ```
 Branch attivo:        main
 Commit di riferimento: 4da8cf9
-Data snapshot:        2026-07-13
+Data snapshot:        2026-07-14
 ```
 
 ## Stato di verifica delle schede
@@ -37,7 +37,17 @@ scenario reale (tre livelli `SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento indipend
 tramite `tesseraNumero` nullable, scala massima 10.000 utenti): sessione JWT con scadenza breve
 e ricontrollo del ruolo al rinnovo, provider credenziali più Google, adapter Prisma senza modello
 Session (verificato sul sorgente che non serve con strategia JWT), registrato come ADR-010.
-Schema aggiornato e migrato con la stessa procedura di ADR-009. Non ancora scritti: la
-configurazione NextAuth (`auth.ts`, route handler), la dipendenza `@auth/prisma-adapter`, le
-pagine di accesso/registrazione — prossimo passo implementativo. Sintesi stakeholder di questa
-sola decisione già scritta in `_notes/stakeholder-brief-fase-1-autenticazione.md`.
+Schema aggiornato e migrato con la stessa procedura di ADR-009. Implementazione completata lo
+stesso giorno: `@auth/prisma-adapter` installato, `src/auth.ts` scritto (Credentials + Google,
+adapter, sessione JWT, callback `jwt`/`session`), route handler, route di registrazione
+credenziali, pagine `/accedi` e `/registrati`. `npm run build` pulito (typecheck incluso) dopo
+aver corretto un errore non anticipato: l'augmentation di tipo per `Session`/`User`/`JWT` va
+dichiarata sui moduli che definiscono quelle interfacce (`@auth/core/types`, `@auth/core/jwt`),
+non su `next-auth`/`next-auth/jwt` che le ri-esportano soltanto.
+Flusso a credenziali verificato nel browser lo stesso giorno: registrazione e accesso reali,
+utente creato nel database con `role: UTENTE`/`tesseraNumero: null` corretti, password hashata
+bcrypt, sessione confermata via `/api/auth/session` con scadenza a un'ora coerente col `maxAge`
+di ADR-010. Flusso Google rimandato di proposito a quando esisterà un account Google dedicato
+all'associazione (non bloccante, vedi `roadmap.md`); codice già scritto e completo. Sintesi
+stakeholder di questa decisione in `_notes/stakeholder-brief-fase-1-autenticazione.md`, da
+aggiornare con l'esito della verifica.

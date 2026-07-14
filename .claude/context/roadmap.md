@@ -25,12 +25,20 @@ Fase 0 (fondamenta) sostanzialmente chiusa: allineamento `.claude`, scelta stack
 bootstrap Next.js+TypeScript, design system, schema dati iniziale, migrazione applicata (ADR-009).
 Fase 1 del `ROADMAP.md` di handoff aperta: auth reale (NextAuth), iscrizione socio, profilo con
 tessera digitale, eventi (lettura + RSVP) come prima feature verticale completa, forum come
-seconda. Deciso il modello di ruoli/tesseramento e la strategia di autenticazione (tre livelli
-`SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento come dato indipendente dal ruolo, sessione JWT con
-ricontrollo periodico, credenziali più Google OAuth: ADR-010); non ancora scritta la
-configurazione NextAuth né le pagine di accesso, vedi `current-work.md`. Priorità dopo: Fase 2
-(proposte e votazioni, coda di approvazione admin, quiz), la feature di valore più alto perché
-collega utenti e admin.
+seconda. Deciso e implementato il modello di ruoli/tesseramento e la strategia di autenticazione
+(tre livelli `SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento come dato indipendente dal ruolo,
+sessione JWT con ricontrollo periodico, credenziali più Google OAuth: ADR-010), vedi
+`current-work.md`. Priorità dopo: Fase 2 (proposte e votazioni, coda di approvazione admin,
+quiz), la feature di valore più alto perché collega utenti e admin.
+
+Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
+Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del
+provider Google è già scritto e non richiede altro lavoro quando si riprende questo punto; manca
+solo la configurazione esterna, rimandata di proposito a quando esisterà un account Google
+dedicato all'associazione (non il personale dello sviluppatore, per lo stesso principio di
+separazione identità personale/organizzazione già adottato per git in
+`.claude/rules/git-identity-and-repo.md`). Fino ad allora il flusso di test usa solo email e
+password.
 
 ## Idee e ipotesi da verificare
 

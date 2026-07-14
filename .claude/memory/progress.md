@@ -6,6 +6,70 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-14 — Verificato nel browser il flusso a credenziali (registrazione + accesso)
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: nessuno (verifica, non sviluppo); generato e comunicato all'utente un valore di
+`AUTH_SECRET` per `.env` (valore non riportato qui, scheda tracciata).
+Motivo/racconto: prima di dichiarare chiusa la Definition of Done di Fase 1 sul flusso a
+credenziali, verificato l'uso reale in un browser vero (non solo `npm run build`, che controlla
+compilazione e tipi ma non comportamento a runtime). Avviato `npm run dev` (porta 3000, libera,
+nessun conflitto con le porte del server Prisma dedicato 51218/51219 né con altri processi in
+ascolto su questa macchina); l'utente ha registrato un account di prova (`Pippo`,
+`pippo@gmail.com`, password "test1234") su `/registrati` e verificato che una password sotto gli
+8 caratteri viene bloccata dal client prima dell'invio. Riscontrato un avviso del browser
+("password compromessa in una violazione dati") dopo il login: non un difetto dell'applicazione,
+ma il gestore password di Chrome che riconosce "test1234" come credenziale nota da violazioni
+pubbliche, segnale indiretto che il login e' stato completato e riconosciuto come tale dal
+browser. Verificato in modo definitivo, non per inferenza: interrogato direttamente il database
+(via il driver `pg` con `dotenv/config` precaricato, senza mai leggere o stampare il contenuto di
+`.env`, e senza passare dal client Prisma generato, che essendo sorgente TypeScript non
+compilato non e' eseguibile con `node` diretto) per confermare la riga `User` creata
+(`role: UTENTE` di default, `tesseraNumero: null`, `passwordHash` con prefisso `$2b$10$` quindi
+bcrypt a 10 round, mai testo in chiaro); e controllato `/api/auth/session` nel browser, che ha
+restituito la sessione attesa con `role`/`tesseraNumero` proiettati correttamente e `expires` a
+un'ora esatta dal momento del controllo, coerente col `maxAge: 60 * 60` di ADR-010.
+Ancora aperto: verifica del flusso Google, rimandata di proposito (vedi voce di `roadmap.md` e
+Domande aperte di `current-work.md`); sintesi stakeholder di Fase 1 da aggiornare con l'esito di
+questa verifica.
+
+## 2026-07-14 — Implementata la configurazione NextAuth decisa in ADR-010
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: creati `src/lib/prisma.ts` (client Prisma per-richiesta via `cache()`, stesso
+pattern di `src/app/api/diag-fase0/route.ts`/ADR-005), `src/types/next-auth.d.ts` (augmentation
+di tipo), `src/auth.ts` (configurazione NextAuth lazy: provider Credentials e Google, adapter
+Prisma, sessione JWT con `maxAge` di un'ora, callback `jwt` con ricontrollo del ruolo ogni 5
+minuti, callback `session` che proietta `role`/`tesseraNumero`), `src/app/api/auth/[...nextauth]/route.ts`,
+`src/app/api/register/route.ts` (registrazione credenziali: il provider Credentials autentica
+soltanto, non crea utenti), `src/app/accedi/page.tsx`, `src/app/registrati/page.tsx`;
+aggiunta la dipendenza `@auth/prisma-adapter` (`npm install`, versione risolta `^2.11.2`);
+aggiornati `current-work.md` e `deployment.md` (variabili d'ambiente e procedura `migrate diff`
+incrementale ora verificata, non più ipotizzata).
+Motivo/racconto: implementazione della decisione già registrata in ADR-010, verificando prima
+sul sorgente reale i punti non scontati di una libreria beta (`next-auth ^5.0.0-beta.31`), come
+da `AGENTS.md`: confermato che con `strategy: "jwt"` il modello `Session` resta inutilizzato ma
+che, con un adapter configurato, Auth.js sceglierebbe "database" di default se non si forza
+esplicitamente `"jwt"` nello schema di configurazione; confermato inoltre che il provider
+Credentials richiede comunque la strategia JWT (non persiste sessioni su database). Riusato senza
+modifiche il pattern di client Prisma per-richiesta già stabilito in ADR-005 invece di introdurne
+uno nuovo. Durante la build (`npm run build`, che a differenza di `next dev` esegue anche il
+typecheck) emerso un errore non anticipato: l'augmentation di tipo per `Session`/`User`/`JWT` va
+dichiarata sui moduli che DEFINISCONO quelle interfacce (`@auth/core/types`, `@auth/core/jwt`),
+non su `next-auth`/`next-auth/jwt`, che le ri-esportano con `export *` senza dichiararle a loro
+volta: TypeScript compila comunque l'augmentation su questi ultimi (nessun errore di sintassi),
+ma il declaration merging non si applica, e i campi aggiunti (`role`, `tesseraNumero`,
+`roleCheckedAt`) restavano tipati `unknown` nei callback, con conseguente errore di tipo
+sull'assegnazione. Corretto puntando l'augmentation ai moduli di origine, verificato con build
+completa (`npm run build`) fino in fondo: compilazione, typecheck e generazione di tutte le
+route (incluse `/accedi`, `/registrati`, `/api/auth/[...nextauth]`, `/api/register`) senza
+errori.
+Ancora aperto: verifica manuale nel browser del percorso completo (registrazione, accesso,
+accesso con Google) non ancora fatta, bloccata in attesa che l'utente imposti in `.env`
+`AUTH_SECRET` (richiesta in produzione, NextAuth lancia un errore se assente), `AUTH_GOOGLE_ID` e
+`AUTH_GOOGLE_SECRET` (da un'app OAuth non ancora creata su Google Cloud Console). Sintesi
+stakeholder di Fase 1 da aggiornare solo dopo quella verifica, non prima.
+
 ## 2026-07-14 — Fase 1 aperta: modello ruoli/tesseramento e strategia di autenticazione decisi e applicati
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

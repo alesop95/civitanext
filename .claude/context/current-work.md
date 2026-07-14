@@ -68,15 +68,20 @@ decisione della prima feature verticale di Fase 1 secondo `roadmap.md`.
 File da creare:
 
 ```
-src/auth.ts (o equivalente)          configurazione NextAuth (provider, callback jwt/session), non ancora scritto
-src/app/api/auth/[...nextauth]/...   route handler NextAuth, non ancora scritto
+src/lib/prisma.ts                    client Prisma per-richiesta (cache()), fatto
+src/types/next-auth.d.ts             augmentation di User/Session/JWT con role/tesseraNumero, fatto
+src/auth.ts                          configurazione NextAuth (Credentials+Google, adapter, jwt/session), fatto
+src/app/api/auth/[...nextauth]/route.ts   route handler NextAuth, fatto
+src/app/api/register/route.ts        registrazione credenziali (il provider Credentials autentica soltanto), fatto
+src/app/accedi/page.tsx              pagina di accesso (credenziali + Google), fatto
+src/app/registrati/page.tsx          pagina di registrazione, fatto
 ```
 
 File da modificare:
 
 ```
 prisma/schema.prisma   Role (SUPERADMIN/ADMIN/UTENTE), passwordHash nullable, emailVerified/image, modelli Account e VerificationToken, fatto
-package.json           dipendenza @auth/prisma-adapter, non ancora aggiunta
+package.json           dipendenza @auth/prisma-adapter, fatto
 ```
 
 Definition of done:
@@ -85,13 +90,22 @@ Definition of done:
 - [x] Strategia di sessione decisa (JWT con scadenza breve + ricontrollo ruolo al rinnovo, ADR-010)
 - [x] Provider di autenticazione decisi (credenziali + Google, ADR-010)
 - [x] Migrazione applicata al Postgres locale (procedura ADR-009)
-- [ ] Dipendenza `@auth/prisma-adapter` installata
-- [ ] Configurazione NextAuth scritta (`auth.ts`, route handler, callback `jwt`/`session`)
-- [ ] Pagine di accesso/registrazione (credenziali + pulsante Google)
-- [ ] Sintesi stakeholder di Fase 1 aggiornata quando la feature sarà utilizzabile end-to-end
-      (bozza della sola decisione già in `_notes/stakeholder-brief-fase-1-autenticazione.md`)
+- [x] Dipendenza `@auth/prisma-adapter` installata
+- [x] Configurazione NextAuth scritta (`auth.ts`, route handler, callback `jwt`/`session`),
+      `npm run build` pulito con typecheck incluso
+- [x] Pagine di accesso/registrazione (credenziali + pulsante Google)
+- [x] Verifica manuale nel browser del flusso a credenziali (registrazione, accesso), 2026-07-14:
+      utente creato nel database con `role: UTENTE`, `tesseraNumero: null`, password hashata
+      bcrypt (mai in chiaro); sessione confermata via `/api/auth/session`, scadenza a un'ora
+      dalla verifica, coerente con `maxAge` di ADR-010
+- [ ] Verifica manuale del flusso Google — rimandata di proposito a quando esisterà un account
+      Google dedicato all'associazione, non bloccante per il resto (vedi `roadmap.md`); codice
+      già scritto e completo, non richiede altro lavoro quando si riprende
+- [ ] Sintesi stakeholder di Fase 1 da aggiornare con l'esito della verifica (bozza della sola
+      decisione già in `_notes/stakeholder-brief-fase-1-autenticazione.md`)
 
-Domande aperte: nessuna bloccante al momento.
+Domande aperte: nessuna bloccante per il flusso a credenziali. `AUTH_GOOGLE_ID`/
+`AUTH_GOOGLE_SECRET` rimandati di proposito, non bloccanti (vedi `roadmap.md`).
 
 ## Riconciliazione
 

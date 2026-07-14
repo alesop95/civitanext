@@ -46,26 +46,39 @@ confermato dal team Prisma (`prisma/prisma#29366`) fa fallire `migrate dev` con 
 shadow database del server locale `npx prisma dev` (vedi ADR-009 e
 `refactor-05-migrazione-shadow-database.md`). Procedura effettiva a ogni cambio di schema:
 
+Prima migrazione (schema vuoto → schema):
+
 ```
 npx prisma migrate diff --from-empty --to-schema=prisma/schema.prisma --script \
   > prisma/migrations/<timestamp>_<nome>/migration.sql
 npx prisma migrate deploy
 ```
 
-(`migrate diff` genera l'SQL confrontando lo schema con la cronologia esistente senza toccare lo
-shadow database; per una modifica incrementale il `--from-empty` va sostituito con
-`--from-schema-datamodel`/`--from-migrations` puntato alla cronologia già applicata, non ancora
-verificato in questo progetto perché finora esiste una sola migrazione, `init`). `migrate deploy`
-applica e registra in `_prisma_migrations`, verificabile con `prisma migrate status`. Contro il
-`DATABASE_URL` attivo (locale in Fase 0, poi branch Neon di sviluppo, mai direttamente in
-produzione) — da riverificare se `migrate dev` torna utilizzabile contro un Postgres reale in
-rete (Neon), vedi Conseguenze di ADR-009.
+Migrazione incrementale successiva (verificato in ADR-010, non più solo ipotizzato): il lato
+`--from-empty` si sostituisce con `--from-config-datasource`, che introspeziona direttamente il
+`DATABASE_URL` attivo invece di rigiocare la cronologia (`--from-migrations` richiederebbe uno
+shadow database per il replay, lo stesso punto che fallisce in ADR-009):
+
+```
+npx prisma migrate diff --from-config-datasource --to-schema=prisma/schema.prisma --script \
+  > prisma/migrations/<timestamp>_<nome>/migration.sql
+npx prisma migrate deploy
+```
+
+In entrambi i casi `migrate deploy` applica e registra in `_prisma_migrations`, verificabile con
+`prisma migrate status`. Contro il `DATABASE_URL` attivo (locale in Fase 0/1, poi branch Neon di
+sviluppo, mai direttamente in produzione) — da riverificare se `migrate dev` torna utilizzabile
+contro un Postgres reale in rete (Neon), vedi Conseguenze di ADR-009.
 
 ## Variabili d'ambiente e segreti
 
 `.env` (ignorato da git, mai letto dall'agente per regola di `settings.json`): contiene
-almeno `DATABASE_URL`. `.dev.vars` (creato dall'adapter Cloudflare per le variabili lette
-in emulazione locale Workers): `NEXTJS_ENV`. Variabili ancora da introdurre quando si apriranno
-le fasi corrispondenti: `AUTH_SECRET` (NextAuth, un valore distinto per ambiente test/
-produzione), credenziali R2 (Fase 4). Nessun valore reale va mai scritto in una scheda tracciata
-o in un commit: solo i nomi delle variabili e dove sono gestite.
+`DATABASE_URL` e `SHADOW_DATABASE_URL` (server locale dedicato `npx prisma dev -n civitanext`,
+ADR-009), più, da Fase 1 (ADR-010): `AUTH_SECRET` (obbligatoria in produzione, NextAuth la
+richiede e lancia un errore se assente; un valore distinto per ambiente test/produzione),
+`AUTH_GOOGLE_ID` e `AUTH_GOOGLE_SECRET` (nomi inferiti automaticamente da NextAuth v5 per il
+provider Google, formato `AUTH_{PROVIDER}_{ID|SECRET}`, nessuna configurazione esplicita nel
+codice). `.dev.vars` (creato dall'adapter Cloudflare per le variabili lette in emulazione locale
+Workers): `NEXTJS_ENV`. Variabili ancora da introdurre quando si apriranno le fasi corrispondenti:
+credenziali R2 (Fase 4). Nessun valore reale va mai scritto in una scheda tracciata o in un
+commit: solo i nomi delle variabili e dove sono gestite.
