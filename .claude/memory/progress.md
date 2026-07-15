@@ -6,6 +6,44 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-15 — Modello dati del Quiz deciso, applicato e documentato su tre livelli (ADR-011)
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: `prisma/schema.prisma` (5 nuovi modelli: `Quiz`, `QuizQuestion`, `QuizOption`,
+`QuizAttempt`, `QuizAnswer`; `User.quizAttempts`); nuova migrazione
+`prisma/migrations/20260716000000_quiz/`; `memory/decisions.md` (ADR-011);
+`studio-didattico-master.md` (voce 8) e nuovo `refactor-08-modello-dati-quiz.md`; nuova
+`_notes/stakeholder-brief-fase-2-quiz.md` (non versionata).
+Motivo/racconto: seconda feature verticale di Fase 2, la prima con un dominio dati
+completamente nuovo (eventi, forum e proposte riusavano schema già scritto in Fase 0). Prima di
+scrivere qualunque riga di schema, presentato all'utente il confronto tra alternative su quattro
+punti, per sua richiesta permanente di non decidere scelte non banali in autonomia: come
+rappresentare domande/opzioni (relazionale, coerente con la convenzione già stabilita in questo
+schema di non usare mai JSON, nemmeno dove sarebbe stato comodo, come nel pattern polimorfico di
+`Vote`); cosa salvare di un tentativo (anche le singole risposte per domanda, non solo il
+punteggio aggregato, per rendere possibile il feedback "hai sbagliato questa domanda" che è il
+punto di un quiz civico pensato per insegnare); se permettere di ripetere il quiz (sì, tenendo il
+punteggio migliore, non un tentativo permanente come il flag binario `done` del prototipo di
+design); se lo sblocco progressivo tra quiz visto nel prototipo (`locked: true` su alcuni quiz)
+fosse solo un dettaglio visivo del mockup o logica reale da implementare (interpretato come reale,
+calcolato in query da un campo `order`, non un flag salvato a parte). L'utente ha accettato tutti
+e quattro i consigli, registrati come ADR-011.
+Applicato lo schema, validato, migrato con la procedura di ADR-009 (`migrate diff
+--from-config-datasource --to-schema` + `migrate deploy`), rigenerato il client. Su richiesta
+esplicita dell'utente di portare sempre avanti tre livelli di documentazione (stakeholder,
+didattica, tecnica) per ogni scelta non banale, scritti insieme: l'ADR tecnico con le quattro
+decisioni e la motivazione, la voce 8 di studio didattico (il principio generale: la domanda
+"cosa serve salvare" si risponde guardando lo scopo della feature, non solo la forma del
+prototipo) con il deep-dive `refactor-08`, e la sintesi non tecnica per lo stakeholder in
+`_notes/` su come funzioneranno i quiz per chi li userà (si può sbagliare e riprovare, si scopre
+cosa si è sbagliato, i quiz si sbloccano uno alla volta).
+Ancora aperto: le pagine (elenco quiz, svolgimento, risultato con feedback), le server action
+(submit tentativo, calcolo punteggio, aggiornamento solo se il punteggio migliora), un seed di
+almeno un quiz reale (il prototipo ha già domande di educazione civica pronte da riprendere,
+`CN_QUIZ_QUESTIONS` in `civitanext-data.jsx`) e la verifica nel browser: tutti prossimo passo
+implementativo, fuori dal perimetro di questa voce, che riguarda solo la decisione e il modello
+dati.
+
 ## 2026-07-15 — Feature Proposte e votazioni con coda di approvazione admin, prima feature verticale di Fase 2
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

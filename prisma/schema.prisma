@@ -51,12 +51,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  threads   Thread[]
-  replies   Reply[]
-  proposals Proposal[]
-  votes     Vote[]
-  accounts  Account[]
-  rsvps     Rsvp[]
+  threads      Thread[]
+  replies      Reply[]
+  proposals    Proposal[]
+  votes        Vote[]
+  accounts     Account[]
+  rsvps        Rsvp[]
+  quizAttempts QuizAttempt[]
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -168,4 +169,74 @@ model Vote {
   createdAt  DateTime       @default(now())
 
   @@unique([userId, targetType, targetId])
+}
+
+// Modello Quiz (ADR-011). order determina sia l'ordine di visualizzazione sia lo sblocco
+// progressivo: un quiz con order > 0 e' sbloccato solo se esiste un QuizAttempt per il quiz
+// con order immediatamente precedente (calcolato in query, non un campo separato).
+model Quiz {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions QuizQuestion[]
+  attempts  QuizAttempt[]
+}
+
+model QuizQuestion {
+  id     String @id @default(cuid())
+  quizId String
+  quiz   Quiz   @relation(fields: [quizId], references: [id])
+  text   String
+  order  Int    @default(0)
+
+  options QuizOption[]
+  answers QuizAnswer[]
+}
+
+model QuizOption {
+  id         String       @id @default(cuid())
+  questionId String
+  question   QuizQuestion @relation(fields: [questionId], references: [id])
+  text       String
+  isCorrect  Boolean      @default(false)
+
+  answers QuizAnswer[]
+}
+
+// Un solo tentativo registrato per utente per quiz (@@unique), non uno storico di tentativi:
+// ripetere il quiz aggiorna questa riga (e le QuizAnswer collegate) solo se il nuovo punteggio
+// e' migliore del precedente (ADR-011), logica applicativa, non vincolo di schema.
+model QuizAttempt {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  quizId    String
+  quiz      Quiz     @relation(fields: [quizId], references: [id])
+  score     Int
+  total     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  answers QuizAnswer[]
+
+  @@unique([userId, quizId])
+}
+
+// Una riga per domanda per tentativo: e' quello che rende possibile il feedback "hai sbagliato
+// questa domanda, la risposta giusta era questa" invece di un semplice punteggio aggregato.
+model QuizAnswer {
+  id         String       @id @default(cuid())
+  attemptId  String
+  attempt    QuizAttempt  @relation(fields: [attemptId], references: [id])
+  questionId String
+  question   QuizQuestion @relation(fields: [questionId], references: [id])
+  optionId   String
+  option     QuizOption   @relation(fields: [optionId], references: [id])
+  isCorrect  Boolean
+
+  @@unique([attemptId, questionId])
 }

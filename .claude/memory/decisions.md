@@ -337,3 +337,45 @@ stato scritto il file di configurazione NextAuth (`auth.ts`, route handler, call
 fuori dal perimetro di questa ADR. Se in futuro emergesse un requisito di revoca istantanea per
 `ADMIN`/`SUPERADMIN` che il bounded-JWT non soddisfa, l'alternativa diretta è una sessione su
 database limitata a quei due ruoli soltanto, non ancora necessaria.
+
+## ADR-011 — Modello dati del Quiz: opzioni relazionali, risposte per domanda, tentativi ripetibili con punteggio migliore, sblocco progressivo
+
+Data: 2026-07-15
+Stato: accettata
+Contesto: prima feature verticale di Fase 2 dopo proposte/votazioni, prima volta che si introduce
+un dominio dati completamente nuovo (non un riuso di schema già presente come per eventi, forum,
+proposte). Il prototipo di design (`design_handoff_civitanext/civitanext-data.jsx`,
+`CN_QUIZZES`/`CN_QUIZ_QUESTIONS`) mostra quiz a scelta multipla, un flag binario `done` per
+tentativo, e alcuni quiz marcati `locked`. Quattro decisioni prese insieme, confrontate con
+l'utente prima di scrivere schema.
+Decisione, in quattro parti.
+Primo, rappresentazione di domande e opzioni: modello `QuizOption` relazionale (`questionId`,
+`text`, `isCorrect`), non un campo JSON sulla domanda. Coerente con la convenzione già stabilita
+in questo schema, che non usa mai JSON nemmeno dove sarebbe stato comodo (il pattern polimorfico
+di `Vote` usa un discriminante `targetType`, non JSON): resta interrogabile con query normali e
+non chiude future funzionalità (es. statistiche per opzione).
+Secondo, granularità di un tentativo: oltre a `QuizAttempt` (punteggio, totale), un modello
+`QuizAnswer` (una riga per domanda per tentativo, con l'opzione scelta e se era corretta). Il
+valore di un quiz civico è il feedback per imparare, non solo la valutazione: senza salvare quale
+opzione è stata scelta per ogni domanda non si può mostrare dopo l'invio quali risposte erano
+sbagliate e quali corrette, che è il punto della feature, non un accessorio.
+Terzo, tentativi ripetibili: `@@unique([userId, quizId])` su `QuizAttempt`, cioè una sola riga
+registrata per utente per quiz, non uno storico di tentativi. Ripetere il quiz aggiorna quella
+riga (e le `QuizAnswer` collegate) solo se il nuovo punteggio è migliore del precedente — logica
+applicativa, non vincolo di schema. Scelta motivata dallo scopo educativo: penalizzare un errore
+per sempre (il flag binario `done` del prototipo) non incoraggia a riprovare; tenere il punteggio
+migliore sì.
+Quarto, sblocco progressivo: campo `order` su `Quiz`, un quiz con `order` maggiore di zero è
+sbloccato solo se esiste un `QuizAttempt` per il quiz con `order` immediatamente precedente
+(calcolato in query al momento dell'uso, non un campo booleano salvato che potrebbe disallinearsi
+dallo stato reale dei tentativi). Il prototipo mostra alcuni quiz `locked` senza spiegare la
+logica dietro: interpretato come sblocco sequenziale reale, non solo un dettaglio visivo del
+mockup, perché guida l'utente in un percorso invece di lasciarlo scegliere a caso, coerente con
+lo scopo civico/educativo della feature.
+Motivazione: le quattro scelte insieme trattano il quiz come strumento di apprendimento
+(feedback per domanda, possibilità di riprovare, percorso guidato) invece che come solo verifica
+puntuale, allineandosi allo scopo dichiarato della feature ("Educazione civica", non un esame).
+Conseguenze: più tabelle e più scritture per tentativo rispetto alla via minima (solo punteggio
+aggregato, un tentativo permanente, nessuno sblocco), accettato come compromesso proporzionato al
+valore didattico. Non ancora scritte le pagine, le server action, né un seed di quiz reali:
+prossimo passo implementativo, fuori dal perimetro di questa ADR.

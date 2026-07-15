@@ -198,3 +198,32 @@ a un primo sguardo; e ogni punto di contatto tra le parti va reso un contratto e
 in anticipo a entrambi gli esecutori, non un dettaglio lasciato scoprire durante l'integrazione.
 
 Dove leggere il dettaglio: `refactor-07-parallelizzazione-file-disgiunti.md`.
+
+## 8. Un quiz civico è uno strumento per imparare, non un esame: e questo cambia lo schema, non solo la UI
+
+Contesto. Il Quiz è la prima feature verticale di Fase 2 che introduce un dominio dati
+completamente nuovo, non un riuso di schema già presente come eventi, forum o proposte. Il
+prototipo di design mostra quiz a scelta multipla con un flag binario `done` per tentativo e
+alcuni quiz marcati come bloccati.
+
+Com'era e perché era fragile. La lettura più diretta del prototipo porterebbe a uno schema
+minimo: un punteggio aggregato per tentativo, un solo tentativo permanente per utente per quiz
+(il flag `done` non distingue "ho sbagliato" da "ho azzeccato tutto"), nessuna logica di sblocco
+reale dietro il flag visivo `locked`. Funzionerebbe, ma tratterebbe il quiz come una verifica
+puntuale: un errore resterebbe un voto fisso per sempre, e senza salvare quale risposta è stata
+scelta per ogni domanda non si potrebbe mai dire all'utente cosa ha sbagliato, solo quanto.
+
+Il salto e perché è meglio. La domanda giusta non era "come rappresento i dati del prototipo" ma
+"a cosa serve davvero questa feature": non a certificare chi sa cosa, ma ad aiutare a imparare
+l'educazione civica. Quella domanda cambia lo schema stesso, non solo come si presentano i
+risultati: serve una riga per ogni risposta data (`QuizAnswer`, non solo un punteggio aggregato)
+per poter mostrare il feedback domanda per domanda; serve poter ripetere il quiz tenendo il
+punteggio migliore, non un tentativo permanente, perché sbagliare una volta non dovrebbe chiudere
+la porta a riprovare; e lo sblocco progressivo tra quiz visto nel prototipo va implementato
+davvero, non lasciato un dettaglio visivo, perché guida un percorso di apprendimento invece di
+abbandonare l'utente a scegliere a caso. Il principio generale: quando si porta un prototipo di
+design nel codice reale, la domanda "cosa serve salvare" non si risponde guardando solo la UI
+mostrata, ma lo scopo dichiarato della feature; due feature che sembrano simili in superficie (un
+quiz e una verifica a punteggio) possono richiedere schemi diversi se il loro scopo reale diverge.
+
+Dove leggere il dettaglio: `refactor-08-modello-dati-quiz.md`.

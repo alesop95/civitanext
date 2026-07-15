@@ -32,60 +32,45 @@ digitale, forum (thread + risposte). Header di navigazione condiviso (`SiteHeade
 e corretti durante le verifiche: redirect mancante e `CredentialsSignin` non gestito in
 `/accedi`, entrambi diagnosticati leggendo il sorgente reale di `next-auth`.
 
-## Feature: Fase 2 — proposte e votazioni, coda di approvazione admin
+## Chiusa: Fase 2 — proposte e votazioni, coda di approvazione admin
 
-Cosa fa: prima feature verticale di Fase 2 secondo `roadmap.md` — proposte con ciclo di vita
-(revisione → votazione → approvata), votazione con vincolo di unicità (riuso di `Vote`, stesso
-principio di RSVP/forum), coda di approvazione riservata ad `ADMIN`/`SUPERADMIN`. Nessuna
-modifica allo schema: `Proposal`/`Vote`/`ProposalStatus` esistevano già dalla Fase 0. Quiz,
-menzionato nello stesso blocco di `roadmap.md`, resta fuori scope: richiede modelli nuovi non
-ancora progettati.
+Ciclo di vita revisione → votazione → approvata, votazione con vincolo di unicità (riuso di
+`Vote`, stesso principio di RSVP/forum), coda di approvazione riservata ad `ADMIN`/`SUPERADMIN`
+(prima guardia di autorizzazione per ruolo del progetto, non solo di autenticazione). Nessuna
+modifica di schema: `Proposal`/`Vote`/`ProposalStatus` esistevano già dalla Fase 0. Bug trovato e
+corretto durante la verifica: `createProposal`/`createThread` restituivano senza scrivere né
+avvisare se un campo arrivava vuoto al server (scoperto con query diretta al database, non
+un'ipotesi). Ciclo completo verificato nel browser con due utenti di prova distinti (uno
+normale, uno `ADMIN`): proposta creata → approvata per il voto → votata → voto ritirato.
 
-File da creare:
+## Feature: Fase 2 — Quiz (modello dati)
 
-```
-src/app/proposte/actions.ts          createProposal, toggleVote (riuso Vote/VoteTargetType.PROPOSAL), fatto
-src/app/proposte/page.tsx            elenco pubblico (solo VOTAZIONE/APPROVATA), voto, fatto
-src/app/proposte/nuova/page.tsx      form di creazione proposta, fatto
-src/app/admin/proposte/actions.ts    approveForVoting/closeVoting/rejectProposal, guardia di ruolo, fatto
-src/app/admin/proposte/page.tsx      coda di approvazione (in revisione / in votazione), fatto
-```
+Cosa fa: seconda feature verticale di Fase 2 secondo `roadmap.md`. A differenza di eventi, forum
+e proposte, il Quiz è un dominio dati completamente nuovo, non un riuso di schema esistente.
+Quattro decisioni sul modello dati confrontate con l'utente e registrate in ADR-011 prima di
+scrivere qualunque pagina: opzioni di risposta relazionali (non JSON, coerente con la convenzione
+già stabilita in questo schema), risposte salvate per singola domanda (non solo un punteggio
+aggregato, per poter dare un feedback domanda per domanda), tentativi ripetibili con il punteggio
+migliore registrato (non un tentativo permanente), sblocco progressivo tra quiz calcolato in
+query (non un flag salvato che potrebbe disallinearsi).
 
 File da modificare:
 
 ```
-src/components/SiteHeader.tsx   nav "Proposte"; chip "Admin" visibile solo ad ADMIN/SUPERADMIN, fatto
-src/app/forum/actions.ts        bugfix: stesso silenzio di validazione di createProposal, corretto per coerenza, fatto
-src/app/forum/nuovo/page.tsx    mostra il messaggio d'errore corrispondente, fatto
+prisma/schema.prisma   5 nuovi modelli: Quiz, QuizQuestion, QuizOption, QuizAttempt, QuizAnswer, fatto
 ```
 
 Definition of done:
 
-- [x] Server action pubbliche (`createProposal`, `toggleVote`) e admin (`approveForVoting`,
-      `closeVoting`, `rejectProposal`, quest'ultima come cancellazione: nessuno stato "respinta"
-      nello schema, scelta pragmatica senza storico dei rifiuti)
-- [x] Pagina `/proposte`: solo proposte non più in revisione, conteggio voti calcolato a mano
-      (Vote è polimorfico, nessuna relazione diretta, refactor-04)
-- [x] Pagina `/admin/proposte`: guardia di ruolo (`ADMIN`/`SUPERADMIN`, altrimenti redirect),
-      sezioni "in revisione" e "in votazione" separate
-- [x] `npm run build` pulito (typecheck incluso)
-- [x] Bugfix di validazione silenziosa: `createProposal`/`createThread` restituivano senza
-      scrivere né avvisare se un campo arrivava vuoto al server, scoperto quando una proposta di
-      prova non compariva nella coda admin (verificato con query diretta al database: zero righe
-      `Proposal`); corretto con redirect a un messaggio d'errore visibile, applicato anche al
-      forum per coerenza dello stesso pattern
-- [x] Creato un utente di prova con ruolo `ADMIN` (`admin@civitanext.test`), distinto dall'utente
-      normale, per testare la coda senza approvare le proprie proposte
-- [x] Verifica manuale nel browser, 2026-07-15, ciclo completo: creata una proposta come utente
-      normale (in revisione, non visibile pubblicamente) → approvata per il voto come admin
-      (sparisce dalla coda "in revisione", compare in "in votazione" e nell'elenco pubblico) →
-      votata come utente normale (0→1 voto, pulsante "Vota"→"Ritira il voto") → voto ritirato
-      (1→0, pulsante torna a "Vota")
+- [x] Schema scritto, validato e migrato (procedura ADR-009)
+- [ ] Pagine (elenco quiz con stato sblocco, svolgimento, risultato con feedback per domanda)
+- [ ] Server action (submit tentativo, calcolo punteggio, aggiornamento solo se migliore)
+- [ ] Seed di almeno un quiz reale (il prototipo ha domande di educazione civica pronte da
+      riprendere, `CN_QUIZ_QUESTIONS` in `civitanext-data.jsx`)
+- [ ] Verifica manuale nel browser
 
-Domande aperte: nessuna bloccante. La promozione da `VOTAZIONE` ad `APPROVATA` resta una
-decisione manuale dell'admin (nessuna soglia automatica di voti): coerente con l'idea che
-l'approvazione finale rispecchia una decisione reale dell'associazione, non ancora messa in
-discussione dall'utente.
+Domande aperte: nessuna bloccante. Le pagine e le server action sono il prossimo passo
+implementativo, non ancora scritte.
 
 ## Riconciliazione
 

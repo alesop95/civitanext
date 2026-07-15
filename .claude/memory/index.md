@@ -22,7 +22,7 @@ Data snapshot:        2026-07-15
 | dev-testing.md | 4da8cf9 | aggiornata |
 | current-work.md | 4da8cf9 | aggiornata |
 | roadmap.md | 4da8cf9 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
-| studio-didattico-master.md | 4da8cf9 | 7 voci |
+| studio-didattico-master.md | 4da8cf9 | 8 voci |
 
 ## Punto di ripresa
 
@@ -57,4 +57,14 @@ diretta al database che la proposta di test non era mai stata scritta. Creato un
 di prova con ruolo `ADMIN` (`admin@civitanext.test`) per testare la coda senza approvare le
 proprie proposte. Verificato nel browser il ciclo completo: proposta creata → approvata per il
 voto dall'admin → votata → voto ritirato, ogni passaggio con l'esito visivo corretto.
-Prossimo passo di Fase 2: quiz, che richiede modelli di schema nuovi non ancora progettati.
+
+Quiz (modello dati): prima feature di Fase 2 con dominio dati completamente nuovo, non un riuso
+di schema esistente. Quattro decisioni confrontate con l'utente prima di scrivere schema,
+registrate in ADR-011: opzioni relazionali (non JSON, coerente con la convenzione dello schema),
+risposte salvate per singola domanda (feedback dopo l'invio, non solo punteggio aggregato),
+tentativi ripetibili con il punteggio migliore registrato, sblocco progressivo tra quiz calcolato
+in query da un campo `order`. Schema applicato e migrato; studio didattico a 8 voci (l'ultima:
+la domanda "cosa serve salvare" si risponde guardando lo scopo della feature, non solo la forma
+del prototipo di design); sintesi stakeholder in `_notes/stakeholder-brief-fase-2-quiz.md`.
+Prossimo passo: pagine, server action, seed di contenuto reale, verifica nel browser — tutto
+ancora da scrivere.
