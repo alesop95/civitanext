@@ -199,6 +199,37 @@ attorno a `signIn` che cattura `AuthError` e reindirizza con un messaggio leggib
 qualunque altro errore (incluso il segnale interno di redirect di Next.js in caso di successo,
 che non è un'istanza di `AuthError` e quindi non viene intercettato per errore).
 
+## Feature: Forum (thread + risposte)
+
+Cosa fa: terza feature verticale di Fase 1 secondo `roadmap.md` — elenco thread, dettaglio con
+risposte, creazione di nuovi thread e risposte per utenti loggati. Nessuna modifica allo schema:
+`Thread`/`Reply` esistevano già dalla Fase 0.
+
+File da creare:
+
+```
+src/app/forum/actions.ts      server action createThread/createReply, fatto
+src/app/forum/page.tsx        elenco thread (categoria, autore, conteggio risposte), fatto
+src/app/forum/[id]/page.tsx   dettaglio thread, risposte, form di risposta, fatto
+src/app/forum/nuovo/page.tsx  form di creazione thread, fatto
+```
+
+Definition of done:
+
+- [x] Server action `createThread`/`createReply`, entrambe con guardia di sessione
+- [x] Pagina `/forum`: elenco, categoria, autore, conteggio risposte, invito ad accedere se non loggato
+- [x] Pagina `/forum/[id]`: dettaglio, risposte in ordine cronologico, form di risposta
+- [x] Pagina `/forum/nuovo`: creazione thread (titolo, categoria, messaggio)
+- [x] `npm run build` pulito (typecheck incluso)
+- [x] Verifica manuale nel browser, 2026-07-15: creato un thread di prova ("Thread di prova",
+      categoria Mobilità) e una risposta ("Pippo hai provato bene"), entrambi comparsi
+      correttamente con autore e orario, nessun errore in console
+
+Domande aperte: nessuna bloccante. A differenza degli eventi, non è stato scritto un seed: i
+thread hanno un autore reale (foreign key su `User`), quindi popolare dati demo realistici
+avrebbe richiesto creare utenti fittizi nel database; verificato invece creando contenuto reale
+con l'utente di prova, stessa logica già usata per l'RSVP.
+
 ## Riconciliazione
 
 Ultima verifica: 2026-07-15, al commit `4da8cf9` (le modifiche di questa voce non ancora

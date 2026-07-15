@@ -23,17 +23,16 @@ alla volta (dati → API → UI), mantenendo l'intera infrastruttura gratuita.
 
 Fase 0 (fondamenta) sostanzialmente chiusa: allineamento `.claude`, scelta stack gratuito,
 bootstrap Next.js+TypeScript, design system, schema dati iniziale, migrazione applicata (ADR-009).
-Fase 1 del `ROADMAP.md` di handoff aperta: auth reale (NextAuth), iscrizione socio, profilo con
-tessera digitale, eventi (lettura + RSVP), forum. Autenticazione e ruoli decisi e implementati
-(tre livelli `SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento come dato indipendente dal ruolo,
-sessione JWT con ricontrollo periodico, credenziali più Google OAuth: ADR-010). Eventi (lettura +
-RSVP), la prima feature verticale completa, costruita e verificata nel browser il 2026-07-15:
-elenco eventi da database, iscrizione/disiscrizione con vincolo di unicità a livello di database
-(stesso principio di `Vote`), header di navigazione condiviso tra le pagine. Profilo con tessera
-digitale costruito e verificato lo stesso giorno: dati account, tessera digitale se l'utente è
-tesserato, messaggio altrimenti (l'assegnazione di una tessera resta un'azione amministrativa non
-ancora costruita). Prossimo passo di Fase 1: forum. Priorità dopo: Fase 2 (proposte e votazioni,
-coda di approvazione admin, quiz), la feature di valore più alto perché collega utenti e admin.
+Fase 1 del `ROADMAP.md` di handoff **chiusa nella sostanza** il 2026-07-15: auth reale
+(NextAuth, tre livelli `SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento indipendente dal ruolo,
+sessione JWT con ricontrollo periodico, credenziali più Google OAuth: ADR-010); eventi (lettura +
+RSVP, vincolo di unicità a livello di database come `Vote`); profilo con tessera digitale
+(l'assegnazione di una tessera resta un'azione amministrativa non ancora costruita); forum
+(thread, risposte, creazione), nessuna modifica di schema necessaria perché `Thread`/`Reply`
+esistevano già dalla Fase 0. Tutte e tre le feature verticali verificate nel browser con
+contenuto reale, non solo con build pulita. Priorità dopo: Fase 2 (proposte e votazioni, coda di
+approvazione admin, quiz), la feature di valore più alto perché collega utenti e admin — schema
+`Proposal`/`Vote` già presente dalla Fase 0, stessa situazione di Thread/Reply per il forum.
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del

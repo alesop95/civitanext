@@ -6,6 +6,31 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-15 — Feature Forum (thread + risposte), terza feature verticale di Fase 1
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: nuovi `src/app/forum/actions.ts` (`createThread`, `createReply`),
+`src/app/forum/page.tsx`, `src/app/forum/[id]/page.tsx`, `src/app/forum/nuovo/page.tsx`. Nessuna
+modifica allo schema: `Thread`/`Reply` esistevano già dalla Fase 0.
+Motivo/racconto: chiusura della terza feature verticale di Fase 1 (dopo autenticazione/ruoli,
+eventi, profilo). Scritta direttamente senza agenti paralleli, dimensione comparabile a Eventi ma
+senza l'utente che avesse richiesto esplicitamente di parallelizzare questa volta. Controllati
+prima i dati demo del forum nel prototipo di design (`CN_THREADS` in
+`design_handoff_civitanext/civitanext-data.jsx`) per lo stesso motivo di Eventi: non inventare
+contenuto. Decisione distinta da Eventi però su come verificare: i thread hanno un autore reale
+(`Thread.authorId`, foreign key su `User`), quindi seminare le quattro discussioni demo con i
+loro autori originali ("Giulia M.", "Marco T.", ecc.) avrebbe richiesto creare utenti fittizi nel
+database solo per intestare contenuto — scartato, non seminato nulla; verificato invece creando
+un thread e una risposta reali con l'utente di prova, stessa logica già usata per la conferma
+dell'RSVP.
+Verificato con `npm run build` (tutte le route del forum generate, dinamiche) e nel browser:
+creato un thread ("Thread di prova", categoria Mobilità), poi una risposta ("Pippo hai provato
+bene"), entrambi comparsi con autore e orario corretti, conteggio risposte aggiornato da 0 a 1,
+nessun errore in console in nessuno dei due passaggi.
+Ancora aperto: nessun punto bloccante. Con Forum chiuso, tutte e tre le feature verticali di
+Fase 1 elencate in `roadmap.md` (eventi, profilo, forum) sono complete; prossima priorità Fase 2
+(proposte e votazioni, coda di approvazione admin, quiz).
+
 ## 2026-07-15 — Pagina profilo con tessera digitale, corretto CredentialsSignin non gestito in /accedi
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

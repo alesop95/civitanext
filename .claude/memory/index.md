@@ -31,47 +31,21 @@ system, schema dati, migrazione Prisma contro un Postgres reale (server locale d
 `npx prisma dev -n civitanext`, porte 51218/51219, workaround `migrate diff` + `migrate deploy`
 per un bug noto upstream, ADR-009). Restano aperte solo la sintesi non tecnica generale di Fase 0
 per lo stakeholder e la verifica del runtime Cloudflare reale (ADR-006, invariato).
-Fase 1 aperta: prima decisione presa e applicata il 2026-07-14, il modello di autenticazione e
-ruoli. Corretta un'assunzione iniziale (popolazione di soli soci, stima "centinaia") con lo
-scenario reale (tre livelli `SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento indipendente dal ruolo
-tramite `tesseraNumero` nullable, scala massima 10.000 utenti): sessione JWT con scadenza breve
-e ricontrollo del ruolo al rinnovo, provider credenziali più Google, adapter Prisma senza modello
-Session (verificato sul sorgente che non serve con strategia JWT), registrato come ADR-010.
-Schema aggiornato e migrato con la stessa procedura di ADR-009. Implementazione completata lo
-stesso giorno: `@auth/prisma-adapter` installato, `src/auth.ts` scritto (Credentials + Google,
-adapter, sessione JWT, callback `jwt`/`session`), route handler, route di registrazione
-credenziali, pagine `/accedi` e `/registrati`. `npm run build` pulito (typecheck incluso) dopo
-aver corretto un errore non anticipato: l'augmentation di tipo per `Session`/`User`/`JWT` va
-dichiarata sui moduli che definiscono quelle interfacce (`@auth/core/types`, `@auth/core/jwt`),
-non su `next-auth`/`next-auth/jwt` che le ri-esportano soltanto.
-Flusso a credenziali verificato nel browser lo stesso giorno tramite `/registrati` (login
-automatico con `redirectTo` esplicito): utente creato nel database con `role: UTENTE`/
-`tesseraNumero: null` corretti, password hashata bcrypt, sessione confermata via
-`/api/auth/session` con scadenza a un'ora coerente col `maxAge` di ADR-010. Flusso Google
-rimandato di proposito a quando esisterà un account Google dedicato all'associazione (non
-bloccante, vedi `roadmap.md`); codice già scritto e completo. Sintesi stakeholder di questa
-decisione in `_notes/stakeholder-brief-fase-1-autenticazione.md`.
 
-Prima feature verticale completa di Fase 1, Eventi (lettura + RSVP), costruita il 2026-07-15 con
-due agenti in parallelo su file disgiunti (header di navigazione condiviso `SiteHeader` da un
-lato, pagina `/eventi` + server action `toggleRsvp` dall'altro), integrati con un'unica build di
-verifica. Modello `Rsvp` con vincolo di unicità a livello di database (`@@unique([userId,
-eventId])`, stesso principio di `Vote`), migrato con la procedura di ADR-009, seminato con i
-quattro eventi reali del prototipo di design. Durante la verifica trovato e corretto un bug
-distinto in `/accedi` (mai esercitato end-to-end prima d'ora): `signIn("credentials", formData)`
-senza un campo `redirectTo` nel form ricade sull'header `Referer` come destinazione invece che
-sulla home, dando l'impressione di un login bloccato anche quando riesce — diagnosticato leggendo
-il sorgente reale di `next-auth`, non ipotizzato. Verificato nel browser dopo la correzione: login
-riuscito, RSVP funzionante con aggiornamento immediato del conteggio partecipanti.
-Aggiunta voce 7 di studio didattico (7 voci totali) sul metodo di parallelizzazione stesso: file
-disgiunti verificati in anticipo, contratto d'interfaccia esplicito tra gli esecutori
-(`refactor-07-parallelizzazione-file-disgiunti.md`).
+Fase 1 **chiusa nella sostanza** il 2026-07-15. Autenticazione e ruoli (ADR-010): tre livelli
+`SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento indipendente dal ruolo, sessione JWT con ricontrollo
+periodico, credenziali più Google (Google rimandato solo nella configurazione esterna, non
+bloccante, vedi `roadmap.md`). Tre feature verticali costruite e verificate nel browser con
+contenuto reale: eventi (lettura + RSVP, seminati i quattro eventi reali del prototipo, vincolo
+di unicità a database come `Vote`), profilo con tessera digitale (l'assegnazione di una tessera
+resta amministrativa, non ancora costruita), forum (thread, risposte, creazione — nessun seed,
+verificato creando contenuto reale perché i thread hanno un autore reale). Header di navigazione
+condiviso (`SiteHeader`) tra tutte le pagine. Due bug distinti trovati durante le verifiche e
+corretti in `/accedi` (redirect mancante dopo login; `CredentialsSignin` non gestito), entrambi
+diagnosticati leggendo il sorgente reale di `next-auth`, non per tentativi — dettaglio completo
+in `memory/progress.md`. Studio didattico a 7 voci, l'ultima sul metodo di parallelizzazione a
+due agenti usato per la feature Eventi. Sintesi stakeholder di Fase 1 in
+`_notes/stakeholder-brief-fase-1-autenticazione.md`.
 
-Seconda feature verticale di Fase 1, profilo con tessera digitale, costruita e verificata lo
-stesso giorno: pagina `/profilo` con dati account e tessera digitale condizionale su
-`tesseraNumero`, avatar dell'header collegato al profilo. Trovato e corretto un secondo bug in
-`/accedi`, distinto da quello di `redirectTo`: `CredentialsSignin` non gestito in un form action
-lato server produceva un errore 500 invece di un messaggio leggibile, comportamento dichiarato
-dalla stessa Auth.js (verificato in `@auth/core/errors.js`). Corretto con `try/catch` +
-redirect a un messaggio d'errore. Confermato dall'utente nel browser dopo la correzione.
-Prossimo passo di Fase 1: forum.
+Prossima priorità: Fase 2 (proposte e votazioni, coda di approvazione admin, quiz) — schema
+`Proposal`/`Vote` già presente dalla Fase 0, stessa situazione di Thread/Reply per il forum.
