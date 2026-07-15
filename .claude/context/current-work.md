@@ -159,10 +159,50 @@ un `FormData`, Auth.js legge `redirectTo` dai campi del form stesso via `Object.
 da un argomento separato: verificato leggendo `node_modules/next-auth/lib/actions.js`, non
 ipotizzato). Vedi la voce di lavoro corrispondente in `memory/progress.md`.
 
+## Feature: Profilo con tessera digitale
+
+Cosa fa: seconda feature verticale di Fase 1 secondo `roadmap.md` — pagina profilo che mostra i
+dati dell'account e, se l'utente è tesserato, la tessera digitale; altrimenti un invito a
+completare l'iscrizione. Nessuna assegnazione di `tesseraNumero` in questa feature (resta
+un'azione amministrativa, fuori scope, da affrontare quando si costruirà la parte admin).
+
+File da creare:
+
+```
+src/app/profilo/page.tsx   pagina profilo con tessera digitale condizionale, fatto
+```
+
+File da modificare:
+
+```
+src/components/SiteHeader.tsx   l'avatar diventa un link a /profilo, fatto
+src/app/accedi/page.tsx         bugfix: CredentialsSignin non gestito, vedi Domande aperte, fatto
+```
+
+Definition of done:
+
+- [x] Pagina `/profilo`: dati account (nome, email, ruolo, membro dal), tessera digitale se
+      `tesseraNumero` presente, messaggio altrimenti
+- [x] Avatar nell'header collegato al profilo
+- [x] `npm run build` pulito (typecheck incluso)
+- [x] Verifica manuale nel browser, 2026-07-15: profilo mostrato correttamente per l'utente di
+      prova (non tesserato, messaggio corretto), confermato dall'utente dopo il bugfix di accedi
+
+Domande aperte: nessuna bloccante. Bug trovato durante questa verifica, distinto da quello di
+`redirectTo` già corretto: `authorize()` che restituisce `null` (credenziali sbagliate, o più
+probabilmente una sessione scaduta dopo un'ora che ha rimandato l'utente su `/accedi` da
+`/profilo`) fa lanciare a `signIn` un `CredentialsSignin` — comportamento dichiarato dalla stessa
+Auth.js per i form action lato server ("questo errore viene lanciato... invece di reindirizzare
+l'utente, quindi va gestito", commento nel sorgente di `@auth/core/errors.js`), ma non gestito
+nel nostro form, causando un errore 500 invece di un messaggio. Corretto con un `try/catch`
+attorno a `signIn` che cattura `AuthError` e reindirizza con un messaggio leggibile, ripassando
+qualunque altro errore (incluso il segnale interno di redirect di Next.js in caso di successo,
+che non è un'istanza di `AuthError` e quindi non viene intercettato per errore).
+
 ## Riconciliazione
 
-Ultima verifica: 2026-07-14, al commit `4da8cf9` (le modifiche di questa voce non ancora
+Ultima verifica: 2026-07-15, al commit `4da8cf9` (le modifiche di questa voce non ancora
 committate al momento della nota). Migrazione Prisma applicata al Postgres locale dedicato di
 questo progetto (schema sincronizzato, cronologia tracciata in `prisma/migrations/`): vedi
-`memory/progress.md` e ADR-009/ADR-010 in `memory/decisions.md` per il dettaglio delle due
-indagini/decisioni.
+`memory/progress.md` e ADR-009/ADR-010 in `memory/decisions.md` per il dettaglio delle indagini
+e decisioni principali di questo blocco di lavoro.

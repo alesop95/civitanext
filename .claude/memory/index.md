@@ -63,3 +63,15 @@ senza un campo `redirectTo` nel form ricade sull'header `Referer` come destinazi
 sulla home, dando l'impressione di un login bloccato anche quando riesce — diagnosticato leggendo
 il sorgente reale di `next-auth`, non ipotizzato. Verificato nel browser dopo la correzione: login
 riuscito, RSVP funzionante con aggiornamento immediato del conteggio partecipanti.
+Aggiunta voce 7 di studio didattico (7 voci totali) sul metodo di parallelizzazione stesso: file
+disgiunti verificati in anticipo, contratto d'interfaccia esplicito tra gli esecutori
+(`refactor-07-parallelizzazione-file-disgiunti.md`).
+
+Seconda feature verticale di Fase 1, profilo con tessera digitale, costruita e verificata lo
+stesso giorno: pagina `/profilo` con dati account e tessera digitale condizionale su
+`tesseraNumero`, avatar dell'header collegato al profilo. Trovato e corretto un secondo bug in
+`/accedi`, distinto da quello di `redirectTo`: `CredentialsSignin` non gestito in un form action
+lato server produceva un errore 500 invece di un messaggio leggibile, comportamento dichiarato
+dalla stessa Auth.js (verificato in `@auth/core/errors.js`). Corretto con `try/catch` +
+redirect a un messaggio d'errore. Confermato dall'utente nel browser dopo la correzione.
+Prossimo passo di Fase 1: forum.

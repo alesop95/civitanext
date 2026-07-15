@@ -27,7 +27,9 @@ export async function SiteHeader({ activeHref }: { activeHref: string }) {
       </nav>
       {session?.user ? (
         <div className="flex items-center gap-3">
-          <Avatar name={session.user.name ?? session.user.email ?? "?"} />
+          <Link href="/profilo" aria-label="Il tuo profilo">
+            <Avatar name={session.user.name ?? session.user.email ?? "?"} />
+          </Link>
           <form
             action={async () => {
               "use server";

@@ -1,0 +1,75 @@
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
+import { getPrisma } from "@/lib/prisma";
+import { SiteHeader } from "@/components/SiteHeader";
+import { Tag } from "@/components/ui/Tag";
+import { Waves } from "@/components/ui/Waves";
+
+const ROLE_LABELS: Record<string, string> = {
+  SUPERADMIN: "Responsabile generale",
+  ADMIN: "Amministratore",
+  UTENTE: "Utente",
+};
+
+const memberSinceFormatter = new Intl.DateTimeFormat("it-IT", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
+export default async function ProfiloPage() {
+  const session = await auth();
+  if (!session?.user?.id) redirect("/accedi");
+
+  const prisma = getPrisma();
+  const user = await prisma.user.findUnique({ where: { id: session.user.id } });
+  if (!user) redirect("/accedi");
+
+  return (
+    <main className="flex flex-1 flex-col gap-12 px-6 py-16 sm:px-16">
+      <SiteHeader activeHref="/profilo" />
+
+      <header className="flex flex-col gap-2">
+        <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">
+          Il tuo profilo
+        </h1>
+      </header>
+
+      <section className="flex flex-col gap-6 sm:flex-row">
+        <div className="flex flex-col gap-3 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard sm:w-80">
+          <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+            Dati account
+          </p>
+          <p className="font-display text-2xl font-black">{user.name}</p>
+          <p className="font-ui text-sm text-ink-soft">{user.email}</p>
+          <Tag color="var(--ink)">{ROLE_LABELS[user.role] ?? user.role}</Tag>
+          <p className="font-ui text-xs text-ink-soft">
+            Membro dal {memberSinceFormatter.format(user.memberSince)}
+          </p>
+        </div>
+
+        {user.tesseraNumero ? (
+          <div className="relative flex flex-col gap-2 overflow-hidden rounded-cn border-2 border-ink bg-accent p-6 text-white shadow-hard sm:w-80">
+            <Waves
+              width={140}
+              color="rgba(255,255,255,0.35)"
+              className="pointer-events-none absolute -bottom-6 -right-6"
+            />
+            <p className="font-ui text-xs font-bold uppercase tracking-[0.2em]">Tessera Socio</p>
+            <p className="font-display text-3xl font-black">{user.tesseraNumero}</p>
+            <p className="font-ui text-sm">{user.name}</p>
+            <p className="font-ui text-xs opacity-80">CivitaNext &middot; Civitanova Marche</p>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 rounded-cn border-2 border-dashed border-ink bg-paper-card p-6 text-ink-soft shadow-hard sm:w-80">
+            <p className="font-ui text-xs font-bold uppercase tracking-wide">Tessera Socio</p>
+            <p className="font-ui text-sm">
+              Non risulti ancora tesserato. Contatta l&apos;associazione per completare
+              l&apos;iscrizione.
+            </p>
+          </div>
+        )}
+      </section>
+    </main>
+  );
+}

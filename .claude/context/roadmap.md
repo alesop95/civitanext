@@ -29,8 +29,10 @@ tessera digitale, eventi (lettura + RSVP), forum. Autenticazione e ruoli decisi 
 sessione JWT con ricontrollo periodico, credenziali più Google OAuth: ADR-010). Eventi (lettura +
 RSVP), la prima feature verticale completa, costruita e verificata nel browser il 2026-07-15:
 elenco eventi da database, iscrizione/disiscrizione con vincolo di unicità a livello di database
-(stesso principio di `Vote`), header di navigazione condiviso tra le pagine. Prossimo passo di
-Fase 1: profilo con tessera digitale, poi forum. Priorità dopo: Fase 2 (proposte e votazioni,
+(stesso principio di `Vote`), header di navigazione condiviso tra le pagine. Profilo con tessera
+digitale costruito e verificato lo stesso giorno: dati account, tessera digitale se l'utente è
+tesserato, messaggio altrimenti (l'assegnazione di una tessera resta un'azione amministrativa non
+ancora costruita). Prossimo passo di Fase 1: forum. Priorità dopo: Fase 2 (proposte e votazioni,
 coda di approvazione admin, quiz), la feature di valore più alto perché collega utenti e admin.
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth

@@ -6,6 +6,31 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-15 — Pagina profilo con tessera digitale, corretto CredentialsSignin non gestito in /accedi
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: nuovo `src/app/profilo/page.tsx` (dati account, tessera digitale condizionale su
+`tesseraNumero`); `src/components/SiteHeader.tsx` (avatar collegato a `/profilo`);
+`src/app/accedi/page.tsx` (gestione dell'errore `CredentialsSignin`).
+Motivo/racconto: costruita la seconda feature verticale di Fase 1 (profilo con tessera digitale),
+scritta direttamente senza agenti paralleli data la dimensione contenuta di un'unica pagina.
+Durante la verifica nel browser, l'utente ha ricevuto un errore 500 con overlay di sviluppo
+(`Runtime CredentialsSignin`) tentando di accedere da `/profilo` dopo un redirect a `/accedi`
+(sessione probabilmente scaduta dopo un'ora, `maxAge` di ADR-010). Verificato sul sorgente
+(`node_modules/@auth/core/errors.js`) che si tratta di comportamento dichiarato di Auth.js: quando
+`authorize()` restituisce `null`, in un form action lato server (a differenza del flusso
+client-side con redirect automatico) l'errore `CredentialsSignin` viene lanciato invece di
+tradursi in un redirect silenzioso, e va gestito esplicitamente da chi scrive il form. Corretto
+con un `try/catch` attorno a `signIn("credentials", formData)`: se l'errore è un'istanza di
+`AuthError`, redirect a `/accedi?error=<tipo>` con un messaggio leggibile mappato
+(`CredentialsSignin` → "Email o password non corretti."); altrimenti l'errore viene rilanciato
+cosi' com'e', perché il segnale interno di redirect che Next.js usa per un `signIn` riuscito non è
+un'istanza di `AuthError` e deve poter propagarsi senza essere intercettato per errore. Verificato
+con `npm run build` (pagina `/accedi` ora dinamica, legge `searchParams`) e confermato
+dall'utente nel browser: profilo visualizzato correttamente per l'utente di prova non tesserato.
+Ancora aperto: nessun punto bloccante. L'assegnazione di un `tesseraNumero` a un utente resta
+un'azione amministrativa non ancora costruita, fuori scope di questa feature.
+
 ## 2026-07-15 — Voce 7 di studio didattico: il metodo di parallelizzazione della voce precedente
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
