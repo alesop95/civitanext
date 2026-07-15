@@ -24,12 +24,14 @@ alla volta (dati → API → UI), mantenendo l'intera infrastruttura gratuita.
 Fase 0 (fondamenta) sostanzialmente chiusa: allineamento `.claude`, scelta stack gratuito,
 bootstrap Next.js+TypeScript, design system, schema dati iniziale, migrazione applicata (ADR-009).
 Fase 1 del `ROADMAP.md` di handoff aperta: auth reale (NextAuth), iscrizione socio, profilo con
-tessera digitale, eventi (lettura + RSVP) come prima feature verticale completa, forum come
-seconda. Deciso e implementato il modello di ruoli/tesseramento e la strategia di autenticazione
+tessera digitale, eventi (lettura + RSVP), forum. Autenticazione e ruoli decisi e implementati
 (tre livelli `SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento come dato indipendente dal ruolo,
-sessione JWT con ricontrollo periodico, credenziali più Google OAuth: ADR-010), vedi
-`current-work.md`. Priorità dopo: Fase 2 (proposte e votazioni, coda di approvazione admin,
-quiz), la feature di valore più alto perché collega utenti e admin.
+sessione JWT con ricontrollo periodico, credenziali più Google OAuth: ADR-010). Eventi (lettura +
+RSVP), la prima feature verticale completa, costruita e verificata nel browser il 2026-07-15:
+elenco eventi da database, iscrizione/disiscrizione con vincolo di unicità a livello di database
+(stesso principio di `Vote`), header di navigazione condiviso tra le pagine. Prossimo passo di
+Fase 1: profilo con tessera digitale, poi forum. Priorità dopo: Fase 2 (proposte e votazioni,
+coda di approvazione admin, quiz), la feature di valore più alto perché collega utenti e admin.
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del

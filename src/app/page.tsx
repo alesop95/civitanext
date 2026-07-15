@@ -1,10 +1,9 @@
 import { Starburst } from "@/components/ui/Starburst";
 import { Waves } from "@/components/ui/Waves";
-import { Logo } from "@/components/ui/Logo";
 import { Btn } from "@/components/ui/Btn";
-import { Chip } from "@/components/ui/Chip";
 import { Tag } from "@/components/ui/Tag";
 import { Avatar } from "@/components/ui/Avatar";
+import { SiteHeader } from "@/components/SiteHeader";
 
 // Vetrina del design system di Fase 0: nessuna feature reale, solo il
 // vocabolario visivo (token, grafiche, componenti base) riportato dal
@@ -12,15 +11,7 @@ import { Avatar } from "@/components/ui/Avatar";
 export default function Home() {
   return (
     <main className="flex flex-1 flex-col gap-12 px-6 py-16 sm:px-16">
-      <header className="flex items-center justify-between">
-        <Logo />
-        <nav className="flex gap-3">
-          <Chip active>Home</Chip>
-          <Chip>Eventi</Chip>
-          <Chip>Quiz</Chip>
-          <Chip>Forum</Chip>
-        </nav>
-      </header>
+      <SiteHeader activeHref="/" />
 
       <section className="relative flex flex-col items-start gap-6 overflow-hidden rounded-cn border-2 border-ink bg-paper-card p-10 shadow-hard">
         <Starburst

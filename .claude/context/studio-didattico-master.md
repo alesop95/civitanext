@@ -168,3 +168,33 @@ reali, che ammettono un punto intermedio calibrato sul profilo di rischio specif
 ricetta generica.
 
 Dove leggere il dettaglio: `refactor-06-ruoli-tesseramento-sessione.md`.
+
+## 7. Parallelizzare due agenti per file disgiunti e contratto d'interfaccia esplicito, non per compiti che "sembrano" indipendenti
+
+Contesto. Costruire la feature Eventi (lettura + RSVP) richiedeva sia un header di navigazione
+condiviso (fino ad allora scritto solo inline nella home) sia una nuova pagina `/eventi` con la
+relativa azione di RSVP. Su richiesta esplicita dell'utente di velocizzare, il lavoro è stato
+diviso tra due agenti lanciati in parallelo invece che in sequenza.
+
+Com'era e perché era fragile. La tentazione, dividendo un lavoro tra due esecutori paralleli, è
+separare per "argomento" (uno fa l'header, l'altro fa gli eventi) senza guardare ai file toccati
+né a chi dipende da chi: se i due compiti avessero condiviso anche un solo file, o se uno dei due
+avesse dovuto indovinare la forma esatta di un componente scritto dall'altro, il risultato
+sarebbe stato un conflitto in scrittura o un'incoerenza scoperta solo in fase di build, quando
+ormai il lavoro di entrambi è già stato speso.
+
+Il salto e perché è meglio. Prima di lanciare i due agenti, la divisione è stata fatta per
+insiemi di file disgiunti verificati in anticipo (uno tocca solo `SiteHeader.tsx` e `page.tsx`,
+l'altro solo `src/app/eventi/**`, nessuna sovrapposizione), e il punto di contatto tra i due
+lavori, cioè la firma esatta del componente condiviso (`SiteHeader({ activeHref })`, non ancora
+scritto quando il secondo agente ne aveva già bisogno per importarlo), è stato reso esplicito nel
+prompt di ciascuno invece di lasciarlo all'inferenza: il secondo agente ha scritto codice contro
+un'interfaccia dichiarata, non contro un file che poteva leggere. L'integrazione tra i due lavori
+è stata verificata con un'unica build sequenziale dopo che entrambi avevano finito, non con build
+concorrenti nella stessa cartella di lavoro, che avrebbero potuto corrompersi a vicenda scrivendo
+nella stessa cache `.next`. Il principio generale: parallelizzare codice richiede innanzitutto
+partizionare per file ed effetti collaterali disgiunti, non per compiti che sembrano indipendenti
+a un primo sguardo; e ogni punto di contatto tra le parti va reso un contratto esplicito dichiarato
+in anticipo a entrambi gli esecutori, non un dettaglio lasciato scoprire durante l'integrazione.
+
+Dove leggere il dettaglio: `refactor-07-parallelizzazione-file-disgiunti.md`.

@@ -56,6 +56,7 @@ model User {
   proposals Proposal[]
   votes     Vote[]
   accounts  Account[]
+  rsvps     Rsvp[]
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -101,6 +102,22 @@ model Event {
   category    String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  rsvps Rsvp[]
+}
+
+// Un utente non puo' iscriversi due volte allo stesso evento: vincolo di unicita' a livello di
+// database (@@unique), stesso principio gia' applicato a Vote (refactor-04), non un controllo
+// applicativo prima di scrivere.
+model Rsvp {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
 }
 
 model Thread {

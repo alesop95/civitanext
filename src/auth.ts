@@ -77,6 +77,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
         return token;
       },
       async session({ session, token }) {
+        if (token.sub) session.user.id = token.sub;
         session.user.role = token.role;
         session.user.tesseraNumero = token.tesseraNumero;
         return session;

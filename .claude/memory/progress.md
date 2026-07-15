@@ -6,6 +6,75 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-15 — Voce 7 di studio didattico: il metodo di parallelizzazione della voce precedente
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: `studio-didattico-master.md` (voce 7), nuovo `refactor-07-parallelizzazione-file-disgiunti.md`.
+Motivo: su richiesta esplicita dell'utente di tenere aggiornata anche la documentazione
+didattica, formalizzato come principio generale il metodo di parallelizzazione dei due agenti
+già raccontato nella voce di lavoro precedente di questo stesso registro: partizionare per file
+disgiunti verificati in anticipo, non per compiti che sembrano indipendenti, e rendere esplicito
+a entrambi gli esecutori ogni punto di contatto (qui, la firma di `SiteHeader`) invece di
+lasciarlo all'inferenza.
+
+## 2026-07-15 — Feature Eventi (lettura + RSVP) costruita con due agenti paralleli, bug di login corretto e verificato
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: `prisma/schema.prisma` (modello `Rsvp`, vincolo `@@unique([userId, eventId])`,
+stesso principio già raccontato in `refactor-04-vincolo-voto-unico.md` per `Vote`); nuova
+migrazione `prisma/migrations/20260715000000_rsvp/`; `prisma/seed.js` (i quattro eventi reali del
+prototipo di design, non inventati, con relativa esecuzione idempotente); estratte
+`btnClassName()`/`chipClassName()` gia' preesistente la prima, aggiunta la seconda in
+`src/components/ui/Chip.tsx`; nuovo `src/components/SiteHeader.tsx` (header di navigazione
+condiviso); `src/app/page.tsx` semplificata per usarlo; nuovi `src/app/eventi/page.tsx` e
+`src/app/eventi/actions.ts`; corretto `src/app/accedi/page.tsx` (bug descritto sotto).
+Motivo/racconto: su richiesta esplicita dell'utente di parallelizzare per velocita', lanciati due
+agenti in parallelo su insiemi di file disgiunti invece che in sequenza: uno ha estratto
+`SiteHeader` da `page.tsx` (necessario perche' `/eventi` avrebbe altrimenti duplicato l'intero
+header con la logica di sessione), l'altro ha scritto la pagina eventi e la server action di
+RSVP, verificando da solo, leggendo i tipi generati, che Prisma chiama la chiave composta di
+`@@unique([userId, eventId])` `userId_eventId` (non ipotizzato). Nessun conflitto perche' i due
+insiemi di file non si sovrapponevano; verificata l'integrazione con un'unica `npm run build`
+dopo che entrambi avevano finito, invece di far girare build concorrenti nella stessa cartella
+di lavoro (rischio di corruzione della cache `.next` condivisa).
+Durante la verifica nel browser (login su `/accedi` con l'utente di prova, a cui nel frattempo
+era stata cambiata la password in chiaro di test da "test1234" a "muccignoso22" via query diretta
+al database con bcrypt, per evitare l'avviso di Chrome sulle password compromesse) l'utente ha
+segnalato che il login sembrava bloccarsi. Diagnosticato leggendo il sorgente reale
+(`node_modules/next-auth/lib/actions.js`), non ipotizzando: `signIn("credentials", formData)`
+senza `redirectTo` esplicito ricade sull'header HTTP `Referer` come destinazione (che e' la
+stessa pagina `/accedi`), non su una nozione generica di "pagina corrente" come la documentazione
+in linea sembrava suggerire; un primo tentativo di correzione (`signIn("credentials", formData,
+{redirectTo: "/"})`, un terzo argomento posizionale) era sbagliato, perche' quella posizione e'
+tipata come parametri di autorizzazione OAuth, non come opzioni aggiuntive — quando il secondo
+argomento e' un `FormData`, Auth.js legge `redirectTo` dai campi del form stesso
+(`Object.fromEntries`), non da un parametro separato. Corretto aggiungendo
+`<input type="hidden" name="redirectTo" value="/" />` nel form, e per coerenza aggiunto
+`{redirectTo: "/"}` anche al pulsante "Accedi con Google" (li' un oggetto letterale e' corretto,
+non essendoci un `FormData` di mezzo). Verificato nel browser dopo la correzione: login riuscito
+(screenshot dell'utente, home con sessione attiva), poi RSVP su un evento passato da "0
+partecipanti"/"Partecipo" a "1 partecipante"/"Annulla partecipazione" senza ricaricare la pagina
+a mano, confermando che `revalidatePath("/eventi")` funziona.
+Ancora aperto: nessun punto bloccante per questa feature. Restano invariati la verifica del
+flusso Google (rimandata) e la sintesi stakeholder di Fase 1 da aggiornare.
+
+## 2026-07-14 — UI minima di stato sessione in home, verificata nel browser
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: `src/components/ui/Btn.tsx` (estratta `btnClassName()` dalla funzione `Btn`, cosi'
+`src/app/page.tsx` puo' dare lo stesso stile a un `<Link>` di navigazione senza annidare un
+`<button>` dentro un `<a>`, HTML non valido); `src/app/page.tsx` (diventata `async`, legge la
+sessione con `auth()` e mostra `Avatar` + pulsante "Esci" se loggato, altrimenti i link
+"Accedi"/"Registrati").
+Motivo/racconto: emerso durante la verifica precedente che la home restava identica per utenti
+loggati e anonimi, un vuoto atteso ma da colmare prima di proseguire. Verificato con
+`npm run build` (la home passa da statica, `○`, a dinamica, `ƒ`, corretto perche' ora legge la
+sessione a ogni richiesta) e poi nel browser vero: schermata con l'utente Pippo loggato (avatar
+con iniziale, pulsante Esci) e, dopo aver cliccato Esci, ritorno ai link Accedi/Registrati,
+confermando che il logout funziona quanto il login.
+Ancora aperto: verifica del flusso Google (rimandata), sintesi stakeholder da aggiornare, le
+prossime feature verticali di Fase 1 (profilo con tessera, eventi, forum).
+
 ## 2026-07-14 — Verificato nel browser il flusso a credenziali (registrazione + accesso)
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

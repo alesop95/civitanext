@@ -13,6 +13,10 @@ export default function AccediPage() {
         }}
         className="flex flex-col gap-4"
       >
+        {/* signIn legge redirectTo dai campi del FormData stesso (Object.fromEntries), non da
+            un argomento separato: senza questo campo il redirect di default cade sul Referer
+            header, cioe' torna su /accedi invece di portare l'utente alla home. */}
+        <input type="hidden" name="redirectTo" value="/" />
         <label className="flex flex-col gap-1 font-ui text-sm">
           Email
           <input
@@ -39,7 +43,7 @@ export default function AccediPage() {
       <form
         action={async () => {
           "use server";
-          await signIn("google");
+          await signIn("google", { redirectTo: "/" });
         }}
       >
         <Btn type="submit" kind="secondary" className="w-full">

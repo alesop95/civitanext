@@ -80,8 +80,10 @@ src/app/registrati/page.tsx          pagina di registrazione, fatto
 File da modificare:
 
 ```
-prisma/schema.prisma   Role (SUPERADMIN/ADMIN/UTENTE), passwordHash nullable, emailVerified/image, modelli Account e VerificationToken, fatto
-package.json           dipendenza @auth/prisma-adapter, fatto
+prisma/schema.prisma        Role (SUPERADMIN/ADMIN/UTENTE), passwordHash nullable, emailVerified/image, modelli Account e VerificationToken, fatto
+package.json                dipendenza @auth/prisma-adapter, fatto
+src/components/ui/Btn.tsx   estratta btnClassName() per riusare lo stile su <Link>, non solo <button>, fatto
+src/app/page.tsx            header legge la sessione (auth()) e mostra avatar+Esci oppure Accedi/Registrati, fatto
 ```
 
 Definition of done:
@@ -97,15 +99,65 @@ Definition of done:
 - [x] Verifica manuale nel browser del flusso a credenziali (registrazione, accesso), 2026-07-14:
       utente creato nel database con `role: UTENTE`, `tesseraNumero: null`, password hashata
       bcrypt (mai in chiaro); sessione confermata via `/api/auth/session`, scadenza a un'ora
-      dalla verifica, coerente con `maxAge` di ADR-010
+      dalla verifica, coerente con `maxAge` di ADR-010. Quella prima verifica passava dal login
+      automatico di `/registrati` (che imposta `redirectTo` esplicitamente): l'accesso diretto da
+      `/accedi` aveva un bug distinto, trovato e corretto il 2026-07-15 (vedi `progress.md`),
+      ora verificato anch'esso end-to-end
 - [ ] Verifica manuale del flusso Google — rimandata di proposito a quando esisterà un account
       Google dedicato all'associazione, non bloccante per il resto (vedi `roadmap.md`); codice
       già scritto e completo, non richiede altro lavoro quando si riprende
+- [x] UI minima di stato sessione in home (avatar+Esci se loggato, Accedi/Registrati altrimenti),
+      verificata nel browser in entrambe le direzioni (login e logout) il 2026-07-14
 - [ ] Sintesi stakeholder di Fase 1 da aggiornare con l'esito della verifica (bozza della sola
       decisione già in `_notes/stakeholder-brief-fase-1-autenticazione.md`)
 
 Domande aperte: nessuna bloccante per il flusso a credenziali. `AUTH_GOOGLE_ID`/
 `AUTH_GOOGLE_SECRET` rimandati di proposito, non bloccanti (vedi `roadmap.md`).
+
+## Feature: Eventi (lettura + RSVP)
+
+Cosa fa: prima feature verticale completa di Fase 1 secondo `roadmap.md` — elenco eventi letto
+dal database e iscrizione/disiscrizione (RSVP) per utenti loggati.
+
+File da creare:
+
+```
+prisma/seed.js                  seed idempotente dei quattro eventi reali del prototipo di design, fatto
+src/components/SiteHeader.tsx   header di navigazione condiviso (estratto da page.tsx), fatto
+src/app/eventi/page.tsx         elenco eventi con stato RSVP, fatto
+src/app/eventi/actions.ts       server action toggleRsvp(eventId), fatto
+```
+
+File da modificare:
+
+```
+prisma/schema.prisma          modello Rsvp (vincolo @@unique([userId, eventId]), stesso principio di Vote/refactor-04), fatto
+src/components/ui/Chip.tsx    estratta chipClassName() per riusare lo stile su <Link>, fatto
+src/app/page.tsx              usa <SiteHeader activeHref="/" /> al posto dell'header inline, fatto
+src/app/accedi/page.tsx       bugfix: redirectTo mancante, vedi Domande aperte/progress.md, fatto
+```
+
+Definition of done:
+
+- [x] Modello `Rsvp` scritto, validato e migrato (procedura ADR-009)
+- [x] Seed dei quattro eventi reali (`prisma/seed.js`, ripresi da `design_handoff_civitanext/civitanext-data.jsx`)
+- [x] Header di navigazione condiviso tra `/` e `/eventi` (`SiteHeader`), scritto da due agenti
+      in parallelo su file disgiunti, verificato con build unica dopo il merge
+- [x] Pagina `/eventi`: lista, categoria, data/ora in italiano, luogo, descrizione, conteggio
+      partecipanti, pulsante RSVP condizionato allo stato di login
+- [x] `npm run build` pulito (typecheck incluso) dopo l'integrazione dei due agenti
+- [x] Verifica manuale nel browser, 2026-07-15: login da `/accedi` riuscito (dopo il bugfix),
+      RSVP su un evento passa da "0 partecipanti"/"Partecipo" a "1 partecipante"/"Annulla
+      partecipazione" nello stesso caricamento di pagina (`revalidatePath`)
+
+Domande aperte: nessuna bloccante. Bug trovato durante questa verifica, non specifico della
+feature Eventi ma della pagina `/accedi` di Fase 1 (mai esercitata end-to-end prima d'ora):
+`signIn("credentials", formData)` senza indicare `redirectTo` reindirizza di default all'header
+`Referer` (cioè torna su `/accedi` stessa), non alla home, dando l'impressione che il login sia
+bloccato anche quando riesce. Corretto aggiungendo un campo nascosto `redirectTo` nel form (con
+un `FormData`, Auth.js legge `redirectTo` dai campi del form stesso via `Object.fromEntries`, non
+da un argomento separato: verificato leggendo `node_modules/next-auth/lib/actions.js`, non
+ipotizzato). Vedi la voce di lavoro corrispondente in `memory/progress.md`.
 
 ## Riconciliazione
 
