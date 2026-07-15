@@ -47,5 +47,14 @@ in `memory/progress.md`. Studio didattico a 7 voci, l'ultima sul metodo di paral
 due agenti usato per la feature Eventi. Sintesi stakeholder di Fase 1 in
 `_notes/stakeholder-brief-fase-1-autenticazione.md`.
 
-Prossima priorità: Fase 2 (proposte e votazioni, coda di approvazione admin, quiz) — schema
-`Proposal`/`Vote` già presente dalla Fase 0, stessa situazione di Thread/Reply per il forum.
+Fase 2 aperta: proposte e votazioni con coda di approvazione admin costruite e verificate lo
+stesso giorno. Riuso di `Vote` (polimorfico, conteggio calcolato a mano, refactor-04) per il voto
+sulle proposte; prima guardia di autorizzazione per ruolo (`ADMIN`/`SUPERADMIN`) su un percorso
+di codice reale, non solo di autenticazione. Trovato e corretto un bug di validazione silenziosa
+in `createProposal` (e per coerenza anche in `createThread` del forum): un campo vuoto arrivato
+al server veniva scartato senza redirect né messaggio, scoperto verificando con una query
+diretta al database che la proposta di test non era mai stata scritta. Creato un secondo utente
+di prova con ruolo `ADMIN` (`admin@civitanext.test`) per testare la coda senza approvare le
+proprie proposte. Verificato nel browser il ciclo completo: proposta creata → approvata per il
+voto dall'admin → votata → voto ritirato, ogni passaggio con l'esito visivo corretto.
+Prossimo passo di Fase 2: quiz, che richiede modelli di schema nuovi non ancora progettati.

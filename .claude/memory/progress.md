@@ -6,6 +6,45 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-15 — Feature Proposte e votazioni con coda di approvazione admin, prima feature verticale di Fase 2
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: nuovi `src/app/proposte/actions.ts` (`createProposal`, `toggleVote`),
+`src/app/proposte/page.tsx`, `src/app/proposte/nuova/page.tsx`, `src/app/admin/proposte/actions.ts`
+(`approveForVoting`, `closeVoting`, `rejectProposal`, ciascuna dietro una guardia di ruolo),
+`src/app/admin/proposte/page.tsx`; `src/components/SiteHeader.tsx` (voce "Proposte" in nav, chip
+"Admin" condizionale al ruolo); `src/app/forum/actions.ts` e `src/app/forum/nuovo/page.tsx`
+(bugfix descritto sotto, applicato per coerenza). Nessuna modifica allo schema: `Proposal`,
+`Vote`, `ProposalStatus` esistevano già dalla Fase 0.
+Motivo/racconto: prima feature verticale di Fase 2, riprendendo il riuso del modello `Vote`
+polimorfico già impostato per RSVP e forum (conteggio voti calcolato a mano nella pagina, non con
+un `include` Prisma, perché `Vote` non ha una relazione diretta con `Proposal`, refactor-04).
+Aggiunta una guardia di ruolo (`ADMIN`/`SUPERADMIN`) alle server action e alla pagina admin, la
+prima volta in questo progetto che un controllo di autorizzazione (non solo di autenticazione)
+entra in un percorso di codice reale. Creato un secondo utente di prova con ruolo `ADMIN`
+(`admin@civitanext.test`, password aggiornata poi in `gabbianoCivico47` perché Chrome segnalava
+anche `admin1234` come nota da violazioni, stesso problema già incontrato con `test1234` per
+l'utente normale), distinto dall'utente ordinario per non approvare le proprie proposte durante
+il test.
+Durante la prima verifica nel browser, l'utente ha creato una proposta di prova ma la coda admin
+mostrava zero proposte in revisione. Diagnosticato interrogando direttamente il database (query
+diretta sulla tabella `Proposal`, non un'ipotesi): zero righe, la creazione non aveva mai
+scritto nulla. Causa: `createProposal` (e lo stesso pattern, non ancora esercitato, in
+`createThread` del forum) faceva `return` in silenzio se un campo arrivava vuoto al server dopo
+il `trim()`, senza redirect né messaggio — invisibile per l'utente, sembrava che "non fosse
+successo niente". Corretto in entrambe le action con un redirect a `?error=1` e un messaggio
+visibile nella pagina corrispondente, applicando la correzione anche al forum non solo alle
+proposte, per coerenza dello stesso difetto anche se non ancora manifestato lì.
+Verificato con `npm run build` e nel browser il ciclo completo: proposta creata come utente
+normale (in revisione, non visibile pubblicamente su `/proposte`) → approvata per il voto come
+admin (sparisce da "in revisione", compare in "in votazione" nella coda admin e nell'elenco
+pubblico) → votata come utente normale (conteggio 0→1, pulsante "Vota"→"Ritira il voto") → voto
+ritirato (1→0, pulsante torna a "Vota").
+Ancora aperto: nessun punto bloccante. La promozione da `VOTAZIONE` ad `APPROVATA` resta
+un'azione manuale dell'admin, nessuna soglia automatica di voti implementata né richiesta. Quiz,
+nello stesso blocco di priorità di `roadmap.md`, resta fuori scope: richiede modelli di schema
+non ancora progettati.
+
 ## 2026-07-15 — Feature Forum (thread + risposte), terza feature verticale di Fase 1
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

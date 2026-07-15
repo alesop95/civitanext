@@ -8,12 +8,14 @@ import { Avatar } from "@/components/ui/Avatar";
 const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/eventi", label: "Eventi" },
+  { href: "/proposte", label: "Proposte" },
   { href: "/quiz", label: "Quiz" },
   { href: "/forum", label: "Forum" },
 ];
 
 export async function SiteHeader({ activeHref }: { activeHref: string }) {
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
 
   return (
     <header className="flex items-center justify-between gap-6">
@@ -24,6 +26,14 @@ export async function SiteHeader({ activeHref }: { activeHref: string }) {
             {label}
           </Link>
         ))}
+        {isAdmin && (
+          <Link
+            href="/admin/proposte"
+            className={chipClassName({ active: activeHref === "/admin/proposte" })}
+          >
+            Admin
+          </Link>
+        )}
       </nav>
       {session?.user ? (
         <div className="flex items-center gap-3">

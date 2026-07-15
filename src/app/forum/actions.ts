@@ -12,7 +12,7 @@ export async function createThread(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
   const category = String(formData.get("category") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
-  if (!title || !category || !body) return;
+  if (!title || !category || !body) redirect("/forum/nuovo?error=1");
 
   const prisma = getPrisma();
   const thread = await prisma.thread.create({

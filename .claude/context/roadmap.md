@@ -30,9 +30,15 @@ RSVP, vincolo di unicità a livello di database come `Vote`); profilo con tesser
 (l'assegnazione di una tessera resta un'azione amministrativa non ancora costruita); forum
 (thread, risposte, creazione), nessuna modifica di schema necessaria perché `Thread`/`Reply`
 esistevano già dalla Fase 0. Tutte e tre le feature verticali verificate nel browser con
-contenuto reale, non solo con build pulita. Priorità dopo: Fase 2 (proposte e votazioni, coda di
-approvazione admin, quiz), la feature di valore più alto perché collega utenti e admin — schema
-`Proposal`/`Vote` già presente dalla Fase 0, stessa situazione di Thread/Reply per il forum.
+contenuto reale, non solo con build pulita.
+
+Fase 2 aperta: proposte e votazioni con coda di approvazione admin costruite e verificate lo
+stesso giorno (2026-07-15) — ciclo di vita revisione → votazione → approvata, votazione con
+vincolo di unicità (riuso di `Vote`), coda riservata ad `ADMIN`/`SUPERADMIN`. Prima volta in
+questo progetto con un controllo di autorizzazione per ruolo su un percorso di codice reale, non
+solo di autenticazione. Prossimo passo di Fase 2: quiz — richiede modelli di schema nuovi, non
+ancora progettati, a differenza di proposte/forum/eventi che riusavano schema già presente dalla
+Fase 0.
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del

@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Btn } from "@/components/ui/Btn";
-import { createThread } from "../actions";
+import { createProposal } from "../actions";
 
-export default async function NuovoThreadPage({
+export default async function NuovaPropostaPage({
   searchParams,
 }: {
   searchParams: Promise<{ error?: string }>;
@@ -15,17 +15,23 @@ export default async function NuovoThreadPage({
 
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-8 px-6 py-16">
-      <SiteHeader activeHref="/forum" />
+      <SiteHeader activeHref="/proposte" />
 
-      <h1 className="font-display text-3xl font-black">Nuovo thread</h1>
+      <div className="flex flex-col gap-2">
+        <h1 className="font-display text-3xl font-black">Nuova proposta</h1>
+        <p className="font-ui text-sm text-ink-soft">
+          La proposta entra prima in revisione: comparirà pubblicamente solo dopo essere stata
+          approvata per la votazione.
+        </p>
+      </div>
 
       {error && (
         <p className="rounded-cn border-2 border-ink bg-accent px-3 py-2 font-ui text-sm text-white">
-          Titolo, categoria e messaggio sono tutti obbligatori.
+          Titolo, categoria e descrizione sono tutti obbligatori.
         </p>
       )}
 
-      <form action={createThread} className="flex flex-col gap-4">
+      <form action={createProposal} className="flex flex-col gap-4">
         <label className="flex flex-col gap-1 font-ui text-sm">
           Titolo
           <input
@@ -46,16 +52,16 @@ export default async function NuovoThreadPage({
           />
         </label>
         <label className="flex flex-col gap-1 font-ui text-sm">
-          Messaggio
+          Descrizione
           <textarea
-            name="body"
+            name="description"
             required
             rows={6}
             className="rounded-cn border-2 border-ink bg-paper-card px-3 py-2"
           />
         </label>
         <Btn type="submit" kind="primary" className="self-start">
-          Pubblica
+          Invia in revisione
         </Btn>
       </form>
     </main>
