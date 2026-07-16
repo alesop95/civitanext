@@ -379,3 +379,48 @@ Conseguenze: più tabelle e più scritture per tentativo rispetto alla via minim
 aggregato, un tentativo permanente, nessuno sblocco), accettato come compromesso proporzionato al
 valore didattico. Non ancora scritte le pagine, le server action, né un seed di quiz reali:
 prossimo passo implementativo, fuori dal perimetro di questa ADR.
+
+## ADR-012 — Fase 3: layout responsive unico invece di shell mobile dedicata; PWA installabile con service worker conservativo
+
+Data: 2026-07-16
+Stato: accettata
+Contesto: apertura di Fase 3 secondo `design_handoff_civitanext/ROADMAP.md` ("Mobile e PWA"),
+che pone esplicitamente come prima domanda aperta se adottare un layout responsive unico o una
+shell mobile dedicata, prima di PWA e notifiche (queste ultime esplicitamente in due passi,
+prima in-app poi push, non affrontate in questa ADR).
+Decisione, in due parti.
+Primo, layout responsive unico: stesse pagine, stessi componenti, stesse route per desktop e
+mobile, adattati con le utility responsive di Tailwind già in uso nel codice esistente (es.
+`grid-cols-1 sm:grid-cols-2` nelle liste di eventi e proposte). Scartata la shell mobile dedicata
+(un albero di componenti/route separato): per un'associazione con un solo sviluppatore e un
+vincolo dichiarato di infrastruttura gratuita (ADR-004 e seguenti), mantenere due interfacce
+invece di una raddoppierebbe il costo di manutenzione di ogni feature verticale futura, senza un
+beneficio proporzionato. La tab bar mobile che il documento di handoff menziona (Home, Eventi,
+Quiz, Forum, Altro) è realizzata come variante responsive dello stesso `SiteHeader` già
+esistente (nuovo componente `MobileTabBar`, fisso in basso, visibile solo sotto il breakpoint
+`sm`; il `<nav>` orizzontale esistente si nasconde alla stessa soglia), non un componente a
+parte scollegato dal resto. Proposte, Profilo e Admin, che sul desktop hanno un chip proprio
+nell'header, confluiscono su mobile sotto una quinta voce "Altro" (nuova pagina `/altro`), per
+restare a cinque tab fisse invece di otto.
+Secondo, PWA installabile: `app/manifest.ts` (convenzione ufficiale Next.js, verificata nei docs
+bundled in `node_modules/next/dist/docs`, non assunta dalla versione precedente di Next per la
+stessa cautela di `AGENTS.md`), icone generate dal logo esistente (`Logo.tsx`) con Inkscape, già
+installato sulla macchina, invece di introdurre una dipendenza npm o un servizio esterno solo
+per rasterizzare due PNG. Service worker (`public/sw.js`) deliberatamente conservativo: fornisce
+solo una pagina di fallback offline per le richieste di navigazione fallite, senza mettere in
+cache aggressivamente le pagine dell'applicazione. Motivo: ogni pagina di questa app legge la
+sessione utente a ogni richiesta (`SiteHeader` chiama `auth()`); una cache aggressiva delle
+pagine servirebbe HTML che riflette una sessione non più valida (un utente disconnesso vedrebbe
+ancora la propria sessione, o viceversa), un rischio più serio del beneficio di un'esperienza
+offline più ricca. Le notifiche push, esplicitamente sequenziate nel documento di handoff dopo
+le notifiche in-app (non ancora costruite), restano fuori dal perimetro di questa ADR.
+Motivazione: entrambe le scelte privilegiano il costo di manutenzione proporzionato alla scala
+reale del progetto (un'associazione, un solo sviluppatore, infrastruttura gratuita) rispetto a
+un'esperienza mobile più elaborata ma più costosa da mantenere, e trattano l'installabilità PWA
+come un miglioramento incrementale sopra l'app web esistente, non come una riscrittura.
+Conseguenze: nessuna funzionalità offline reale per i contenuti letti (eventi, proposte, forum,
+quiz) in questa prima versione — solo una pagina di cortesia quando la rete manca durante la
+navigazione. Se in futuro servirà davvero cache offline dei contenuti, andrà limitata a pagine
+che non dipendono dalla sessione utente, o accompagnata da una strategia di invalidazione
+esplicita, non aggiunta genericamente. Le notifiche (in-app, poi push) restano il prossimo passo
+dichiarato di Fase 3, non affrontato qui.

@@ -227,3 +227,36 @@ mostrata, ma lo scopo dichiarato della feature; due feature che sembrano simili 
 quiz e una verifica a punteggio) possono richiedere schemi diversi se il loro scopo reale diverge.
 
 Dove leggere il dettaglio: `refactor-08-modello-dati-quiz.md`.
+
+## 9. Un'app installabile non è un'app nativa: rendere "app-like" l'app web esistente, non ricostruirla
+
+Contesto. Fase 3 chiedeva di rendere CivitaNext utilizzabile bene da telefono e installabile
+come una PWA, con una prima domanda esplicitamente aperta nel documento di handoff: layout
+responsive unico o shell mobile dedicata.
+
+Com'era e perché era fragile. "Rendere l'app mobile" suona come un problema che invita a
+costruire qualcosa di nuovo e parallelo: una shell dedicata con le sue route, i suoi componenti,
+la sua tab bar propria, pensata da zero per il touch. Per un prodotto con un team grande e budget
+per due interfacce, potrebbe anche avere senso. Per un'associazione con un solo sviluppatore, è
+il tipo di scelta che raddoppia silenziosamente il costo di ogni feature futura: da quel momento
+in poi, ogni nuova pagina andrebbe scritta e verificata due volte, una per desktop e una per la
+shell mobile, per anni.
+
+Il salto e perché è meglio. La domanda giusta non era "come costruisco l'esperienza mobile" ma
+"quanto della mia app web esistente è già mobile, se la guardo bene": le griglie di eventi e
+proposte usavano già `grid-cols-1 sm:grid-cols-2`, una colonna su schermi stretti, senza che
+nessuno l'avesse deciso esplicitamente come strategia. Il salto è stato riconoscere che l'app era
+già per buona parte responsive, e che il pezzo mancante (una navigazione che regge su uno
+schermo stretto) si poteva aggiungere come una variante dello stesso componente header già
+esistente, non come un sistema a parte. Lo stesso principio vale per l'installabilità: una PWA
+non è un'app nativa ricostruita, è la stessa app web con due file in più (un manifesto, un
+service worker) che le permettono di comportarsi come un'app quando l'utente la installa. Il
+service worker scritto è stato tenuto deliberatamente minimo (solo una pagina di cortesia
+offline, nessuna cache aggressiva dei contenuti) proprio perché l'app esistente non è stata
+pensata per funzionare offline: dichiarare quel limite è più onesto che promettere un'esperienza
+offline ricca e non mantenerla. Il principio generale: quando un requisito nuovo (mobile,
+installabilità, un'altra piattaforma) sembra chiedere una ricostruzione, vale la pena controllare
+quanto del lavoro esistente lo soddisfa già in parte, e innestare il resto come estensione
+incrementale invece di duplicare quello che già funziona.
+
+Dove leggere il dettaglio: `refactor-09-responsive-e-pwa.md`.

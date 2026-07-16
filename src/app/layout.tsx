@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Source_Serif_4, Archivo, Caveat } from "next/font/google";
+import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import "./globals.css";
 
 const sourceSerif4 = Source_Serif_4({
@@ -26,6 +27,10 @@ export const metadata: Metadata = {
     "Piattaforma di partecipazione civica per l'associazione di giovani cittadini di Civitanova Marche.",
 };
 
+export const viewport: Viewport = {
+  themeColor: "#e8503a",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -36,8 +41,9 @@ export default function RootLayout({
       lang="it"
       className={`${sourceSerif4.variable} ${archivo.variable} ${caveat.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-paper text-ink font-ui">
+      <body className="min-h-full flex flex-col bg-paper text-ink font-ui pb-16 sm:pb-0">
         {children}
+        <ServiceWorkerRegistration />
       </body>
     </html>
   );

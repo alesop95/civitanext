@@ -59,6 +59,20 @@ non invalidava la cache CSS dopo la modifica a `globals.css`, nemmeno riavviando
 risolto solo eliminando `.next` (con conferma esplicita dell'utente, la regola del progetto vieta
 `rm -rf` all'agente) e ricompilando da zero.
 
+## Chiusa (parzialmente): Fase 3 — responsive unico e PWA
+
+Layout responsive unico invece di shell mobile dedicata (ADR-012): tab bar mobile fissa
+(`MobileTabBar`, Home/Eventi/Quiz/Forum/Altro) come variante dello stesso `SiteHeader`, non un
+sistema a parte; nuova pagina `/altro` che raccoglie Proposte/Profilo/Admin su mobile. Verificato
+su un telefono reale (Samsung S25 Ultra): nav orizzontale sparita, tab bar fissa corretta con lo
+stato attivo evidenziato. App resa installabile (manifest, icone dal logo esistente con
+Inkscape, service worker conservativo — solo fallback offline, nessuna cache di pagine
+autenticate). L'installabilità vera (il prompt "Aggiungi a schermata Home" generato dal
+browser) non è verificabile ora: il test da telefono è avvenuto su HTTP semplice via IP di rete
+locale, e la maggior parte dei browser richiede HTTPS per quel prompt (eccetto `localhost`);
+resta da verificare al primo deploy reale su Cloudflare, che serve automaticamente in HTTPS.
+Notifiche (in-app poi push) restano fuori scope, sequenziate dopo in `ROADMAP.md`.
+
 ## Riconciliazione
 
 Ultima verifica: 2026-07-16, al commit `4da8cf9` (le modifiche di questa voce non ancora

@@ -6,6 +6,71 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-16 — Verifica su telefono reale del responsive: confermato, installabilità rimandata al deploy
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: nessuno (verifica, non sviluppo).
+Motivo/racconto: l'utente ha verificato la tab bar mobile con tre screenshot, due da Chrome
+DevTools desktop (confermano la regola `@media (min-width: 40rem) { .sm\:pb-0 {...} }` presente
+nel CSS compilato, cioè che il problema di cache di Turbopack della voce precedente non si è
+ripresentato) e uno da un telefono reale (Samsung S25 Ultra): header ridotto a logo e
+Accedi/Registrati, nav orizzontale nascosta, tab bar fissa in basso con "Home" evidenziato come
+voce attiva — esattamente il comportamento voluto.
+Prima di segnare l'intera Fase 3 come verificata, notato un limite: il test da telefono è
+avvenuto su `http://192.168.10.73:3000`, IP di rete locale in HTTP semplice, non HTTPS. Il
+prompt reale "Aggiungi a schermata Home" generato dal browser richiede HTTPS sulla maggior parte
+dei browser (l'eccezione è solo `localhost` sulla stessa macchina, non un IP di rete locale):
+quindi il layout responsive è verificato con certezza, l'installabilità PWA vera no. Segnato
+come da verificare al primo deploy reale su Cloudflare, che serve automaticamente in HTTPS, non
+presentato come già confermato.
+
+## 2026-07-16 — Fase 3 aperta: responsive unico e PWA installabile (ADR-012)
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: nuovi `src/components/MobileTabBar.tsx`, `src/app/altro/page.tsx`,
+`public/icon.svg`/`icon-192x192.png`/`icon-512x512.png`, `src/app/manifest.ts`, `public/sw.js`,
+`public/offline.html`, `src/components/ServiceWorkerRegistration.tsx`; modificati
+`src/components/SiteHeader.tsx` (nav orizzontale nascosto sotto la soglia `sm`) e
+`src/app/layout.tsx` (spazio riservato in basso su mobile per la tab bar fissa, `viewport`
+export con `themeColor`, registrazione del service worker).
+Motivo/racconto: apertura di Fase 3 ("Mobile e PWA" in `design_handoff_civitanext/ROADMAP.md`),
+che pone esplicitamente come prima domanda se adottare un layout responsive unico o una shell
+mobile dedicata. Confronto presentato all'utente prima di scrivere codice (per la sua richiesta
+permanente di non decidere scelte non banali in autonomia): scartata la shell dedicata per il
+costo di manutenzione doppio su un progetto con un solo sviluppatore, scelto il layout responsive
+unico, già la direzione implicita del codice esistente (`grid-cols-1 sm:grid-cols-2` nelle liste
+già scritte in Fase 1/2). Confermato dall'utente, registrato come ADR-012 insieme alla seconda
+parte (PWA).
+Implementata la tab bar mobile (`MobileTabBar`, cinque voci fisse Home/Eventi/Quiz/Forum/Altro
+indicate dal documento di handoff) come variante responsive dello stesso `SiteHeader`, non un
+sistema a parte; Proposte/Profilo/Admin, che sul desktop hanno un chip proprio, confluiscono su
+mobile in una nuova pagina `/altro`. Verificata con l'utente, prima di implementare, la domanda
+se una PWA richieda sviluppo nativo Android/iOS separato (risposta: no, stesso codice web, un
+manifesto e un service worker in più bastano; notato il limite storico di Safari iOS sul supporto
+push, dal 16.4/2023, da riverificare quando si costruirà davvero quella parte).
+Generato `app/manifest.ts` secondo la convenzione ufficiale Next.js verificata nei docs bundled
+in `node_modules/next/dist/docs/01-app/02-guides/progressive-web-apps.md` (non assunta dalla
+versione precedente di Next, stessa cautela di `AGENTS.md`). Icone PWA generate dal mark di
+`Logo.tsx` (stesso SVG, non un'icona nuova) con Inkscape, già installato sulla macchina,
+rasterizzato in PNG 192x192 e 512x512 senza aggiungere dipendenze npm. Service worker scritto
+deliberatamente conservativo: solo un fallback offline (`public/offline.html`) per le richieste
+di navigazione, nessuna cache di pagine applicative, perché ogni pagina legge la sessione utente
+a ogni richiesta (`SiteHeader` chiama `auth()`) e una cache aggressiva rischierebbe di mostrare
+uno stato di accesso non più valido.
+Durante l'implementazione, per eliminare la cache di build `.next` (necessario a valle di un
+problema di cache CSS di Turbopack incontrato nel lavoro precedente su questa stessa giornata) è
+stato necessario chiedere conferma esplicita all'utente, perché la regola di questo progetto
+vieta `rm -rf` all'agente: ottenuta, eseguita con `Remove-Item -Recurse -Force` di PowerShell.
+Verificato con `npm run build` (tutte le route generate, incluso `/manifest.webmanifest`) e con
+richieste dirette al server di sviluppo: manifest servito con contenuto corretto, `/altro` e
+`/sw.js` rispondono 200. Documentato su tre livelli: ADR-012, voce 9 di studio didattico +
+`refactor-09-responsive-e-pwa.md`, sintesi stakeholder in
+`_notes/stakeholder-brief-fase-3-mobile-pwa.md`.
+Ancora aperto: verifica visiva nel browser (aspetto della tab bar mobile, prompt di
+installazione reale) non ancora fatta dall'utente. Nessuna cache offline dei contenuti letti in
+questa prima versione (scelta deliberata, ADR-012); notifiche in-app e push, esplicitamente
+sequenziate dopo nel documento di handoff, non affrontate.
+
 ## 2026-07-16 — Implementato il Quiz (pagine, action, seed) e risolto un bug di cache di Turbopack
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

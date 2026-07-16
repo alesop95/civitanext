@@ -22,7 +22,7 @@ Data snapshot:        2026-07-16
 | dev-testing.md | 4da8cf9 | aggiornata |
 | current-work.md | 4da8cf9 | aggiornata |
 | roadmap.md | 4da8cf9 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
-| studio-didattico-master.md | 4da8cf9 | 8 voci (nessuna aggiunta per il bug di cache Turbopack, tecnico non concettuale) |
+| studio-didattico-master.md | 4da8cf9 | 9 voci |
 
 ## Punto di ripresa
 
@@ -59,6 +59,21 @@ Durante la verifica trovato un bug non applicativo ma del server di sviluppo: Tu
 invalidava la cache CSS dopo una modifica a `globals.css` nemmeno riavviando il processo,
 risolto solo eliminando `.next` ed eseguendo una build pulita. Entrambe le feature verificate nel
 browser con due utenti di prova distinti (uno normale, uno `ADMIN`). Studio didattico a 8 voci.
-Sintesi stakeholder in `_notes/stakeholder-brief-fase-2-quiz.md` (da aggiornare con l'esito della
-verifica) e `_notes/stakeholder-brief-fase-1-autenticazione.md`. Dettaglio completo di ogni bug e
-decisione in `memory/progress.md`; nessuna terza feature dichiarata per Fase 2 in questo blocco.
+Sintesi stakeholder in `_notes/stakeholder-brief-fase-2-quiz.md` e
+`_notes/stakeholder-brief-fase-1-autenticazione.md`. Dettaglio completo di ogni bug e decisione
+in `memory/progress.md`; nessuna terza feature dichiarata per Fase 2 in questo blocco.
+
+Fase 3 aperta lo stesso giorno: layout responsive unico invece di shell mobile dedicata (ADR-012,
+confrontato con l'utente prima di scrivere codice), tab bar mobile fissa (`MobileTabBar`) come
+variante dello stesso `SiteHeader`, non un sistema a parte; nuova pagina `/altro` che raccoglie
+Proposte/Profilo/Admin su mobile. App resa installabile come PWA: manifest (convenzione ufficiale
+Next.js), icone generate dal logo esistente con Inkscape (nessuna dipendenza nuova), service
+worker deliberatamente conservativo (solo fallback offline per la navigazione, nessuna cache di
+pagine che dipendono dalla sessione utente). Studio didattico a 9 voci, l'ultima sul principio di
+estendere incrementalmente il lavoro esistente invece di ricostruirlo per un nuovo requisito
+(mobile, installabilità). Sintesi stakeholder in `_notes/stakeholder-brief-fase-3-mobile-pwa.md`. Verificato su un telefono
+reale (Samsung S25 Ultra): nav orizzontale nascosta, tab bar fissa corretta con stato attivo
+evidenziato. Installabilità PWA vera non verificabile in questa sessione (test avvenuto su IP di
+rete locale in HTTP semplice, il prompt del browser richiede HTTPS): rimandata al primo deploy
+reale su Cloudflare, non presentata come già confermata. Notifiche (in-app poi push) restano
+fuori scope, sequenziate dopo nel documento di handoff — prossimo passo di Fase 3.
