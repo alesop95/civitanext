@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
+import { notifyUser } from "@/lib/notifications";
 
 async function requireAdmin() {
   const session = await auth();
@@ -14,7 +15,16 @@ async function requireAdmin() {
 export async function approveForVoting(proposalId: string) {
   await requireAdmin();
   const prisma = getPrisma();
-  await prisma.proposal.update({ where: { id: proposalId }, data: { status: "VOTAZIONE" } });
+  const proposal = await prisma.proposal.update({
+    where: { id: proposalId },
+    data: { status: "VOTAZIONE" },
+  });
+  await notifyUser(
+    prisma,
+    proposal.authorId,
+    `La tua proposta "${proposal.title}" è stata approvata per il voto.`,
+    "/proposte",
+  );
   revalidatePath("/admin/proposte");
   revalidatePath("/proposte");
 }
@@ -22,7 +32,16 @@ export async function approveForVoting(proposalId: string) {
 export async function closeVoting(proposalId: string) {
   await requireAdmin();
   const prisma = getPrisma();
-  await prisma.proposal.update({ where: { id: proposalId }, data: { status: "APPROVATA" } });
+  const proposal = await prisma.proposal.update({
+    where: { id: proposalId },
+    data: { status: "APPROVATA" },
+  });
+  await notifyUser(
+    prisma,
+    proposal.authorId,
+    `La tua proposta "${proposal.title}" è stata approvata definitivamente.`,
+    "/proposte",
+  );
   revalidatePath("/admin/proposte");
   revalidatePath("/proposte");
 }

@@ -39,13 +39,12 @@ nuovo a differenza di proposte/forum/eventi: opzioni relazionali, feedback per d
 ripetibili con punteggio migliore, sblocco progressivo). Entrambe verificate nel browser con
 contenuto reale. Nessuna terza feature verticale dichiarata per Fase 2 in questo blocco di lavoro.
 
-Fase 3 responsive verificata su telefono reale il 2026-07-16 — layout responsive unico invece di
-shell mobile dedicata (ADR-012), tab bar mobile `MobileTabBar` come variante di `SiteHeader`, non
-un sistema a parte. App resa installabile come PWA (manifest, icone dal logo esistente, service
-worker conservativo — solo fallback offline, nessuna cache di pagine autenticate); l'installabilità
-vera (prompt del browser) richiede HTTPS e resta da verificare al primo deploy reale, non
-verificabile in locale su IP di rete. Notifiche (in-app poi push, come sequenziato nel documento
-di handoff) non ancora affrontate: prossimo passo di Fase 3.
+Fase 3 **chiusa nella sostanza** il 2026-07-16 — layout responsive unico invece di shell mobile
+dedicata (ADR-012, verificato su telefono reale), app installabile come PWA (l'installabilità
+vera del prompt richiede HTTPS, da verificare al primo deploy reale), notifiche in-app (un
+utente notificato quando una sua proposta viene approvata per il voto o definitivamente,
+verificato nel browser con un ciclo completo). Notifiche push, il passo successivo dichiarato nel
+documento di handoff, richiedono chiavi VAPID e la libreria `web-push`, non ancora introdotte.
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del

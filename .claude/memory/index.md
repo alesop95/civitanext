@@ -63,17 +63,18 @@ Sintesi stakeholder in `_notes/stakeholder-brief-fase-2-quiz.md` e
 `_notes/stakeholder-brief-fase-1-autenticazione.md`. Dettaglio completo di ogni bug e decisione
 in `memory/progress.md`; nessuna terza feature dichiarata per Fase 2 in questo blocco.
 
-Fase 3 aperta lo stesso giorno: layout responsive unico invece di shell mobile dedicata (ADR-012,
-confrontato con l'utente prima di scrivere codice), tab bar mobile fissa (`MobileTabBar`) come
-variante dello stesso `SiteHeader`, non un sistema a parte; nuova pagina `/altro` che raccoglie
-Proposte/Profilo/Admin su mobile. App resa installabile come PWA: manifest (convenzione ufficiale
-Next.js), icone generate dal logo esistente con Inkscape (nessuna dipendenza nuova), service
-worker deliberatamente conservativo (solo fallback offline per la navigazione, nessuna cache di
-pagine che dipendono dalla sessione utente). Studio didattico a 9 voci, l'ultima sul principio di
-estendere incrementalmente il lavoro esistente invece di ricostruirlo per un nuovo requisito
-(mobile, installabilità). Sintesi stakeholder in `_notes/stakeholder-brief-fase-3-mobile-pwa.md`. Verificato su un telefono
-reale (Samsung S25 Ultra): nav orizzontale nascosta, tab bar fissa corretta con stato attivo
-evidenziato. Installabilità PWA vera non verificabile in questa sessione (test avvenuto su IP di
-rete locale in HTTP semplice, il prompt del browser richiede HTTPS): rimandata al primo deploy
-reale su Cloudflare, non presentata come già confermata. Notifiche (in-app poi push) restano
-fuori scope, sequenziate dopo nel documento di handoff — prossimo passo di Fase 3.
+Fase 3 **chiusa nella sostanza** lo stesso giorno. Layout responsive unico invece di shell
+mobile dedicata (ADR-012, confrontato con l'utente prima di scrivere codice), tab bar mobile
+fissa (`MobileTabBar`) come variante dello stesso `SiteHeader`; nuova pagina `/altro` che
+raccoglie Proposte/Profilo/Admin su mobile. Verificato su un telefono reale (Samsung S25 Ultra):
+nav orizzontale nascosta, tab bar corretta con stato attivo evidenziato. App resa installabile
+come PWA (manifest, icone dal logo esistente con Inkscape, service worker conservativo — solo
+fallback offline); installabilità vera non verificabile in locale (richiede HTTPS), rimandata al
+primo deploy reale. Notifiche in-app: modello `Notification`, un utente notificato quando una
+sua proposta viene approvata per il voto o definitivamente, pagina `/notifiche` con "segna tutte
+come lette", indicatore col conteggio non lette nell'header; ciclo completo verificato nel
+browser (approvazione admin → badge → messaggio corretto → segna come lette → badge sparito).
+Studio didattico a 9 voci, l'ultima sul principio di estendere incrementalmente il lavoro
+esistente invece di ricostruirlo per un nuovo requisito. Sintesi stakeholder in
+`_notes/stakeholder-brief-fase-3-mobile-pwa.md`. Notifiche push, il passo successivo dichiarato
+da `ROADMAP.md`, restano fuori scope: richiedono chiavi VAPID e la libreria `web-push`.

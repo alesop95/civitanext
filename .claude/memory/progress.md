@@ -6,6 +6,51 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-16 — Verificato nel browser il ciclo completo delle notifiche in-app
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: nessuno (verifica, non sviluppo).
+Motivo/racconto: l'utente ha verificato con cinque screenshot il ciclo completo: come admin,
+approvata per il voto la proposta di prova ("IN VOTAZIONE (1)"), poi approvata definitivamente
+("SEGNA COME APPROVATA" → coda vuota); come Pippo, comparso il badge "NOTIFICHE (1)" in home,
+messaggio corretto ("La tua proposta \"PROVA\" è stata approvata definitivamente.") con orario su
+`/notifiche`, stile non letto (sfondo `--accent`, testo bianco); dopo "Segna tutte come lette",
+tornato allo stile normale e il badge sparito dall'header. Nessuna discrepanza, nessun bug
+trovato in questo passaggio. Con questo, Fase 3 (responsive, PWA, notifiche in-app) è chiusa
+nella sostanza; resta solo la verifica dell'installabilità PWA vera, rimandata al primo deploy
+reale su Cloudflare (richiede HTTPS, non verificabile in locale), e le notifiche push, passo
+successivo dichiarato da `ROADMAP.md` ma non ancora affrontato.
+
+## 2026-07-16 — Notifiche in-app: chiusura della parte non-push di Fase 3
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: `prisma/schema.prisma` (modello `Notification`, relazione `User.notifications`);
+nuova migrazione `prisma/migrations/20260716010000_notification/`; nuovo
+`src/lib/notifications.ts` (`notifyUser`, punto unico di creazione); modificato
+`src/app/admin/proposte/actions.ts` (`approveForVoting`/`closeVoting` notificano l'autore della
+proposta); nuovi `src/app/notifiche/page.tsx` e `src/app/notifiche/actions.ts`
+(`markAllAsRead`); modificato `src/components/SiteHeader.tsx` (link "Notifiche" con conteggio
+non lette, nel cluster con avatar/esci, visibile a tutte le dimensioni di schermo, non nascosto
+su mobile come il resto della nav).
+Motivo/racconto: `design_handoff_civitanext/ROADMAP.md` sequenzia esplicitamente le notifiche
+dopo responsive/PWA all'interno di Fase 3, prima in-app poi push. Scelto di completare questa
+parte di Fase 3 (proposto e confermato dall'utente) invece di passare subito a Fase 4, per
+chiudere una fase aperta prima di aprirne una nuova, coerente con la cadenza di lavoro tenuta
+finora. Nessuna nuova ADR: le scelte (booleano `read` invece di un sistema più complesso di
+ricevute di lettura, `link` come percorso libero non una foreign key perché la notifica deve
+restare leggibile anche se il contenuto collegato viene cancellato) sono minori, non un confronto
+di alternative comparabile a quelli già registrati. Trigger cablati solo sulle proposte
+(`approveForVoting`, `closeVoting`), gli unici punti del codice esistente dove ha senso avvisare
+un utente in questa prima versione; eventi (nessuna funzionalità di creazione via UI ancora
+costruita) e forum (non richiesto esplicitamente da `ROADMAP.md` per le notifiche) non generano
+notifiche per ora.
+Verificato con `npm run build` (tutte le route generate, incluso `/notifiche`) e con una
+richiesta diretta a `/notifiche` da sloggato (redirect atteso verso `/accedi`, confermato).
+Ancora aperto: verifica manuale nel browser (approvare una proposta come admin, controllare la
+notifica come utente normale) non ancora fatta dall'utente al momento di questa voce. Notifiche
+push, esplicitamente il passo successivo dichiarato da `ROADMAP.md`, non affrontate: richiedono
+chiavi VAPID e la libreria `web-push`, infrastruttura non ancora introdotta in questo progetto.
+
 ## 2026-07-16 — Verifica su telefono reale del responsive: confermato, installabilità rimandata al deploy
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

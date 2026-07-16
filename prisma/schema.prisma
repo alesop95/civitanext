@@ -51,13 +51,14 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
-  threads      Thread[]
-  replies      Reply[]
-  proposals    Proposal[]
-  votes        Vote[]
-  accounts     Account[]
-  rsvps        Rsvp[]
-  quizAttempts QuizAttempt[]
+  threads       Thread[]
+  replies       Reply[]
+  proposals     Proposal[]
+  votes         Vote[]
+  accounts      Account[]
+  rsvps         Rsvp[]
+  quizAttempts  QuizAttempt[]
+  notifications Notification[]
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -239,4 +240,17 @@ model QuizAnswer {
   isCorrect  Boolean
 
   @@unique([attemptId, questionId])
+}
+
+// Notifiche in-app (Fase 3, dopo responsive/PWA). link e' un percorso opzionale (es. la proposta
+// che ha generato la notifica), non una foreign key: la notifica deve restare leggibile anche se
+// il contenuto collegato viene cancellato in seguito.
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
 }

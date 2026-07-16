@@ -59,7 +59,7 @@ non invalidava la cache CSS dopo la modifica a `globals.css`, nemmeno riavviando
 risolto solo eliminando `.next` (con conferma esplicita dell'utente, la regola del progetto vieta
 `rm -rf` all'agente) e ricompilando da zero.
 
-## Chiusa (parzialmente): Fase 3 — responsive unico e PWA
+## Chiusa: Fase 3 — responsive unico, PWA e notifiche in-app
 
 Layout responsive unico invece di shell mobile dedicata (ADR-012): tab bar mobile fissa
 (`MobileTabBar`, Home/Eventi/Quiz/Forum/Altro) come variante dello stesso `SiteHeader`, non un
@@ -67,11 +67,14 @@ sistema a parte; nuova pagina `/altro` che raccoglie Proposte/Profilo/Admin su m
 su un telefono reale (Samsung S25 Ultra): nav orizzontale sparita, tab bar fissa corretta con lo
 stato attivo evidenziato. App resa installabile (manifest, icone dal logo esistente con
 Inkscape, service worker conservativo — solo fallback offline, nessuna cache di pagine
-autenticate). L'installabilità vera (il prompt "Aggiungi a schermata Home" generato dal
-browser) non è verificabile ora: il test da telefono è avvenuto su HTTP semplice via IP di rete
-locale, e la maggior parte dei browser richiede HTTPS per quel prompt (eccetto `localhost`);
-resta da verificare al primo deploy reale su Cloudflare, che serve automaticamente in HTTPS.
-Notifiche (in-app poi push) restano fuori scope, sequenziate dopo in `ROADMAP.md`.
+autenticate); l'installabilità vera (prompt del browser) richiede HTTPS, non verificabile in
+locale, rimandata al primo deploy reale su Cloudflare. Notifiche in-app: modello `Notification`,
+un utente notificato quando una sua proposta viene approvata per il voto o approvata
+definitivamente (unico trigger cablato per ora), pagina `/notifiche` con "segna tutte come
+lette", indicatore col conteggio non lette nell'header. Ciclo completo verificato nel browser:
+proposta approvata dall'admin → badge "Notifiche (1)" per l'autore → messaggio corretto su
+`/notifiche` → "segna tutte come lette" → badge sparito. Notifiche push, il passo successivo
+dichiarato da `ROADMAP.md`, non affrontate: richiedono chiavi VAPID e la libreria `web-push`.
 
 ## Riconciliazione
 

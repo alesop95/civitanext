@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { auth, signOut } from "@/auth";
+import { getPrisma } from "@/lib/prisma";
 import { Logo } from "@/components/ui/Logo";
 import { Btn, btnClassName } from "@/components/ui/Btn";
 import { chipClassName } from "@/components/ui/Chip";
@@ -22,6 +23,12 @@ export async function SiteHeader({ activeHref }: { activeHref: string }) {
   const session = await auth();
   const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
   const mobileActiveHref = ALTRO_HREFS.includes(activeHref) ? "/altro" : activeHref;
+
+  const unreadCount = session?.user?.id
+    ? await getPrisma().notification.count({
+        where: { userId: session.user.id, read: false },
+      })
+    : 0;
 
   return (
     <>
@@ -48,6 +55,12 @@ export async function SiteHeader({ activeHref }: { activeHref: string }) {
         </nav>
         {session?.user ? (
           <div className="flex items-center gap-3">
+            <Link
+              href="/notifiche"
+              className={chipClassName({ active: activeHref === "/notifiche" })}
+            >
+              Notifiche{unreadCount > 0 ? ` (${unreadCount})` : ""}
+            </Link>
             <Link href="/profilo" aria-label="Il tuo profilo">
               <Avatar name={session.user.name ?? session.user.email ?? "?"} />
             </Link>
