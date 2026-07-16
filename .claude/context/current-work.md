@@ -43,37 +43,24 @@ avvisare se un campo arrivava vuoto al server (scoperto con query diretta al dat
 un'ipotesi). Ciclo completo verificato nel browser con due utenti di prova distinti (uno
 normale, uno `ADMIN`): proposta creata → approvata per il voto → votata → voto ritirato.
 
-## Feature: Fase 2 — Quiz (modello dati)
+## Chiusa: Fase 2 — Quiz
 
-Cosa fa: seconda feature verticale di Fase 2 secondo `roadmap.md`. A differenza di eventi, forum
-e proposte, il Quiz è un dominio dati completamente nuovo, non un riuso di schema esistente.
-Quattro decisioni sul modello dati confrontate con l'utente e registrate in ADR-011 prima di
-scrivere qualunque pagina: opzioni di risposta relazionali (non JSON, coerente con la convenzione
-già stabilita in questo schema), risposte salvate per singola domanda (non solo un punteggio
-aggregato, per poter dare un feedback domanda per domanda), tentativi ripetibili con il punteggio
-migliore registrato (non un tentativo permanente), sblocco progressivo tra quiz calcolato in
-query (non un flag salvato che potrebbe disallinearsi).
-
-File da modificare:
-
-```
-prisma/schema.prisma   5 nuovi modelli: Quiz, QuizQuestion, QuizOption, QuizAttempt, QuizAnswer, fatto
-```
-
-Definition of done:
-
-- [x] Schema scritto, validato e migrato (procedura ADR-009)
-- [ ] Pagine (elenco quiz con stato sblocco, svolgimento, risultato con feedback per domanda)
-- [ ] Server action (submit tentativo, calcolo punteggio, aggiornamento solo se migliore)
-- [ ] Seed di almeno un quiz reale (il prototipo ha domande di educazione civica pronte da
-      riprendere, `CN_QUIZ_QUESTIONS` in `civitanext-data.jsx`)
-- [ ] Verifica manuale nel browser
-
-Domande aperte: nessuna bloccante. Le pagine e le server action sono il prossimo passo
-implementativo, non ancora scritte.
+Dominio dati completamente nuovo (non un riuso, a differenza di eventi/forum/proposte). Quattro
+decisioni sul modello confrontate con l'utente e registrate in ADR-011 prima di scrivere schema:
+opzioni relazionali (non JSON), risposte salvate per singola domanda (feedback dopo l'invio, non
+solo punteggio aggregato), tentativi ripetibili con punteggio migliore registrato, sblocco
+progressivo calcolato in query. Pagine (elenco con stato sblocco, svolgimento, risultato con
+feedback verde/rosso per domanda), server action `submitQuiz`, e seed del primo quiz reale
+("Educazione civica: le basi", 4 domande da `civitanext-data.jsx`) tutti scritti e verificati nel
+browser. Aggiunto un token colore `--success` al design system (mancava un colore semantico per
+"risposta corretta"; "sbagliata" riusa `--accent`, già il colore degli avvisi d'errore altrove).
+Bug trovato durante la verifica, non del codice applicativo ma del server di sviluppo: Turbopack
+non invalidava la cache CSS dopo la modifica a `globals.css`, nemmeno riavviando il processo —
+risolto solo eliminando `.next` (con conferma esplicita dell'utente, la regola del progetto vieta
+`rm -rf` all'agente) e ricompilando da zero.
 
 ## Riconciliazione
 
-Ultima verifica: 2026-07-15, al commit `4da8cf9` (le modifiche di questa voce non ancora
+Ultima verifica: 2026-07-16, al commit `4da8cf9` (le modifiche di questa voce non ancora
 committate al momento della nota). Vedi `memory/progress.md` per il dettaglio completo di ogni
 feature e bug, e `memory/decisions.md` per le ADR.

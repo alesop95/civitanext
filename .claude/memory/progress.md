@@ -6,6 +6,47 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-16 — Implementato il Quiz (pagine, action, seed) e risolto un bug di cache di Turbopack
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: nuovi `src/app/quiz/actions.ts` (`submitQuiz`), `src/app/quiz/page.tsx` (elenco con
+stato sblocco), `src/app/quiz/[id]/page.tsx` (svolgimento), `src/app/quiz/[id]/risultato/page.tsx`
+(risultato con feedback per domanda); `prisma/seed.js` esteso con il primo quiz reale
+("Educazione civica: le basi", le 4 domande di `CN_QUIZ_QUESTIONS` in `civitanext-data.jsx`, gli
+altri due quiz del prototipo non seminati perché senza domande reali disponibili);
+`src/app/globals.css` (nuovo token `--success`, mancava un colore semantico per "risposta
+corretta" nella palette esistente).
+Motivo/racconto: implementazione del modello dati deciso in ADR-011. `submitQuiz` calcola il
+punteggio confrontando le opzioni selezionate con `isCorrect`, aggiorna `QuizAttempt` e sostituisce
+le `QuizAnswer` collegate solo se il nuovo punteggio supera quello registrato (altrimenti non
+tocca nulla): conseguenza pratica di quella decisione è che la pagina risultato mostra sempre le
+risposte del tentativo migliore salvato, non necessariamente quelle appena date se il tentativo
+corrente è andato peggio — comportamento reso esplicito in un messaggio nella pagina, non lasciato
+silenzioso. La pagina di svolgimento esclude `isCorrect` dalla query delle opzioni (`select: {id,
+text}`), cosi' non arriva mai al browser prima dell'invio.
+Durante la verifica, l'utente ha chiesto di colorare la risposta corretta in verde: aggiunto un
+token `--success` in `globals.css` seguendo la stessa convenzione già in uso (variabile CSS in
+`:root`, mappata in `@theme inline`, mai un colore Tailwind statico), riusando `--accent` per
+"sbagliata" invece di introdurre un terzo colore, perché `--accent` è già il colore degli avvisi
+d'errore nel resto dell'app. Dopo l'aggiunta, il verde non compariva nel browser nonostante
+`npm run build` (una build di produzione separata, lanciata solo per verifica) generasse
+correttamente `.text-success{color:var(--success)}`. Diagnosticato ispezionando direttamente i
+chunk CSS compilati su disco (non un'ipotesi): il chunk servito dal server di sviluppo
+(`.next/dev/static/chunks/...`) aveva una data di modifica precedente all'edit di `globals.css`,
+segno che Turbopack non aveva invalidato la cache CSS. Riavviare il processo del server di
+sviluppo non ha risolto (il chunk restava con la stessa data): solo eliminare l'intera cartella
+`.next` (con conferma esplicita dell'utente, perché la regola di questo progetto vieta `rm -rf`
+all'agente; eseguita con `Remove-Item -Recurse -Force` di PowerShell, non aggirando il divieto ma
+usando uno strumento diverso per un'azione ormai autorizzata esplicitamente) e ricompilare da zero
+ha prodotto un chunk con la classe corretta, confermato verificando il file su disco prima di
+richiedere un nuovo test all'utente.
+Verificato nel browser dall'utente dopo il refresh forzato: quiz svolto, risultato con "Risposta
+corretta" in verde e "Risposta sbagliata" nel rosso-arancio già usato per gli errori altrove,
+tutte le quattro domande valutate correttamente.
+Ancora aperto: nessun punto bloccante. Con questo, la seconda feature verticale di Fase 2 è
+completa e verificata; nessun'altra priorità immediata dichiarata da `roadmap.md` oltre a quanto
+già elencato per le fasi successive.
+
 ## 2026-07-15 — Modello dati del Quiz deciso, applicato e documentato su tre livelli (ADR-011)
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

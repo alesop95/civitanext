@@ -32,13 +32,12 @@ RSVP, vincolo di unicità a livello di database come `Vote`); profilo con tesser
 esistevano già dalla Fase 0. Tutte e tre le feature verticali verificate nel browser con
 contenuto reale, non solo con build pulita.
 
-Fase 2 aperta: proposte e votazioni con coda di approvazione admin costruite e verificate il
-2026-07-15 — ciclo di vita revisione → votazione → approvata, votazione con vincolo di unicità
-(riuso di `Vote`), coda riservata ad `ADMIN`/`SUPERADMIN`. Prima volta in questo progetto con un
-controllo di autorizzazione per ruolo su un percorso di codice reale, non solo di autenticazione.
-Quiz: modello dati deciso (ADR-011) e applicato allo schema lo stesso giorno — a differenza di
-proposte/forum/eventi, dominio dati completamente nuovo, non un riuso. Pagine, server action e
-seed di contenuto reale restano il prossimo passo implementativo.
+Fase 2 **chiusa nella sostanza** il 2026-07-16 — proposte e votazioni con coda di approvazione
+admin (ciclo di vita revisione → votazione → approvata, vincolo di unicità riuso di `Vote`, prima
+guardia di autorizzazione per ruolo del progetto); quiz (ADR-011, dominio dati completamente
+nuovo a differenza di proposte/forum/eventi: opzioni relazionali, feedback per domanda, tentativi
+ripetibili con punteggio migliore, sblocco progressivo). Entrambe verificate nel browser con
+contenuto reale. Nessuna terza feature verticale dichiarata per Fase 2 in questo blocco di lavoro.
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del

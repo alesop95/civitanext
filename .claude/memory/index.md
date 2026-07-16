@@ -9,7 +9,7 @@
 ```
 Branch attivo:        main
 Commit di riferimento: 4da8cf9
-Data snapshot:        2026-07-15
+Data snapshot:        2026-07-16
 ```
 
 ## Stato di verifica delle schede
@@ -22,7 +22,7 @@ Data snapshot:        2026-07-15
 | dev-testing.md | 4da8cf9 | aggiornata |
 | current-work.md | 4da8cf9 | aggiornata |
 | roadmap.md | 4da8cf9 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
-| studio-didattico-master.md | 4da8cf9 | 8 voci |
+| studio-didattico-master.md | 4da8cf9 | 8 voci (nessuna aggiunta per il bug di cache Turbopack, tecnico non concettuale) |
 
 ## Punto di ripresa
 
@@ -47,24 +47,18 @@ in `memory/progress.md`. Studio didattico a 7 voci, l'ultima sul metodo di paral
 due agenti usato per la feature Eventi. Sintesi stakeholder di Fase 1 in
 `_notes/stakeholder-brief-fase-1-autenticazione.md`.
 
-Fase 2 aperta: proposte e votazioni con coda di approvazione admin costruite e verificate lo
-stesso giorno. Riuso di `Vote` (polimorfico, conteggio calcolato a mano, refactor-04) per il voto
-sulle proposte; prima guardia di autorizzazione per ruolo (`ADMIN`/`SUPERADMIN`) su un percorso
-di codice reale, non solo di autenticazione. Trovato e corretto un bug di validazione silenziosa
-in `createProposal` (e per coerenza anche in `createThread` del forum): un campo vuoto arrivato
-al server veniva scartato senza redirect né messaggio, scoperto verificando con una query
-diretta al database che la proposta di test non era mai stata scritta. Creato un secondo utente
-di prova con ruolo `ADMIN` (`admin@civitanext.test`) per testare la coda senza approvare le
-proprie proposte. Verificato nel browser il ciclo completo: proposta creata → approvata per il
-voto dall'admin → votata → voto ritirato, ogni passaggio con l'esito visivo corretto.
-
-Quiz (modello dati): prima feature di Fase 2 con dominio dati completamente nuovo, non un riuso
-di schema esistente. Quattro decisioni confrontate con l'utente prima di scrivere schema,
-registrate in ADR-011: opzioni relazionali (non JSON, coerente con la convenzione dello schema),
-risposte salvate per singola domanda (feedback dopo l'invio, non solo punteggio aggregato),
-tentativi ripetibili con il punteggio migliore registrato, sblocco progressivo tra quiz calcolato
-in query da un campo `order`. Schema applicato e migrato; studio didattico a 8 voci (l'ultima:
-la domanda "cosa serve salvare" si risponde guardando lo scopo della feature, non solo la forma
-del prototipo di design); sintesi stakeholder in `_notes/stakeholder-brief-fase-2-quiz.md`.
-Prossimo passo: pagine, server action, seed di contenuto reale, verifica nel browser — tutto
-ancora da scrivere.
+Fase 2 **chiusa nella sostanza** il 2026-07-16. Proposte e votazioni: ciclo di vita revisione →
+votazione → approvata, riuso di `Vote` (polimorfico, refactor-04), prima guardia di
+autorizzazione per ruolo (`ADMIN`/`SUPERADMIN`) del progetto. Bug di validazione silenziosa
+trovato e corretto in `createProposal`/`createThread` (un campo vuoto veniva scartato senza
+messaggio, scoperto con query diretta al database). Quiz: dominio dati completamente nuovo,
+quattro decisioni confrontate con l'utente prima di scrivere schema (ADR-011) — opzioni
+relazionali, risposte salvate per singola domanda, tentativi ripetibili con punteggio migliore,
+sblocco progressivo. Pagine, server action e seed del primo quiz reale scritti e verificati.
+Durante la verifica trovato un bug non applicativo ma del server di sviluppo: Turbopack non
+invalidava la cache CSS dopo una modifica a `globals.css` nemmeno riavviando il processo,
+risolto solo eliminando `.next` ed eseguendo una build pulita. Entrambe le feature verificate nel
+browser con due utenti di prova distinti (uno normale, uno `ADMIN`). Studio didattico a 8 voci.
+Sintesi stakeholder in `_notes/stakeholder-brief-fase-2-quiz.md` (da aggiornare con l'esito della
+verifica) e `_notes/stakeholder-brief-fase-1-autenticazione.md`. Dettaglio completo di ogni bug e
+decisione in `memory/progress.md`; nessuna terza feature dichiarata per Fase 2 in questo blocco.

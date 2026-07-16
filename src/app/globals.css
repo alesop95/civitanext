@@ -14,6 +14,7 @@
   --ink: #1e3a5f;
   --ink-soft: #5a6e85;
   --accent: #e8503a;
+  --success: #3f7a52;
   --shadow-hard-color: rgba(30, 58, 95, 0.14);
 }
 
@@ -23,6 +24,7 @@
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
   --color-accent: var(--accent);
+  --color-success: var(--success);
 
   --font-display: var(--font-source-serif-4);
   --font-ui: var(--font-archivo);
