@@ -6,6 +6,22 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-16 — Verifica manuale nel browser: sondaggi rapidi in home, chiude Fase 4 (parziale)
+
+Commit di riferimento: `5986a01`.
+Verifica eseguita dall'utente nel browser (screenshot_21.png - screenshot_27.png): creazione di
+un sondaggio come admin da `/admin/sondaggi/nuovo`; comparsa in home con 0%/0 voti su entrambe le
+opzioni; voto su "Hanno ucciso Kennedy" come utente normale, percentuali aggiornate a 100%/1 voto
+con l'opzione votata evidenziata; ritiro del voto cliccando la stessa opzione, ritorno a 0%/0
+voti; vista da utente sloggato con le barre in sola lettura che riflettono correttamente l'ultimo
+voto registrato (100%/1 voto) e link "Accedi per votare" al posto del pulsante cliccabile. Tutti
+i casi previsti dalla Definition of done verificati, nessun bug trovato in questo giro.
+Aggiornato di conseguenza: `.claude/context/current-work.md` (sezione Fase 4 condensata in
+"Chiusa", stesso trattamento delle Fasi 1/2/3), `.claude/context/roadmap.md` e
+`.claude/memory/index.md` (stato di Fase 4 aggiornato da "verifica non ancora fatta" a chiusa nel
+suo primo passo). Resto di Fase 4 (mappa, foto, documenti, community, reputazione, sync
+calendario, email digest) resta non affrontato, come già tracciato.
+
 ## 2026-07-16 — Sondaggi rapidi in home, prima feature verticale di Fase 4
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

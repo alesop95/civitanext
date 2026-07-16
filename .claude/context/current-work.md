@@ -5,8 +5,8 @@ generated-date: 2026-07-10
 covers-paths:
   - src/**
   - .claude/**
-last-verified-commit: 4da8cf9
-stato: in verifica
+last-verified-commit: 5986a01
+stato: verificata
 ---
 
 # Lavoro in corso
@@ -76,50 +76,19 @@ proposta approvata dall'admin → badge "Notifiche (1)" per l'autore → messagg
 `/notifiche` → "segna tutte come lette" → badge sparito. Notifiche push, il passo successivo
 dichiarato da `ROADMAP.md`, non affrontate: richiedono chiavi VAPID e la libreria `web-push`.
 
-## Feature: Fase 4 — sondaggi rapidi in home
+## Chiusa: Fase 4 — sondaggi rapidi in home
 
-Cosa fa: prima feature verticale di Fase 4 secondo `design_handoff_civitanext/ROADMAP.md`
-("Sondaggi rapidi in home"). Un admin crea un sondaggio (domanda + 2-4 opzioni); chiunque sia
-loggato vota un'opzione dalla home, con percentuali aggiornate in tempo reale; un voto per
-sondaggio (non per opzione), cliccare la stessa opzione lo ritira, un'altra lo sposta. Riuso di
-`Vote`/`VoteTargetType.POLL`, anticipato fin dalla Fase 0 e mai usato finora: nessuna modifica
-all'enum, solo due nuovi modelli (`Poll`, `PollOption`).
-
-File da creare:
-
-```
-src/app/sondaggi/actions.ts             votePoll(pollId, optionId), fatto
-src/app/admin/sondaggi/actions.ts       createPoll, guardia di ruolo, fatto
-src/app/admin/sondaggi/nuovo/page.tsx   form di creazione sondaggio, fatto
-```
-
-File da modificare:
-
-```
-prisma/schema.prisma              modelli Poll, PollOption, fatto
-src/app/page.tsx                  sezione "Sondaggi rapidi" con barre di percentuale, fatto
-src/app/admin/proposte/page.tsx   link "Nuovo sondaggio", fatto
-```
-
-Definition of done:
-
-- [x] Modelli `Poll`/`PollOption` scritti, validati e migrati (procedura ADR-009)
-- [x] `votePoll` con vincolo "un voto per sondaggio" applicato a livello di codice, non di schema
-      (`Vote` garantisce solo un voto per opzione, non per sondaggio: stesso limite già accettato
-      per il pattern polimorfico, refactor-04)
-- [x] Creazione sondaggio riservata ad `ADMIN`/`SUPERADMIN`
-- [x] Sezione sondaggi in home, visibile solo se esiste almeno un sondaggio; risultati visibili
-      anche a chi non è loggato, voto riservato a chi lo è
-- [x] `npm run build` pulito (typecheck incluso)
-- [ ] Verifica manuale nel browser (creare un sondaggio come admin, votare come utente normale,
-      verificare il cambio/ritiro voto) — prossimo passo
-
-Domande aperte: nessuna bloccante. Nessuna nuova ADR: la scelta di applicare il vincolo "un voto
-per sondaggio" a livello di codice invece che di schema è una continuazione diretta del
-compromesso già accettato e documentato per `Vote` in refactor-04, non un confronto nuovo.
+Prima feature verticale di Fase 4 (`ROADMAP.md`): un admin crea un sondaggio (domanda + 2-4
+opzioni, `/admin/sondaggi/nuovo`); chiunque sia loggato vota dalla home, percentuali aggiornate;
+un voto per sondaggio non per opzione (vincolo applicato a livello di codice, non di schema,
+stesso compromesso già accettato per `Vote` in refactor-04), cliccare la stessa opzione la
+ritira, un'altra la sposta. Riuso di `Vote`/`VoteTargetType.POLL`, anticipato dalla Fase 0 e mai
+usato finora: solo due nuovi modelli (`Poll`, `PollOption`), nessuna modifica all'enum. Nessuna
+nuova ADR. Verificato nel browser: creazione sondaggio, percentuali corrette dopo il voto,
+ritiro voto (torna a 0%), vista da sloggato con barre in sola lettura e link "Accedi per votare".
 
 ## Riconciliazione
 
-Ultima verifica: 2026-07-16, al commit `4da8cf9` (le modifiche di questa voce non ancora
-committate al momento della nota). Vedi `memory/progress.md` per il dettaglio completo di ogni
-feature e bug, e `memory/decisions.md` per le ADR.
+Ultima verifica: 2026-07-16, al commit `5986a01` (sondaggi rapidi in home, verificati nel
+browser dall'utente). Vedi `memory/progress.md` per il dettaglio completo di ogni feature e bug,
+e `memory/decisions.md` per le ADR.

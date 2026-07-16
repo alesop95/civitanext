@@ -3,7 +3,7 @@ generated-from-commit: 4da8cf9
 generated-from-branch: main
 generated-date: 2026-07-10
 covers-paths: []
-last-verified-commit: 4da8cf9
+last-verified-commit: 5986a01
 ---
 
 # Roadmap
@@ -46,11 +46,14 @@ utente notificato quando una sua proposta viene approvata per il voto o definiti
 verificato nel browser con un ciclo completo). Notifiche push, il passo successivo dichiarato nel
 documento di handoff, richiedono chiavi VAPID e la libreria `web-push`, non ancora introdotte.
 
-Fase 4 aperta il 2026-07-16 con sondaggi rapidi in home: un admin crea un sondaggio, chiunque sia
-loggato vota (un voto per sondaggio, riuso di `Vote`/`VoteTargetType.POLL` anticipato dalla Fase
-0), risultati visibili anche a chi non è loggato. Prima scelta tra gli elementi di Fase 4 perché
-l'unica senza bisogno di nuova infrastruttura (niente storage, mappe, servizio email), coerente
-con la nota di `ROADMAP.md` che per questa fase "tutte riusano i pattern già costruiti". Resto di
+Fase 4 aperta e primo passo chiuso il 2026-07-16 con sondaggi rapidi in home: un admin crea un
+sondaggio, chiunque sia loggato vota (un voto per sondaggio, riuso di
+`Vote`/`VoteTargetType.POLL` anticipato dalla Fase 0), risultati visibili anche a chi non è
+loggato. Prima scelta tra gli elementi di Fase 4 perché l'unica senza bisogno di nuova
+infrastruttura (niente storage, mappe, servizio email), coerente con la nota di `ROADMAP.md` che
+per questa fase "tutte riusano i pattern già costruiti". Verificato nel browser dall'utente:
+creazione sondaggio, percentuali corrette dopo il voto, ritiro voto, vista da sloggato coerente.
+Resto di
 Fase 4 (mappa città, spazi civici, galleria foto, documenti, timeline, mentorship, competenze,
 webinar, rassegna stampa, reputazione e badge, sync Google Calendar, email digest) non ancora
 affrontato: ciascuno richiederà probabilmente una decisione di infrastruttura da confrontare

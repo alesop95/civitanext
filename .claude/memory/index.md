@@ -8,7 +8,7 @@
 
 ```
 Branch attivo:        main
-Commit di riferimento: 4da8cf9
+Commit di riferimento: 5986a01
 Data snapshot:        2026-07-16
 ```
 
@@ -20,8 +20,8 @@ Data snapshot:        2026-07-16
 | design-and-security.md | 4da8cf9 | aggiornata |
 | deployment.md | 4da8cf9 | aggiornata |
 | dev-testing.md | 4da8cf9 | aggiornata |
-| current-work.md | 4da8cf9 | aggiornata |
-| roadmap.md | 4da8cf9 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
+| current-work.md | 5986a01 | aggiornata |
+| roadmap.md | 5986a01 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
 | studio-didattico-master.md | 4da8cf9 | 9 voci |
 
 ## Punto di ripresa
@@ -47,12 +47,13 @@ Fase 3 **chiusa nella sostanza** (2026-07-16): layout responsive unico (ADR-012,
 telefono reale), PWA installabile (installabilità vera rimandata al deploy, richiede HTTPS),
 notifiche in-app (ciclo completo verificato nel browser). Studio didattico a 9 voci.
 
-Fase 4 aperta lo stesso giorno: sondaggi rapidi in home (riuso di `Vote`/`VoteTargetType.POLL`
-anticipato dalla Fase 0, nessuna nuova ADR — stesso compromesso di refactor-04 sul vincolo di
-unicità applicativo, non di schema). Build pulita; verifica manuale nel browser non ancora
-fatta dall'utente, prossimo passo. Resto di Fase 4 (mappa, foto, documenti, community,
-reputazione, sync calendario, email digest) non affrontato, richiederà probabilmente decisioni
-di infrastruttura da confrontare prima di scrivere codice.
+Fase 4 aperta e primo passo **chiuso nella sostanza** lo stesso giorno (2026-07-16): sondaggi
+rapidi in home (riuso di `Vote`/`VoteTargetType.POLL` anticipato dalla Fase 0, nessuna nuova ADR
+— stesso compromesso di refactor-04 sul vincolo di unicità applicativo, non di schema).
+Verificato nel browser dall'utente: creazione sondaggio come admin, percentuali corrette dopo il
+voto, ritiro voto, vista da sloggato coerente con "Accedi per votare". Resto di Fase 4 (mappa,
+foto, documenti, community, reputazione, sync calendario, email digest) non affrontato,
+richiederà probabilmente decisioni di infrastruttura da confrontare prima di scrivere codice.
 
 Dettaglio completo di ogni bug/decisione in `memory/progress.md`, ADR in `memory/decisions.md`.
 Sintesi stakeholder unificata in `_notes/stakeholder-brief.md` (documento vivo, aggiornato a ogni
