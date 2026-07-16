@@ -26,55 +26,35 @@ Data snapshot:        2026-07-16
 
 ## Punto di ripresa
 
-Fase 0 (fondamenta) chiusa nella sostanza: allineamento `.claude`, stack, bootstrap, design
-system, schema dati, migrazione Prisma contro un Postgres reale (server locale dedicato
-`npx prisma dev -n civitanext`, porte 51218/51219, workaround `migrate diff` + `migrate deploy`
-per un bug noto upstream, ADR-009). Restano aperte solo la sintesi non tecnica generale di Fase 0
-per lo stakeholder e la verifica del runtime Cloudflare reale (ADR-006, invariato).
+Fase 0 (fondamenta) chiusa nella sostanza: stack, bootstrap, design system, schema Prisma
+iniziale, migrazione contro un Postgres reale (ADR-009). Restano aperte la sintesi stakeholder
+generale (ora assorbita nel documento unico, vedi sotto) e la verifica del runtime Cloudflare
+reale (ADR-006).
 
-Fase 1 **chiusa nella sostanza** il 2026-07-15. Autenticazione e ruoli (ADR-010): tre livelli
-`SUPERADMIN`/`ADMIN`/`UTENTE`, tesseramento indipendente dal ruolo, sessione JWT con ricontrollo
-periodico, credenziali più Google (Google rimandato solo nella configurazione esterna, non
-bloccante, vedi `roadmap.md`). Tre feature verticali costruite e verificate nel browser con
-contenuto reale: eventi (lettura + RSVP, seminati i quattro eventi reali del prototipo, vincolo
-di unicità a database come `Vote`), profilo con tessera digitale (l'assegnazione di una tessera
-resta amministrativa, non ancora costruita), forum (thread, risposte, creazione — nessun seed,
-verificato creando contenuto reale perché i thread hanno un autore reale). Header di navigazione
-condiviso (`SiteHeader`) tra tutte le pagine. Due bug distinti trovati durante le verifiche e
-corretti in `/accedi` (redirect mancante dopo login; `CredentialsSignin` non gestito), entrambi
-diagnosticati leggendo il sorgente reale di `next-auth`, non per tentativi — dettaglio completo
-in `memory/progress.md`. Studio didattico a 7 voci, l'ultima sul metodo di parallelizzazione a
-due agenti usato per la feature Eventi. Sintesi stakeholder di Fase 1 in
-`_notes/stakeholder-brief-fase-1-autenticazione.md`.
+Fase 1 **chiusa nella sostanza** (2026-07-15): autenticazione e ruoli (ADR-010, tre livelli,
+tesseramento indipendente dal ruolo, sessione JWT con ricontrollo periodico, Google rimandato
+solo nella configurazione esterna); eventi (RSVP), profilo con tessera digitale, forum — tutte
+verificate nel browser con contenuto reale. Due bug corretti in `/accedi` (redirect mancante,
+`CredentialsSignin` non gestito), entrambi diagnosticati dal sorgente reale di `next-auth`.
 
-Fase 2 **chiusa nella sostanza** il 2026-07-16. Proposte e votazioni: ciclo di vita revisione →
-votazione → approvata, riuso di `Vote` (polimorfico, refactor-04), prima guardia di
-autorizzazione per ruolo (`ADMIN`/`SUPERADMIN`) del progetto. Bug di validazione silenziosa
-trovato e corretto in `createProposal`/`createThread` (un campo vuoto veniva scartato senza
-messaggio, scoperto con query diretta al database). Quiz: dominio dati completamente nuovo,
-quattro decisioni confrontate con l'utente prima di scrivere schema (ADR-011) — opzioni
-relazionali, risposte salvate per singola domanda, tentativi ripetibili con punteggio migliore,
-sblocco progressivo. Pagine, server action e seed del primo quiz reale scritti e verificati.
-Durante la verifica trovato un bug non applicativo ma del server di sviluppo: Turbopack non
-invalidava la cache CSS dopo una modifica a `globals.css` nemmeno riavviando il processo,
-risolto solo eliminando `.next` ed eseguendo una build pulita. Entrambe le feature verificate nel
-browser con due utenti di prova distinti (uno normale, uno `ADMIN`). Studio didattico a 8 voci.
-Sintesi stakeholder in `_notes/stakeholder-brief-fase-2-quiz.md` e
-`_notes/stakeholder-brief-fase-1-autenticazione.md`. Dettaglio completo di ogni bug e decisione
-in `memory/progress.md`; nessuna terza feature dichiarata per Fase 2 in questo blocco.
+Fase 2 **chiusa nella sostanza** (2026-07-16): proposte e votazioni con coda di approvazione
+admin (prima guardia di autorizzazione per ruolo del progetto; bug di validazione silenziosa
+corretto in `createProposal`/`createThread`); quiz (ADR-011, dominio dati nuovo — opzioni
+relazionali, feedback per domanda, tentativi ripetibili, sblocco progressivo). Entrambe
+verificate nel browser. Bug di cache CSS di Turbopack incontrato e risolto (eliminazione `.next`).
 
-Fase 3 **chiusa nella sostanza** lo stesso giorno. Layout responsive unico invece di shell
-mobile dedicata (ADR-012, confrontato con l'utente prima di scrivere codice), tab bar mobile
-fissa (`MobileTabBar`) come variante dello stesso `SiteHeader`; nuova pagina `/altro` che
-raccoglie Proposte/Profilo/Admin su mobile. Verificato su un telefono reale (Samsung S25 Ultra):
-nav orizzontale nascosta, tab bar corretta con stato attivo evidenziato. App resa installabile
-come PWA (manifest, icone dal logo esistente con Inkscape, service worker conservativo — solo
-fallback offline); installabilità vera non verificabile in locale (richiede HTTPS), rimandata al
-primo deploy reale. Notifiche in-app: modello `Notification`, un utente notificato quando una
-sua proposta viene approvata per il voto o definitivamente, pagina `/notifiche` con "segna tutte
-come lette", indicatore col conteggio non lette nell'header; ciclo completo verificato nel
-browser (approvazione admin → badge → messaggio corretto → segna come lette → badge sparito).
-Studio didattico a 9 voci, l'ultima sul principio di estendere incrementalmente il lavoro
-esistente invece di ricostruirlo per un nuovo requisito. Sintesi stakeholder in
-`_notes/stakeholder-brief-fase-3-mobile-pwa.md`. Notifiche push, il passo successivo dichiarato
-da `ROADMAP.md`, restano fuori scope: richiedono chiavi VAPID e la libreria `web-push`.
+Fase 3 **chiusa nella sostanza** (2026-07-16): layout responsive unico (ADR-012, verificato su
+telefono reale), PWA installabile (installabilità vera rimandata al deploy, richiede HTTPS),
+notifiche in-app (ciclo completo verificato nel browser). Studio didattico a 9 voci.
+
+Fase 4 aperta lo stesso giorno: sondaggi rapidi in home (riuso di `Vote`/`VoteTargetType.POLL`
+anticipato dalla Fase 0, nessuna nuova ADR — stesso compromesso di refactor-04 sul vincolo di
+unicità applicativo, non di schema). Build pulita; verifica manuale nel browser non ancora
+fatta dall'utente, prossimo passo. Resto di Fase 4 (mappa, foto, documenti, community,
+reputazione, sync calendario, email digest) non affrontato, richiederà probabilmente decisioni
+di infrastruttura da confrontare prima di scrivere codice.
+
+Dettaglio completo di ogni bug/decisione in `memory/progress.md`, ADR in `memory/decisions.md`.
+Sintesi stakeholder unificata in `_notes/stakeholder-brief.md` (documento vivo, aggiornato a ogni
+blocco di lavoro), che sostituisce le note separate per fase (rimaste come solo dettaglio
+storico, non più aggiornate).

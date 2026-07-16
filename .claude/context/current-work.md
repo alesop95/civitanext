@@ -76,6 +76,48 @@ proposta approvata dall'admin → badge "Notifiche (1)" per l'autore → messagg
 `/notifiche` → "segna tutte come lette" → badge sparito. Notifiche push, il passo successivo
 dichiarato da `ROADMAP.md`, non affrontate: richiedono chiavi VAPID e la libreria `web-push`.
 
+## Feature: Fase 4 — sondaggi rapidi in home
+
+Cosa fa: prima feature verticale di Fase 4 secondo `design_handoff_civitanext/ROADMAP.md`
+("Sondaggi rapidi in home"). Un admin crea un sondaggio (domanda + 2-4 opzioni); chiunque sia
+loggato vota un'opzione dalla home, con percentuali aggiornate in tempo reale; un voto per
+sondaggio (non per opzione), cliccare la stessa opzione lo ritira, un'altra lo sposta. Riuso di
+`Vote`/`VoteTargetType.POLL`, anticipato fin dalla Fase 0 e mai usato finora: nessuna modifica
+all'enum, solo due nuovi modelli (`Poll`, `PollOption`).
+
+File da creare:
+
+```
+src/app/sondaggi/actions.ts             votePoll(pollId, optionId), fatto
+src/app/admin/sondaggi/actions.ts       createPoll, guardia di ruolo, fatto
+src/app/admin/sondaggi/nuovo/page.tsx   form di creazione sondaggio, fatto
+```
+
+File da modificare:
+
+```
+prisma/schema.prisma              modelli Poll, PollOption, fatto
+src/app/page.tsx                  sezione "Sondaggi rapidi" con barre di percentuale, fatto
+src/app/admin/proposte/page.tsx   link "Nuovo sondaggio", fatto
+```
+
+Definition of done:
+
+- [x] Modelli `Poll`/`PollOption` scritti, validati e migrati (procedura ADR-009)
+- [x] `votePoll` con vincolo "un voto per sondaggio" applicato a livello di codice, non di schema
+      (`Vote` garantisce solo un voto per opzione, non per sondaggio: stesso limite già accettato
+      per il pattern polimorfico, refactor-04)
+- [x] Creazione sondaggio riservata ad `ADMIN`/`SUPERADMIN`
+- [x] Sezione sondaggi in home, visibile solo se esiste almeno un sondaggio; risultati visibili
+      anche a chi non è loggato, voto riservato a chi lo è
+- [x] `npm run build` pulito (typecheck incluso)
+- [ ] Verifica manuale nel browser (creare un sondaggio come admin, votare come utente normale,
+      verificare il cambio/ritiro voto) — prossimo passo
+
+Domande aperte: nessuna bloccante. Nessuna nuova ADR: la scelta di applicare il vincolo "un voto
+per sondaggio" a livello di codice invece che di schema è una continuazione diretta del
+compromesso già accettato e documentato per `Vote` in refactor-04, non un confronto nuovo.
+
 ## Riconciliazione
 
 Ultima verifica: 2026-07-16, al commit `4da8cf9` (le modifiche di questa voce non ancora

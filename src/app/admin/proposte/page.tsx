@@ -1,8 +1,9 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
-import { Btn } from "@/components/ui/Btn";
+import { Btn, btnClassName } from "@/components/ui/Btn";
 import { Tag } from "@/components/ui/Tag";
 import { VoteTargetType } from "@/generated/prisma/client";
 import { approveForVoting, closeVoting, rejectProposal } from "./actions";
@@ -42,9 +43,14 @@ export default async function AdminPropostePage() {
     <main className="flex flex-1 flex-col gap-12 px-6 py-16 sm:px-16">
       <SiteHeader activeHref="/admin/proposte" />
 
-      <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">
-        Coda di approvazione proposte
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">
+          Coda di approvazione proposte
+        </h1>
+        <Link href="/admin/sondaggi/nuovo" className={btnClassName({ kind: "secondary" })}>
+          Nuovo sondaggio
+        </Link>
+      </div>
 
       <section className="flex flex-col gap-4">
         <h2 className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">

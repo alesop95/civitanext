@@ -6,6 +6,38 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-16 — Sondaggi rapidi in home, prima feature verticale di Fase 4
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: `prisma/schema.prisma` (modelli `Poll`, `PollOption`); nuova migrazione
+`prisma/migrations/20260716020000_poll/`; nuovi `src/app/sondaggi/actions.ts` (`votePoll`),
+`src/app/admin/sondaggi/actions.ts` (`createPoll`, guardia di ruolo),
+`src/app/admin/sondaggi/nuovo/page.tsx`; modificati `src/app/page.tsx` (sezione "Sondaggi
+rapidi" con barre di percentuale, visibile solo se esiste almeno un sondaggio) e
+`src/app/admin/proposte/page.tsx` (link "Nuovo sondaggio").
+Motivo/racconto: primo passo di Fase 4, scelto tra i molti elementi del blocco perché l'unico
+che riusa infrastruttura già esistente senza richiederne di nuova (niente storage per foto/
+documenti, niente libreria di mappe, niente servizio email) — coerente con la nota della stessa
+`ROADMAP.md` di handoff che per Fase 4 "tutte riusano i pattern già costruiti". Il voto riusa
+`Vote`/`VoteTargetType.POLL`, anticipato nel commento dell'enum fin dalla Fase 0
+("il vincolo di voto unico per utente attraversa piu' feature: sondaggi, forum, proposte") e mai
+usato finora. Nessuna nuova ADR: la difficoltà pratica, che `Vote` garantisce un voto per
+(utente, opzione) non per (utente, sondaggio), è la stessa già accettata e documentata in
+refactor-04 per il pattern polimorfico, non un confronto nuovo da fare — risolta con un controllo
+applicativo in `votePoll` (cerca un voto esistente su una qualsiasi opzione dello stesso
+sondaggio prima di scrivere) invece di un vincolo di schema.
+Design della votazione: cliccare la stessa opzione già votata la ritira (nessun voto), cliccarne
+un'altra sposta il voto, stessa idiomatica di toggle già usata per RSVP e voto sulle proposte,
+per coerenza. I risultati (percentuali) sono visibili anche a chi non è loggato; il voto stesso
+resta riservato a chi lo è, con un link "Accedi per votare" al posto del pulsante, coerente col
+pattern già usato in eventi/proposte/forum (mai lasciare un pulsante d'azione cliccabile che poi
+redirige a sorpresa, mostrare invece un link esplicito quando l'azione richiede il login).
+Verificato con `npm run build` (tutte le route generate, incluso `/admin/sondaggi/nuovo`) e con
+richieste dirette al server di sviluppo (home 200, pagina admin 307 da sloggato, redirect atteso
+verso `/accedi`).
+Ancora aperto: verifica manuale nel browser (creare un sondaggio come admin, votare come utente
+normale, verificare cambio/ritiro voto) non ancora fatta dall'utente al momento di questa voce.
+
 ## 2026-07-16 — Verificato nel browser il ciclo completo delle notifiche in-app
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

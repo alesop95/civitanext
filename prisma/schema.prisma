@@ -254,3 +254,25 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+// Sondaggio rapido in home (Fase 4). Il voto riusa Vote con targetType POLL e targetId
+// = PollOption.id, anticipato fin dalla Fase 0 (vedi enum VoteTargetType) e mai usato finora.
+// A differenza di Proposal/Thread, qui il vincolo "un voto per sondaggio, non per opzione" non
+// si esprime nello schema: Vote garantisce solo un voto per (utente, opzione), non per
+// (utente, sondaggio), quindi l'azione applicativa deve controllare le altre opzioni dello
+// stesso sondaggio prima di scrivere (stesso limite gia' accettato per il pattern polimorfico
+// di Vote, refactor-04).
+model Poll {
+  id        String       @id @default(cuid())
+  question  String
+  createdAt DateTime     @default(now())
+
+  options PollOption[]
+}
+
+model PollOption {
+  id     String @id @default(cuid())
+  pollId String
+  poll   Poll   @relation(fields: [pollId], references: [id])
+  text   String
+}
