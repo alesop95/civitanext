@@ -87,8 +87,38 @@ usato finora: solo due nuovi modelli (`Poll`, `PollOption`), nessuna modifica al
 nuova ADR. Verificato nel browser: creazione sondaggio, percentuali corrette dopo il voto,
 ritiro voto (torna a 0%), vista da sloggato con barre in sola lettura e link "Accedi per votare".
 
+## Chiusa: Fase 4 — spazi civici
+
+Seconda feature verticale di Fase 4, scelta perché senza bisogno di nuova infrastruttura (puro
+CRUD admin + elenco pubblico, stesso pattern di Eventi). Nuovo modello `CivicSpace` (`name`,
+`type`, `hours`, `note`), nessuna relazione con altri modelli. `createCivicSpace` riservata ad
+`ADMIN`/`SUPERADMIN` (`/admin/spazi-civici/nuovo`), elenco pubblico su `/spazi-civici`, link
+raccolti in `/altro` invece che un chip proprio nell'header: con Fase 4 che aggiunge molte
+sezioni di contenuto, un chip a testa affollerebbe la navigazione desktop, decisione presa senza
+conferma preventiva perché reversibile e di basso impatto, segnalata all'utente.
+
+Il campo `hours` resta testo libero nello schema (nessuna migrazione per la struttura): su
+richiesta esplicita dell'utente, il form offre un aiuto solo di superficie, `OrariField`
+(componente client), due menu a tendina (intervallo di giorni, ora di inizio/fine) che compongono
+la stringa standard nel campo di testo con un pulsante "Componi", lasciandolo comunque modificabile
+a mano per casi che i menu non esprimono (su prenotazione, chiusure stagionali). Confrontata
+l'alternativa di un modello orari strutturato per giorno (JSON o tabella collegata): scartata per
+ora perché nessuna feature attuale richiede l'interrogabilità che darebbe (es. "aperto adesso"),
+a fronte di una rigidità che gli orari reali di spazi civici spesso non rispettano. Nessuna nuova
+ADR: stesso genere di scelta minore già presa per i sondaggi.
+
+Verificato nel browser: creazione di uno spazio civico compilando i campi a mano, uso dei menu a
+tendina (Lun-Ven, 9, 18, "Componi") che scrive "Lun-Ven 9-18" nel campo restando modificabile,
+comparsa nell'elenco pubblico con tipo/nome/orari/note corretti insieme allo spazio creato in
+precedenza.
+
+Bug non applicativo incontrato durante la build: il worker di generazione statica di Turbopack va
+in `out of memory` in modo intermittente su questa macchina (due o tre tentativi su build
+successive, non sempre alla stessa fase), risolto riprovando; non ancora una causa isolata, non
+sembra legato al codice del progetto.
+
 ## Riconciliazione
 
-Ultima verifica: 2026-07-16, al commit `5986a01` (sondaggi rapidi in home, verificati nel
-browser dall'utente). Vedi `memory/progress.md` per il dettaglio completo di ogni feature e bug,
-e `memory/decisions.md` per le ADR.
+Ultima verifica: 2026-07-16, al commit (da confermare al prossimo commit: spazi civici e helper
+orari, non ancora committati al momento di questa nota). Vedi `memory/progress.md` per il
+dettaglio completo di ogni feature e bug, e `memory/decisions.md` per le ADR.

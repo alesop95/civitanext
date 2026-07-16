@@ -17,7 +17,15 @@ const NAV_LINKS = [
 
 // Le voci che sul desktop hanno un proprio chip ma su mobile confluiscono sotto "Altro"
 // nella tab bar fissa (vedi MobileTabBar).
-const ALTRO_HREFS = ["/proposte", "/profilo", "/admin/proposte", "/accedi", "/registrati"];
+const ALTRO_HREFS = [
+  "/proposte",
+  "/profilo",
+  "/admin/proposte",
+  "/accedi",
+  "/registrati",
+  "/spazi-civici",
+  "/admin/spazi-civici/nuovo",
+];
 
 export async function SiteHeader({ activeHref }: { activeHref: string }) {
   const session = await auth();

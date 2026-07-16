@@ -6,6 +6,43 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-16 — Spazi civici, seconda feature verticale di Fase 4, con helper orari
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).
+File toccati: `prisma/schema.prisma` (modello `CivicSpace`); nuova migrazione
+`prisma/migrations/20260716030000_civic_space/`; nuovi `src/app/admin/spazi-civici/actions.ts`
+(`createCivicSpace`, guardia di ruolo), `src/app/admin/spazi-civici/nuovo/page.tsx`,
+`src/app/spazi-civici/page.tsx` (elenco pubblico), `src/components/OrariField.tsx` (componente
+client); modificati `src/app/altro/page.tsx` (link pubblico e admin) e
+`src/components/SiteHeader.tsx` (`ALTRO_HREFS` esteso con le due nuove route).
+Motivo/racconto: scelta tra gli elementi rimanenti di Fase 4 dopo un confronto con l'utente
+(gruppo "nessuna nuova infrastruttura" contro gruppo "richiede una decisione nuova": Mappa,
+Galleria foto/Documenti, Email digest); l'utente ha scelto Spazi civici come primo del primo
+gruppo. Struttura dati presa dal mockup statico del prototipo (`CN_SPACES` in
+`civitanext-data.jsx`: `name`, `type`, `hours`, `note`), nessuna relazione con altri modelli.
+Decisione di navigazione presa in autonomia e segnalata dopo, non prima (reversibile, basso
+impatto): i link vivono solo in `/altro`, senza chip proprio nell'header desktop, per non
+affollare la navigazione con le molte sezioni di contenuto che Fase 4 aggiungerà.
+Richiesta dell'utente durante la verifica: un modo più comodo di inserire l'orario invece del
+solo testo libero. Confrontate due strade: un orario strutturato per giorno (nuovo modello, JSON
+o tabella collegata, interrogabile ma rigido rispetto a orari reali spesso irregolari) contro un
+aiuto solo di superficie che compone la stringa standard in un campo che resta comunque testo
+libero. Scelta la seconda su indicazione dell'utente: `OrariField`, componente client con due
+menu a tendina (intervallo di giorni, ora di inizio/fine) e un pulsante "Componi" che scrive nel
+campo `hours` senza toccare lo schema.
+Bug non applicativo incontrato durante `npm run build`: il worker di generazione statica di
+Turbopack va in `out of memory` in modo intermittente su questa macchina (osservato sia nella
+fase "Collecting page data" sia in "Running TypeScript" su tentativi diversi), sempre risolto
+riprovando (due-tre tentativi); non isolata una causa, non sembra legato al codice scritto in
+questa voce, verificato controllando i processi `node` e la memoria di sistema (57 GB liberi su
+127 GB totali al momento del crash, quindi non esaurimento reale della RAM).
+Verificato nel browser dall'utente (screenshot_35.png - screenshot_39.png): apertura dei due menu
+a tendina, composizione "Lun-Ven 9-18" nel campo di testo restando modificabile, pubblicazione
+dello spazio civico, comparsa nell'elenco pubblico con gli altri spazi già presenti.
+Nessuna nuova ADR: sia la scelta del modello dati sia quella dell'helper orari sono continuazioni
+dirette di pattern già accettati (CRUD admin + elenco pubblico come Eventi; compromesso
+applicativo-non-di-schema già visto per Vote/Poll), non un confronto architetturale nuovo.
+
 ## 2026-07-16 — Verifica manuale nel browser: sondaggi rapidi in home, chiude Fase 4 (parziale)
 
 Commit di riferimento: `5986a01`.

@@ -276,3 +276,16 @@ model PollOption {
   poll   Poll   @relation(fields: [pollId], references: [id])
   text   String
 }
+
+// Elenco spazi civici (Fase 4, sezione "Citta'" del ROADMAP di design). Contenuto puramente
+// informativo gestito da un admin, nessun vincolo relazionale con altri modelli: stessa forma
+// dei dati statici del prototipo (CN_SPACES in civitanext-data.jsx).
+model CivicSpace {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  hours     String
+  note      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

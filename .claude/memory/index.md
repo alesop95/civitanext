@@ -47,13 +47,16 @@ Fase 3 **chiusa nella sostanza** (2026-07-16): layout responsive unico (ADR-012,
 telefono reale), PWA installabile (installabilità vera rimandata al deploy, richiede HTTPS),
 notifiche in-app (ciclo completo verificato nel browser). Studio didattico a 9 voci.
 
-Fase 4 aperta e primo passo **chiuso nella sostanza** lo stesso giorno (2026-07-16): sondaggi
-rapidi in home (riuso di `Vote`/`VoteTargetType.POLL` anticipato dalla Fase 0, nessuna nuova ADR
-— stesso compromesso di refactor-04 sul vincolo di unicità applicativo, non di schema).
-Verificato nel browser dall'utente: creazione sondaggio come admin, percentuali corrette dopo il
-voto, ritiro voto, vista da sloggato coerente con "Accedi per votare". Resto di Fase 4 (mappa,
-foto, documenti, community, reputazione, sync calendario, email digest) non affrontato,
-richiederà probabilmente decisioni di infrastruttura da confrontare prima di scrivere codice.
+Fase 4 aperta lo stesso giorno (2026-07-16) con due feature verticali **chiuse nella sostanza**:
+sondaggi rapidi in home (riuso di `Vote`/`VoteTargetType.POLL` anticipato dalla Fase 0) e spazi
+civici (nuovo modello `CivicSpace`, CRUD admin + elenco pubblico come Eventi, helper di
+superficie `OrariField` per comporre l'orario in un menu a tendina restando testo libero).
+Nessuna nuova ADR per entrambe. Entrambe verificate nel browser dall'utente. Rimandato
+esplicitamente lo stesso giorno tutto ciò che richiede l'account Google dell'associazione (non
+ancora creato); nel frattempo prosegue il resto dello sviluppo. Resto di Fase 4 (mappa, galleria
+foto, documenti, timeline, community, reputazione, email digest) non affrontato: alcune voci
+richiederanno una decisione di infrastruttura da confrontare (mappa, upload, servizio email),
+altre sono probabile riuso di pattern già costruiti (come spazi civici).
 
 Dettaglio completo di ogni bug/decisione in `memory/progress.md`, ADR in `memory/decisions.md`.
 Sintesi stakeholder unificata in `_notes/stakeholder-brief.md` (documento vivo, aggiornato a ogni

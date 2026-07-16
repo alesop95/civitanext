@@ -19,6 +19,10 @@ export default async function AltroPage() {
         Proposte
       </Link>
 
+      <Link href="/spazi-civici" className={btnClassName({ kind: "secondary" })}>
+        Spazi civici
+      </Link>
+
       {session?.user ? (
         <Link href="/profilo" className={btnClassName({ kind: "secondary" })}>
           Profilo
@@ -35,9 +39,14 @@ export default async function AltroPage() {
       )}
 
       {isAdmin && (
-        <Link href="/admin/proposte" className={btnClassName({ kind: "secondary" })}>
-          Coda di approvazione (admin)
-        </Link>
+        <>
+          <Link href="/admin/proposte" className={btnClassName({ kind: "secondary" })}>
+            Coda di approvazione (admin)
+          </Link>
+          <Link href="/admin/spazi-civici/nuovo" className={btnClassName({ kind: "secondary" })}>
+            Nuovo spazio civico (admin)
+          </Link>
+        </>
       )}
     </main>
   );

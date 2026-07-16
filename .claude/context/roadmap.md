@@ -53,11 +53,25 @@ loggato. Prima scelta tra gli elementi di Fase 4 perché l'unica senza bisogno d
 infrastruttura (niente storage, mappe, servizio email), coerente con la nota di `ROADMAP.md` che
 per questa fase "tutte riusano i pattern già costruiti". Verificato nel browser dall'utente:
 creazione sondaggio, percentuali corrette dopo il voto, ritiro voto, vista da sloggato coerente.
-Resto di
-Fase 4 (mappa città, spazi civici, galleria foto, documenti, timeline, mentorship, competenze,
-webinar, rassegna stampa, reputazione e badge, sync Google Calendar, email digest) non ancora
-affrontato: ciascuno richiederà probabilmente una decisione di infrastruttura da confrontare
-prima di scrivere codice (storage per foto/documenti, libreria di mappe, servizio email).
+
+Seconda feature verticale, spazi civici, chiusa lo stesso giorno: nuovo modello `CivicSpace`
+(nessuna relazione con altri modelli), CRUD admin + elenco pubblico su `/spazi-civici`, stesso
+pattern di Eventi. Su richiesta dell'utente, il campo orari resta testo libero nello schema ma il
+form offre un aiuto di superficie (`OrariField`, componente client) che compone la stringa
+standard con due menu a tendina, restando comunque modificabile a mano; alternativa di un orario
+strutturato per giorno confrontata e scartata per ora (rigidità non giustificata da alcuna
+feature attuale). Verificato nel browser.
+
+Rimando esplicito di oggi, non legato a Fase 4 in sé: tutto ciò che richiede l'account Google
+dell'associazione (sync Google Calendar reale, configurazione OAuth) resta in pausa; nel
+frattempo si procede con il resto dello sviluppo.
+
+Resto di Fase 4 (mappa città, galleria foto, documenti, timeline, mentorship, competenze,
+webinar, rassegna stampa, reputazione e badge, email digest) non ancora affrontato: mappa,
+galleria/documenti ed email digest richiederanno una decisione di infrastruttura da confrontare
+prima di scrivere codice (libreria di mappe, upload su storage già scelto in ADR-004/005,
+servizio email); le altre voci community (mentorship, competenze, timeline, webinar, rassegna
+stampa) sono probabilmente riuso di pattern già costruiti, come spazi civici.
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del
