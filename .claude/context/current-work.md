@@ -143,8 +143,17 @@ Definition of done:
 - [x] Pagina pubblica `/mappa` con mappa reale (Leaflet, tile OSM, centro Civitanova Marche) e pin
       per ogni `MapPoint` pubblicato
 - [x] `npm run build` pulito (typecheck incluso)
-- [ ] Verifica manuale nel browser (creare un punto come admin con coordinate reali, vedere il pin
-      comparire sulla mappa con popup titolo/tipo/luogo) — prossimo passo
+- [x] Verifica manuale nel browser (2026-07-17: pin, popup e tile OSM corretti; tre punti reali
+      creati dall'utente)
+
+Estensione post-verifica, su feedback dell'utente (2026-07-17): il form admin non chiede più
+coordinate a mano. `MapPointPicker` (client) possiede tutti i campi del form: clic sulla mappa
+o trascinamento del marker compilano lat/lng, e la geocodifica inversa Nominatim (nessun
+account né chiave, coerente con ADR-013) compila luogo e, se il punto ha un nome proprio in
+OSM, il titolo; un campo scritto a mano non viene mai più toccato dall'automatismo (flag
+dirty), un errore di rete degrada ad avviso non bloccante. Fix icone Leaflet estratto nel
+modulo condiviso `leafletDefaultIcon.ts`. Verificato nel browser dall'utente. Dettaglio in
+`refactor-12-picker-geocodifica.md` (voce didattica 12).
 
 Domande aperte: nessuna bloccante. Nuova ADR-013 per la scelta di libreria (confronto esplicito
 con l'utente, non una continuazione di pattern minore come sondaggi/spazi civici).
@@ -177,12 +186,20 @@ Definition of done:
 - [x] Pagine pubbliche `/timeline` (ordinata per `order`, tappe associazione evidenziate) e
       `/rassegna-stampa` (ordinata per data discendente, link "Leggi l'articolo" se online)
 - [x] `npm run build` pulito (typecheck incluso)
-- [ ] Verifica manuale nel browser (creare una voce timeline e un articolo come admin, vederli
-      negli elenchi pubblici) — prossimo passo, in coda insieme alla verifica della mappa
+- [x] Verifica manuale nel browser (2026-07-17: ordinamento per `order` confermato con periodi
+      testuali non ordinabili, tappa CivitaNext evidenziata, data articolo in italiano, link
+      "Leggi l'articolo", e anche il percorso d'errore: url `https:\\...` respinto con il
+      messaggio `error=2`)
+
+Nota di verifica: una voce di prova è stata salvata con un refuso di digitazione ("asce
+CivitaNext"); controllato il dato reale nel database, il codice lo mostra fedelmente, nessun
+bug. Non esiste ancora una UI admin di modifica/cancellazione per questi contenuti (tutte le
+feature informative di Fase 4 sono create-only, limite di perimetro noto e condiviso): i
+contenuti di prova si correggono in SQL o si sostituiscono quando arriveranno quelli veri.
 
 ## Riconciliazione
 
 Ultima verifica: 2026-07-17, sopra il commit `147c741` (spazi civici e helper orari, ultimo
-committato). Mappa della città, timeline e rassegna stampa non ancora committate al momento di
-questa nota, tutte e tre in attesa di verifica browser. Vedi `memory/progress.md` per il
+committato). Mappa della città (con picker e geocodifica inversa), timeline e rassegna stampa
+tutte verificate nel browser dall'utente, pronte al commit. Vedi `memory/progress.md` per il
 dettaglio completo di ogni feature e bug, e `memory/decisions.md` per le ADR.

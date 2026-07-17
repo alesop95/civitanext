@@ -1,19 +1,8 @@
 "use client";
 
 import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import "@/components/leafletDefaultIcon";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-
-// Le icone di default di Leaflet puntano a percorsi che il bundler non risolve (bug noto di
-// Leaflet con qualunque bundler moderno, non solo Next.js): si sovrascrivono con le stesse
-// immagini copiate in public/leaflet, self-hostate per non dipendere da un CDN esterno a
-// runtime (coerente con l'impostazione PWA offline-first del progetto).
-delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: unknown })._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "/leaflet/marker-icon-2x.png",
-  iconUrl: "/leaflet/marker-icon.png",
-  shadowUrl: "/leaflet/marker-shadow.png",
-});
 
 const CIVITANOVA_CENTER: [number, number] = [43.3095, 13.7278];
 

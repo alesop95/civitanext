@@ -334,3 +334,36 @@ dall'uso che il sistema ne farà, e due campi che sembrano "la stessa cosa" in d
 possono legittimamente avere tipi opposti.
 
 Dove leggere il dettaglio: `refactor-11-modellare-tempo-e-categorie.md`.
+
+## 12. L'automatismo è un ospite dei campi, non il padrone: il picker sulla mappa e la geocodifica inversa
+
+Contesto. Durante la verifica browser della mappa (Fase 4), l'utente ha osservato che scrivere
+latitudine e longitudine a mano è ostile per chi amministra: le coordinate non le conosce
+nessuno a memoria. Da quel feedback, in due passi confrontati insieme, il form del punto mappa
+ha guadagnato prima un selettore visuale (clic sulla mappa) e poi la compilazione automatica di
+luogo e titolo dal punto cliccato.
+
+Com'era e perché era fragile. Il form chiedeva numeri nudi, con una nota che rimandava a
+openstreetmap.org per trovarli: funzionava, ma spostava sull'utente un lavoro di trascrizione
+che la macchina sa fare meglio, con il rischio concreto di invertire lat/lng o sbagliare un
+segno, errori che il range check lato server non può riconoscere (una coordinata valida ma
+sbagliata è comunque valida). C'era anche un vincolo architetturale nascosto: i campi del form
+vivevano nella pagina, un Server Component, e nessun clic su una mappa client avrebbe mai
+potuto scriverli da lì.
+
+Il salto senior e perché è meglio. Tre mosse distinte. La prima è di confine: i campi che un
+componente client deve poter compilare devono appartenere a quel componente client; il form e
+la server action restano lato server, e il contratto tra i due mondi è solo l'attributo `name`
+dei campi, che la action riceve identico a prima. La seconda è di rispetto dell'input umano:
+l'automatismo compila un campo finché l'utente non ci scrive dentro, e da quel momento non lo
+tocca mai più (un flag "dirty" per campo); il valore calcolato è un suggerimento, quello
+scritto a mano è una decisione. La terza è di degrado controllato verso il servizio esterno:
+la geocodifica inversa usa Nominatim di OpenStreetMap, che come Leaflet non chiede né account
+né chiave (coerente con ADR-013), ma resta un servizio di rete che può fallire; il fallimento
+mostra un avviso e lascia il form pienamente utilizzabile a mano, e un nuovo clic annulla la
+richiesta precedente ancora in volo così che vinca sempre l'ultimo punto scelto, mai una
+risposta arrivata in ritardo. Il principio generale: quando si automatizza la compilazione di
+un form, l'automatismo va trattato come un ospite, che aiuta finché l'umano non ha parlato e
+sparisce senza danni quando la rete non risponde.
+
+Dove leggere il dettaglio: `refactor-12-picker-geocodifica.md`.

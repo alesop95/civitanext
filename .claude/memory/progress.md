@@ -6,6 +6,54 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-17 — Verifica browser completata per timeline e rassegna stampa: le tre feature del blocco sono pronte al commit
+
+Commit di riferimento: working tree in corso, sopra `147c741`.
+File toccati: nessun file di codice (sola verifica); aggiornate le schede `current-work.md`,
+`roadmap.md`, `index.md`.
+Motivo/racconto: verifica manuale dell'utente con screenshot (67-71). Timeline: due voci create,
+ordinamento per `order` confermato (la voce "Da completare" con posizione 0 sopra "Gennaio 2026"
+con 10: comanda il campo, non il testo del periodo), tappa CivitaNext evidenziata da pallino ed
+etichetta accent. Rassegna stampa: verificato anche il percorso d'errore, un url con backslash
+(`https:\\...`) respinto dal server con il messaggio di `error=2`, e poi il percorso felice con
+data resa in italiano ("2 luglio 2026") e pulsante "Leggi l'articolo". Anomalia indagata e
+derubricata: una voce mostrava "asce CivitaNext" senza N iniziale; letto l'HTML generato dal
+dato reale, il database contiene proprio `asce   CivitaNext` (refuso di digitazione nel form,
+con spazi multipli), il codice mostra fedelmente il dato, nessun bug. Emerso e annotato un
+limite di perimetro noto: le feature informative di Fase 4 sono create-only, senza UI admin di
+modifica/cancellazione; i refusi nei contenuti di prova si correggono in SQL o si sostituiscono
+con i contenuti reali. Emerso anche un attrito d'uso minore del pattern `?error=N`: il redirect
+d'errore svuota i campi già compilati (l'utente ha ridigitato); da valutare in futuro se
+preservare i valori, non bloccante oggi.
+
+## 2026-07-17 — Mappa verificata nel browser; picker a clic e geocodifica inversa nel form admin (voce didattica 12)
+
+Commit di riferimento: working tree in corso, sopra `147c741`.
+File toccati: nuovi `src/components/MapPointPicker.tsx` (client, ora possiede tutti i campi del
+form del punto mappa), `src/components/MapPointPickerLoader.tsx` (caricatore `next/dynamic`
+`ssr: false`, stesso pattern di `CivicMapLoader`), `src/components/leafletDefaultIcon.ts` (fix
+icone Leaflet estratto in modulo condiviso, prima duplicato in `CivicMap`); modificati
+`src/components/CivicMap.tsx` (usa il modulo condiviso) e `src/app/admin/mappa/nuovo/page.tsx`
+(campi sostituiti dal picker, rimossa la nota su openstreetmap.org). La server action
+`createMapPoint` non è cambiata.
+Motivo/racconto: durante la verifica browser della mappa (riuscita: pin, popup e tile OSM
+corretti, screenshot 54) l'utente ha osservato che inserire lat/lng a mano è ostile. Confronto
+esplicito di tre alternative (picker a clic senza servizi esterni, ricerca indirizzo Nominatim,
+entrambe): scelto insieme il picker. Alla verifica successiva (screenshot 57-61, punto "Porto"
+creato col clic) l'utente ha chiesto anche la compilazione automatica dei campi testuali dal
+punto cliccato: aggiunta la geocodifica inversa con Nominatim (nessun account né chiave,
+coerente con ADR-013; policy 1 req/s rispettata per natura da un form admin). Regole del
+design: campi spostati nel componente client (un clic client non può scrivere in campi di un
+Server Component; contratto con la action = soli attributi `name`), flag dirty per campo
+(l'automatismo non sovrascrive mai input umano), `AbortController` (vince l'ultimo clic) e
+degrado controllato (errore di rete = avviso non bloccante, form usabile a mano). Titolo
+compilato solo se il punto ha un `name` in OSM; tipo sempre manuale (categorie Nominatim in
+inglese tecnico). Dettaglio in `refactor-12-picker-geocodifica.md` (voce didattica 12).
+Verifiche eseguite: `tsc --noEmit` pulito; verifica browser dell'utente completa (screenshot
+64-66): clic sullo stadio compila "Stadio Comunale" e "Lungomare Sergio Piermanni", tipo scritto
+a mano mai sovrascritto, punto pubblicato visibile su `/mappa` con popup. Definition of done
+della mappa completa; restano in verifica timeline e rassegna stampa.
+
 ## 2026-07-17 — Timeline e rassegna stampa, quarta e quinta feature verticale di Fase 4, verifica browser in sospeso
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce),

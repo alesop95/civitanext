@@ -66,14 +66,16 @@ Rimando esplicito di oggi, non legato a Fase 4 in sé: tutto ciò che richiede l
 dell'associazione (sync Google Calendar reale, configurazione OAuth) resta in pausa; nel
 frattempo si procede con il resto dello sviluppo.
 
-Terza feature verticale, mappa della città (ADR-013), in verifica lo stesso giorno: nuovo modello
-`MapPoint` (autonomo, non agganciato a `Event`/`Proposal`), Leaflet + `react-leaflet` con tile
-OpenStreetMap scelta dopo un confronto esplicito con l'utente contro MapLibre GL e Mapbox GL JS
-(vinta perché unica senza account esterno da configurare, stesso principio applicato al rinvio
-dell'account Google). Build pulita; verifica manuale nel browser non ancora fatta dall'utente.
+Terza feature verticale, mappa della città (ADR-013), chiusa e verificata nel browser il
+2026-07-17: nuovo modello `MapPoint` (autonomo, non agganciato a `Event`/`Proposal`), Leaflet +
+`react-leaflet` con tile OpenStreetMap scelta dopo un confronto esplicito con l'utente contro
+MapLibre GL e Mapbox GL JS (vinta perché unica senza account esterno da configurare, stesso
+principio applicato al rinvio dell'account Google). Dal feedback di verifica dell'utente, il
+form admin ha guadagnato il picker a clic sulla mappa e la geocodifica inversa Nominatim
+(anch'essa senza account né chiave), entrambe verificate (voce didattica 12).
 
-Quarta e quinta feature verticale, timeline della città e rassegna stampa, costruite insieme il
-2026-07-17 (in verifica browser): scelte perché uniche voci rimaste senza account Google, senza
+Quarta e quinta feature verticale, timeline della città e rassegna stampa, costruite insieme e
+verificate nel browser il 2026-07-17: scelte perché uniche voci rimaste senza account Google, senza
 decisione di infrastruttura e senza design non ovvio, puro riuso del pattern spazi civici. Due
 modelli autonomi (`TimelineEntry` con enum `TimelineKind`, `PressArticle`), scelte di
 modellazione documentate nella voce didattica 11, nessuna nuova ADR. La raccolta del materiale

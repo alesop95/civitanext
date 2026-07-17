@@ -20,9 +20,9 @@ Data snapshot:        2026-07-17
 | design-and-security.md | 4da8cf9 | aggiornata |
 | deployment.md | 4da8cf9 | aggiornata |
 | dev-testing.md | 4da8cf9 | aggiornata |
-| current-work.md | 147c741 | aggiornata (mappa, timeline e rassegna stampa in verifica, non committate) |
+| current-work.md | 147c741 | aggiornata (mappa, timeline e rassegna stampa verificate, pronte al commit) |
 | roadmap.md | 147c741 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
-| studio-didattico-master.md | 147c741 | 11 voci |
+| studio-didattico-master.md | 147c741 | 12 voci |
 
 ## Punto di ripresa
 
@@ -52,11 +52,12 @@ Fase 4 aperta lo stesso giorno (2026-07-16) con tre feature verticali. Sondaggi 
 `CivicSpace`, CRUD admin + elenco pubblico come Eventi, helper di superficie `OrariField` per
 comporre l'orario in un menu a tendina restando testo libero) **chiuse nella sostanza**,
 verificate nel browser dall'utente, nessuna nuova ADR per entrambe (commit `f578c0b`, `147c741`).
-Mappa della città **in verifica**: nuovo modello `MapPoint` (autonomo, non agganciato a
-`Event`/`Proposal`), Leaflet + `react-leaflet` con tile OpenStreetMap scelta dopo confronto
-esplicito con l'utente contro MapLibre GL e Mapbox GL JS (ADR-013, voce didattica 10) — vinta
-perché unica senza account esterno da configurare. Build pulita, verifica manuale nel browser non
-ancora fatta, non ancora committata.
+Mappa della città **chiusa e verificata nel browser** (2026-07-17): nuovo modello `MapPoint`
+(autonomo, non agganciato a `Event`/`Proposal`), Leaflet + `react-leaflet` con tile
+OpenStreetMap scelta dopo confronto esplicito con l'utente contro MapLibre GL e Mapbox GL JS
+(ADR-013, voce didattica 10) — vinta perché unica senza account esterno da configurare. Dal
+feedback di verifica, il form admin ha guadagnato il picker a clic e la geocodifica inversa
+Nominatim con flag dirty e degrado controllato (voce didattica 12), anch'essi verificati.
 Rimandato esplicitamente lo stesso giorno tutto ciò che richiede l'account Google
 dell'associazione (non ancora creato); nel frattempo prosegue il resto dello sviluppo.
 Il 2026-07-17, dopo un riavvio forzato del PC (server Prisma dev riavviato, build di controllo
@@ -64,8 +65,9 @@ pulita), aggiunte insieme la quarta e quinta feature verticale di Fase 4, timeli
 (`TimelineEntry` + enum `TimelineKind`) e rassegna stampa (`PressArticle`): puro riuso del
 pattern spazi civici, nessuna nuova ADR, scelte di modellazione opposte e deliberate tra i due
 modelli documentate nella voce didattica 11 (`refactor-11-modellare-tempo-e-categorie.md`).
-**In verifica** insieme alla mappa: build pulita, verifica browser non ancora fatta, non
-committate. Resto di Fase 4 non affrontato, tutto dietro un confronto da fare: decisione di
+**Verificate nel browser** lo stesso giorno insieme alla mappa (percorso d'errore della
+validazione url compreso), tutte e tre pronte al commit, non ancora committate al momento di
+questo snapshot. Resto di Fase 4 non affrontato, tutto dietro un confronto da fare: decisione di
 infrastruttura (galleria foto, documenti, webinar, email digest) o di design (mentorship,
 competenze, reputazione/badge, quest'ultima per ultima perché calcola sulle altre feature).
 
