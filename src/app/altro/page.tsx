@@ -23,6 +23,18 @@ export default async function AltroPage() {
         Spazi civici
       </Link>
 
+      <Link href="/mappa" className={btnClassName({ kind: "secondary" })}>
+        Mappa
+      </Link>
+
+      <Link href="/timeline" className={btnClassName({ kind: "secondary" })}>
+        Timeline
+      </Link>
+
+      <Link href="/rassegna-stampa" className={btnClassName({ kind: "secondary" })}>
+        Rassegna stampa
+      </Link>
+
       {session?.user ? (
         <Link href="/profilo" className={btnClassName({ kind: "secondary" })}>
           Profilo
@@ -45,6 +57,15 @@ export default async function AltroPage() {
           </Link>
           <Link href="/admin/spazi-civici/nuovo" className={btnClassName({ kind: "secondary" })}>
             Nuovo spazio civico (admin)
+          </Link>
+          <Link href="/admin/mappa/nuovo" className={btnClassName({ kind: "secondary" })}>
+            Nuovo punto mappa (admin)
+          </Link>
+          <Link href="/admin/timeline/nuovo" className={btnClassName({ kind: "secondary" })}>
+            Nuova voce timeline (admin)
+          </Link>
+          <Link href="/admin/rassegna-stampa/nuovo" className={btnClassName({ kind: "secondary" })}>
+            Nuovo articolo stampa (admin)
           </Link>
         </>
       )}

@@ -260,3 +260,77 @@ quanto del lavoro esistente lo soddisfa già in parte, e innestare il resto come
 incrementale invece di duplicare quello che già funziona.
 
 Dove leggere il dettaglio: `refactor-09-responsive-e-pwa.md`.
+
+## 10. La libreria più famosa non è per questo la scelta giusta: il bisogno reale decide, non il nome che viene in mente per primo
+
+Contesto. La Mappa della città (Fase 4) è la prima feature che richiede scegliere una libreria
+esterna per una capacità che il codice del progetto non ha mai avuto: disegnare una mappa
+geografica interattiva con pin. Il prototipo di design non aiuta a scegliere, perché il suo
+`MapView` non è una mappa vera: è un'immagine statica con pin posizionati via coordinate x/y
+percentuali, un placeholder dichiarato tale dal roadmap stesso ("da integrare Leaflet/Mapbox con
+pin reali").
+
+Com'era e perché era fragile. Di fronte a "ci serve una mappa", il primo nome che viene in mente
+quasi a chiunque è Google Maps: è la mappa che tutti hanno già usato, la documentazione è ottima,
+funziona bene. Scegliere per notorietà, però, avrebbe agganciato la feature a un account Google
+da configurare e a una chiave fatturabile, esattamente la stessa frizione di account esterno che
+nello stesso blocco di lavoro si è appena deciso di rimandare per il login ("Procediamo con B",
+la scelta di aspettare l'account dedicato dell'associazione invece di usarne uno personale). Il
+secondo nome che viene in mente, Mapbox, è più aperto ma ha lo stesso problema: un account e un
+token da creare, un'altra dipendenza esterna con soglie di utilizzo gratuito da monitorare, per un
+bisogno reale che è solo "pochi pin su una mappa di una città", non un prodotto cartografico
+interattivo complesso.
+
+Il salto senior e perché è meglio. La domanda giusta non è "qual è la libreria di mappe più
+famosa o più potente", ma "cosa richiede davvero questo bisogno, e cosa costa in più ogni
+alternativa oltre alla libreria in sé". Leaflet, la scelta meno appariscente delle tre, è anche
+l'unica che non chiede nessun account né chiave API per l'uso base: nessuna dipendenza da un
+servizio esterno da configurare, nessuna soglia di utilizzo da monitorare, coerente con lo stesso
+principio appena applicato al login (rimandare un account esterno finché non è l'associazione
+stessa a possederlo). Il costo esatto della scelta più semplice non sparisce, si sposta soltanto:
+il tile server pubblico di OpenStreetMap sconsiglia un uso di produzione pesante, un limite
+accettato oggi perché il traffico reale del sito è piccolo, e risolvibile in futuro cambiando solo
+l'indirizzo del livello di tile, non la libreria. Il principio generale: quando una scelta tecnica
+sembra ovvia perché è il nome più noto, vale la pena chiedersi cosa quella notorietà porta con sé
+oltre alla funzionalità (un account, una fatturazione, una dipendenza da un'azienda terza), e
+confrontarlo con quello che il bisogno reale, oggi, effettivamente richiede.
+
+Dove leggere il dettaglio: `refactor-10-mappa-leaflet.md`.
+
+## 11. Lo stesso concetto non merita sempre lo stesso tipo: come si modellano una data e una categoria dipende da cosa se ne fa il codice
+
+Contesto. Timeline della città e rassegna stampa (Fase 4) sono due feature gemelle nel pattern
+(contenuto informativo curato da un admin, elenco pubblico, nessuna relazione con altri modelli,
+lo stesso schema di spazi civici) e sono state costruite insieme. Il punto interessante non è il
+pattern, già consolidato, ma il fatto che i due modelli contengono entrambi una data e una
+categoria, e in ciascun caso la scelta di tipo è stata opposta.
+
+Com'era e perché era fragile. Il prototipo di design memorizza tutto come testo: la data di un
+articolo di stampa è la stringa italiana "8 giugno 2026", il periodo di una voce di timeline è
+"Gennaio 2026" oppure "Da completare", il tipo di voce è la stringa 'citta' o 'cn'. Copiare quei
+campi alla lettera nello schema del database sarebbe stata la via più rapida, ma avrebbe
+incorporato tre fragilità diverse. Una data testuale non si ordina: "24 maggio 2026" viene dopo
+"8 giugno 2026" in ordine alfabetico, e una rassegna stampa che non sa mostrare l'articolo più
+recente per primo ha fallito il suo unico compito. Una categoria a stringa libera accetta
+qualsiasi refuso ('cittá', 'CN') e ogni consumatore deve difendersene. E il prototipo trascina
+anche campi che puntano a sistemi che non esistono (il conteggio commenti degli articoli, il
+flag foto delle voci storiche): copiarli avrebbe creato colonne vuote in attesa di feature mai
+decise.
+
+Il salto senior e perché è meglio. La domanda giusta per ogni campo non è "che tipo ha nel
+prototipo" ma "che operazioni farà il codice su questo valore". La data dell'articolo serve a
+ordinare l'elenco, quindi diventa una data vera (`DateTime`) e il testo italiano torna a essere
+solo una formattazione di presentazione. Il periodo della voce di timeline non serve a ordinare
+ma a raccontare, e deve poter valere "Anni '50" o "Da completare", valori che nessun tipo data
+esprime: resta testo libero, e l'ordinamento, che così perde la sua fonte naturale, viene
+promosso a campo esplicito (`order`, lo stesso meccanismo dello sblocco progressivo dei quiz).
+Il tipo di voce pilota il rendering con due soli valori possibili, quindi diventa un enum che il
+database stesso fa rispettare, mentre la categoria di un evento resta stringa libera perché lì
+l'insieme è aperto per natura. Anche le omissioni seguono lo stesso criterio: i commenti dei
+soci hanno già una casa (il forum) e il flag foto aspetterebbe una decisione di storage non
+ancora presa, quindi nessuno dei due entra nello schema. Il principio generale: il prototipo
+documenta l'aspetto dei dati, non il loro contratto; il tipo giusto di ogni campo si deduce
+dall'uso che il sistema ne farà, e due campi che sembrano "la stessa cosa" in due modelli vicini
+possono legittimamente avere tipi opposti.
+
+Dove leggere il dettaglio: `refactor-11-modellare-tempo-e-categorie.md`.

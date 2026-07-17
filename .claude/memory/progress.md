@@ -6,6 +6,90 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-17 — Timeline e rassegna stampa, quarta e quinta feature verticale di Fase 4, verifica browser in sospeso
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce),
+sopra il commit `147c741`; nello stesso working tree resta anche la mappa della città in attesa
+di verifica.
+File toccati: `prisma/schema.prisma` (modelli `PressArticle` e `TimelineEntry`, enum
+`TimelineKind`); nuove migrazioni `prisma/migrations/20260717000000_press_article/` e
+`prisma/migrations/20260717010000_timeline_entry/` (procedura ADR-009, `migrate diff` +
+`migrate deploy`, una migrazione per feature); nuovi `src/app/rassegna-stampa/page.tsx`,
+`src/app/admin/rassegna-stampa/actions.ts` (`createPressArticle`),
+`src/app/admin/rassegna-stampa/nuovo/page.tsx`, `src/app/timeline/page.tsx`,
+`src/app/admin/timeline/actions.ts` (`createTimelineEntry`),
+`src/app/admin/timeline/nuovo/page.tsx`; modificati `src/app/altro/page.tsx` e
+`src/components/SiteHeader.tsx` (quattro voci nuove, stesso trattamento di navigazione di spazi
+civici e mappa); `.claude/context/studio-didattico-master.md` (voce 11), nuovo
+`.claude/context/refactor-11-modellare-tempo-e-categorie.md`.
+Motivo/racconto: ripresa dopo un riavvio forzato del PC (server Prisma dev sulle porte
+51218/51219 riavviato, `npm run build` di controllo pulito prima di toccare codice). Su
+indicazione dell'utente si prosegue con gli sviluppi che non richiedono l'account Google: dalle
+voci rimanenti di Fase 4, timeline e rassegna stampa sono le due senza decisione di
+infrastruttura né design non ovvio (puro pattern spazi civici: CRUD admin + elenco pubblico,
+nessuna relazione), scelte in autonomia perché reversibili e di basso impatto, segnalate
+all'utente; mentorship/competenze/reputazione (design di matching e punteggio da confrontare) e
+galleria/documenti/webinar/email (storage o servizio esterno) restano da discutere insieme.
+Tre scelte di modellazione deliberate, opposte tra i due modelli pur sembrando "la stessa cosa":
+data dell'articolo `DateTime` (si ordina) contro periodo della timeline testo libero (deve
+valere "Anni '50"/"Da completare") con ordinamento promosso a campo `order` esplicito;
+`TimelineKind` enum (insieme chiuso che pilota il rendering) contro la stringa libera di
+`Event.category` (insieme aperto). Omessi di proposito i campi `comments` e `photo` del
+prototipo (presuppongono sistemi che non esistono: commenti agli articoli, upload immagini).
+Validazioni server: `url` opzionale ma solo `http(s)` assoluto (renderizzato come `href`,
+respinge `javascript:`), `kind` riconvalidato contro l'enum, `order` intero o vuoto. Prima
+forma amministrativa con due errori distinti, risolta restando nella convenzione `?error=N` con
+mappa di messaggi. Dettaglio e principio generale nella voce didattica 11 e nel deep-dive
+`refactor-11-modellare-tempo-e-categorie.md`; nessuna nuova ADR (scelte minori, stessa classe di
+sondaggi/spazi civici).
+Verifiche eseguite: migrazioni applicate (`migrate deploy`) e `npm run build` pulito con le
+quattro route nuove. Verifica manuale nel browser non ancora fatta, in coda insieme a quella
+della mappa.
+
+## 2026-07-16 — Mappa della città, terza feature verticale di Fase 4 (ADR-013), verifica browser in sospeso
+
+Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce),
+sopra il commit `147c741` (spazi civici).
+File toccati: `prisma/schema.prisma` (modello `MapPoint`); nuova migrazione
+`prisma/migrations/20260716040000_map_point/`; nuove dipendenze `leaflet`, `react-leaflet`,
+`@types/leaflet` (`package.json`/`package-lock.json`); nuovi `src/app/mappa/page.tsx` (elenco +
+mappa pubblica), `src/app/admin/mappa/actions.ts` (`createMapPoint`, guardia di ruolo),
+`src/app/admin/mappa/nuovo/page.tsx` (form con validazione coordinate), `src/components/CivicMap.tsx`
+(componente client `react-leaflet`), `src/components/CivicMapLoader.tsx` (caricatore
+`next/dynamic` con `ssr: false`), `public/leaflet/` (tre icone Leaflet copiate da
+`node_modules/leaflet/dist/images/`, self-hostate invece di un CDN esterno); modificati
+`src/app/altro/page.tsx` e `src/components/SiteHeader.tsx` (link "Mappa"/"Nuovo punto mappa
+(admin)", stesso trattamento di navigazione già scelto per spazi civici, nessun chip proprio
+nell'header desktop); aggiunto `.claude/memory/decisions.md` (ADR-013),
+`.claude/context/studio-didattico-master.md` (voce 10), nuovo
+`.claude/context/refactor-10-mappa-leaflet.md`.
+Motivo/racconto: prima feature di Fase 4 del gruppo "richiede una decisione di infrastruttura"
+(a differenza di sondaggi e spazi civici, puro riuso di pattern). Scelta tra le tre voci di quel
+gruppo (Mappa, Galleria foto/Documenti, Email digest) dall'utente. Confronto esplicito di
+libreria fatto con l'utente prima di scrivere schema, non deciso in autonomia: Leaflet +
+`react-leaflet` + tile OpenStreetMap contro MapLibre GL e Mapbox GL JS, vinta da Leaflet perché
+unica senza account esterno da configurare (stesso principio appena applicato al rinvio
+dell'account Google per il login, nello stesso blocco di lavoro). Dettaglio completo del confronto
+in ADR-013 e nella voce didattica 10.
+Modello `MapPoint` autonomo, non agganciato a `Event`/`Proposal`: nessuno dei due ha oggi una form
+di creazione amministrativa da estendere con coordinate geografiche, quindi agganciarli avrebbe
+allargato lo scope oltre la mappa.
+Difficoltà tecnica incontrata e risolta, non un bug ma un vincolo architetturale di Next.js App
+Router: Leaflet legge `window` e non può girare in un Server Component; risolta con due componenti
+client distinti, `CivicMap` (il componente vero) caricato da `CivicMapLoader` tramite
+`next/dynamic({ ssr: false })`, perché `ssr: false` su `next/dynamic` è consentito solo dentro un
+Client Component, non nella pagina `/mappa` che resta Server Component per leggere `MapPoint` dal
+database. Le icone di default di Leaflet (bug noto della libreria con qualunque bundler, non
+specifico di Next.js) corrette sovrascrivendo gli URL con le tre immagini originali copiate in
+`public/leaflet/`, invece di un CDN esterno, per restare coerenti con l'impostazione
+offline-first già presa per la PWA (ADR-012).
+Bug non applicativo, stesso già visto per spazi civici: il worker di generazione statica di
+Turbopack va in `out of memory` in modo intermittente su questa macchina; questa volta la build è
+passata pulita al primo tentativo.
+Ancora aperto: verifica manuale nel browser (creare un punto mappa come admin con coordinate
+reali, vedere il pin comparire con popup titolo/tipo/luogo) non ancora fatta dall'utente al
+momento di questa voce. Nessun commit ancora creato per questa feature.
+
 ## 2026-07-16 — Spazi civici, seconda feature verticale di Fase 4, con helper orari
 
 Commit di riferimento: working tree in corso (non ancora committato al momento di questa voce).

@@ -25,6 +25,12 @@ const ALTRO_HREFS = [
   "/registrati",
   "/spazi-civici",
   "/admin/spazi-civici/nuovo",
+  "/mappa",
+  "/admin/mappa/nuovo",
+  "/timeline",
+  "/admin/timeline/nuovo",
+  "/rassegna-stampa",
+  "/admin/rassegna-stampa/nuovo",
 ];
 
 export async function SiteHeader({ activeHref }: { activeHref: string }) {

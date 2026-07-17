@@ -5,8 +5,8 @@ generated-date: 2026-07-10
 covers-paths:
   - src/**
   - .claude/**
-last-verified-commit: 5986a01
-stato: verificata
+last-verified-commit: 147c741
+stato: in verifica
 ---
 
 # Lavoro in corso
@@ -117,8 +117,72 @@ in `out of memory` in modo intermittente su questa macchina (due o tre tentativi
 successive, non sempre alla stessa fase), risolto riprovando; non ancora una causa isolata, non
 sembra legato al codice del progetto.
 
+## Feature in corso: Fase 4 — mappa della città
+
+Terza feature verticale di Fase 4, la prima del gruppo "richiede una decisione di infrastruttura"
+(ADR-013): libreria Leaflet + `react-leaflet` con tile OpenStreetMap, confrontata con l'utente
+contro MapLibre GL e Mapbox GL JS e scelta perché l'unica senza account esterno da configurare.
+Nuovo modello `MapPoint` (`title`, `type`, `place`, `lat`, `lng`), autonomo, senza relazione con
+`Event`/`Proposal` (nessuno dei due ha oggi una form di creazione amministrativa da estendere con
+coordinate). Dettaglio tecnico completo (il confine client/server di Next.js con Leaflet, il fix
+delle icone rotte, il perché del modello autonomo) in `refactor-10-mappa-leaflet.md`.
+
+File creati: `src/app/mappa/page.tsx` (elenco + mappa pubblica), `src/app/admin/mappa/actions.ts`
+(`createMapPoint`, guardia di ruolo), `src/app/admin/mappa/nuovo/page.tsx` (form con validazione
+coordinate), `src/components/CivicMap.tsx` (componente client con `react-leaflet`),
+`src/components/CivicMapLoader.tsx` (caricatore `next/dynamic` con `ssr: false`), tre icone
+Leaflet copiate in `public/leaflet/`. File modificati: `prisma/schema.prisma` (+`MapPoint`,
+migrazione `20260716040000_map_point`), `src/app/altro/page.tsx` e `src/components/SiteHeader.tsx`
+(link "Mappa" e "Nuovo punto mappa (admin)", stesso trattamento di navigazione già scelto per
+spazi civici: nessun chip proprio nell'header desktop).
+
+Definition of done:
+- [x] Modello `MapPoint` scritto, validato e migrato (procedura ADR-009)
+- [x] `createMapPoint` con guardia di ruolo `ADMIN`/`SUPERADMIN` e validazione delle coordinate
+      (range lat/lng) lato server
+- [x] Pagina pubblica `/mappa` con mappa reale (Leaflet, tile OSM, centro Civitanova Marche) e pin
+      per ogni `MapPoint` pubblicato
+- [x] `npm run build` pulito (typecheck incluso)
+- [ ] Verifica manuale nel browser (creare un punto come admin con coordinate reali, vedere il pin
+      comparire sulla mappa con popup titolo/tipo/luogo) — prossimo passo
+
+Domande aperte: nessuna bloccante. Nuova ADR-013 per la scelta di libreria (confronto esplicito
+con l'utente, non una continuazione di pattern minore come sondaggi/spazi civici).
+
+## Feature in corso: Fase 4 — timeline della città e rassegna stampa
+
+Quarta e quinta feature verticale di Fase 4, costruite insieme il 2026-07-17 (ripresa dopo
+riavvio forzato del PC: server Prisma dev riavviato, build di controllo pulita). Scelte in
+autonomia, segnalate all'utente, perché uniche voci rimaste senza account Google, senza decisione
+di infrastruttura e senza design non ovvio: puro pattern spazi civici (CRUD admin + elenco
+pubblico, modelli senza relazioni). Due modelli nuovi, `PressArticle` e `TimelineEntry` con enum
+`TimelineKind`, con tre scelte di modellazione deliberatamente opposte tra i due (data `DateTime`
+ordinabile contro periodo testo libero + campo `order` esplicito; enum per l'insieme chiuso
+contro la stringa libera di `Event.category`) e due omissioni rispetto al prototipo (`comments`,
+`photo`: presuppongono sistemi che non esistono). Dettaglio in
+`refactor-11-modellare-tempo-e-categorie.md` (voce didattica 11). Nessuna nuova ADR.
+
+File creati: `src/app/timeline/page.tsx`, `src/app/admin/timeline/actions.ts`,
+`src/app/admin/timeline/nuovo/page.tsx`, `src/app/rassegna-stampa/page.tsx`,
+`src/app/admin/rassegna-stampa/actions.ts`, `src/app/admin/rassegna-stampa/nuovo/page.tsx`.
+File modificati: `prisma/schema.prisma` (+2 modelli, +1 enum, migrazioni
+`20260717000000_press_article` e `20260717010000_timeline_entry`, una per feature),
+`src/app/altro/page.tsx` e `src/components/SiteHeader.tsx` (quattro voci nuove, nessun chip
+desktop).
+
+Definition of done:
+- [x] Modelli scritti, validati e migrati (procedura ADR-009)
+- [x] Server action con guardia di ruolo e validazione lato server (enum `kind`, `order` intero,
+      `url` solo `http(s)` assoluto perché renderizzato come `href`)
+- [x] Pagine pubbliche `/timeline` (ordinata per `order`, tappe associazione evidenziate) e
+      `/rassegna-stampa` (ordinata per data discendente, link "Leggi l'articolo" se online)
+- [x] `npm run build` pulito (typecheck incluso)
+- [ ] Verifica manuale nel browser (creare una voce timeline e un articolo come admin, vederli
+      negli elenchi pubblici) — prossimo passo, in coda insieme alla verifica della mappa
+
 ## Riconciliazione
 
-Ultima verifica: 2026-07-16, al commit (da confermare al prossimo commit: spazi civici e helper
-orari, non ancora committati al momento di questa nota). Vedi `memory/progress.md` per il
+Ultima verifica: 2026-07-17, sopra il commit `147c741` (spazi civici e helper orari, ultimo
+committato). Mappa della città, timeline e rassegna stampa non ancora committate al momento di
+questa nota, tutte e tre in attesa di verifica browser. Vedi `memory/progress.md` per il
 dettaglio completo di ogni feature e bug, e `memory/decisions.md` per le ADR.

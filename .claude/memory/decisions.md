@@ -424,3 +424,65 @@ navigazione. Se in futuro servirà davvero cache offline dei contenuti, andrà l
 che non dipendono dalla sessione utente, o accompagnata da una strategia di invalidazione
 esplicita, non aggiunta genericamente. Le notifiche (in-app, poi push) restano il prossimo passo
 dichiarato di Fase 3, non affrontato qui.
+
+## ADR-013 — Mappa della città: Leaflet + OpenStreetMap, modello `MapPoint` autonomo, coordinate reali al posto del placeholder x/y
+
+Data: 2026-07-16
+Stato: accettata
+Contesto: terza feature verticale di Fase 4, la prima del gruppo che il roadmap segnala come
+bisognoso di una decisione di infrastruttura prima di scrivere codice ("integrare Leaflet/Mapbox
+con pin reali"). Il prototipo di design (`civitanext-features.jsx`, componente `MapView`;
+`CN_MAP_POINTS` in `civitanext-data.jsx`) non mostra una mappa reale: e' un div placeholder con
+pin posizionati via coordinate x/y percentuali sopra un'immagine statica, non coordinate
+geografiche. Decisione presa dopo un confronto esplicito con l'utente su libreria di mappe (non
+delegata in autonomia, a differenza di scelte minori come la navigazione di spazi civici).
+Decisione, in tre parti.
+Primo, libreria: Leaflet (via `react-leaflet` 5, la prima versione con supporto dichiarato a
+React 19, già la versione installata nel progetto) con tile raster standard di OpenStreetMap
+(`tile.openstreetmap.org`), non MapLibre GL ne' Mapbox GL JS. Confrontate tutte e tre con
+l'utente: Mapbox richiede un account e un token, la stessa frizione di un servizio esterno da
+configurare che il progetto sta deliberatamente rimandando per Google in questo stesso blocco di
+lavoro (vedi nota in `roadmap.md` sul rinvio dell'account Google); MapLibre GL rende meglio ma e'
+piu' pesante del bisogno reale (pochi pin su una mappa, non un prodotto cartografico interattivo
+complesso), e il tile provider gratuito senza account (OpenFreeMap) e' un progetto volontario di
+cui non c'e' verifica di affidabilita' a lungo termine, mentre le alternative con piu' garanzie
+(MapTiler) richiedono comunque un account esterno. Leaflet e' l'unica delle tre che non richiede
+alcuna chiave API ne' alcun account per l'uso base, coerente con l'impostazione di
+"infrastruttura gratuita, niente segnali esterni evitabili" gia' seguita dal progetto (ADR-004 e
+seguenti). Il limite noto e' che il tile server pubblico di OSM sconsiglia un uso di produzione
+pesante senza attribuzione/caching; per il traffico atteso di un sito associativo e' un rischio
+accettato, e se mai superasse la soglia lecita il cambio si limita all'URL del `TileLayer`, non
+alla libreria.
+Secondo, modello dati: nuovo modello `MapPoint` (`title`, `type`, `place`, `lat`, `lng`),
+autonomo, senza relazione con `Event` o `Proposal`. Scartata l'alternativa di aggiungere
+coordinate geografiche direttamente a quei due modelli: ne' `Event` ne' `Proposal` hanno oggi una
+form di creazione amministrativa (`Event` e' popolato solo dal seed, `Proposal` nasce da un
+utente non da un admin), quindi aggiungere `lat`/`lng` la' avrebbe richiesto costruire anche
+quelle form, allargando lo scope di questa sola feature ben oltre la mappa. Un admin popola
+`MapPoint` a mano con lo stesso pattern CRUD gia' visto per sondaggi e spazi civici
+(`createMapPoint`, guardia di ruolo, form con validazione lato server delle coordinate). Le
+coordinate sono gradi decimali reali, non le percentuali x/y del prototipo: la differenza e'
+voluta, "pin reali" nel testo del roadmap di design si legge come pin geograficamente reali, non
+solo una sostituzione grafica del placeholder.
+Terzo, integrazione con Next.js App Router: Leaflet legge `window` alla costruzione della mappa e
+non puo' essere renderizzato lato server. Il componente che usa `react-leaflet`
+(`src/components/CivicMap.tsx`) e' client (`"use client"`), ma caricato tramite un secondo
+componente client (`CivicMapLoader.tsx`) che lo importa con `next/dynamic` e `ssr: false`: in App
+Router `ssr: false` su `next/dynamic` e' consentito solo dentro un Client Component, non in un
+Server Component, quindi la pagina `/mappa` (Server Component, che legge `MapPoint` dal database)
+non poteva chiamarlo direttamente. Le icone di default di Leaflet, che puntano a percorsi non
+risolti da nessun bundler moderno (bug noto della libreria, non specifico di Next.js), sono
+sovrascritte con le tre immagini originali copiate in `public/leaflet/` invece che con un CDN
+esterno a runtime, per restare coerenti con l'impostazione offline-first gia' presa per la PWA
+(ADR-012): un CDN irraggiungibile lascerebbe la mappa senza icone anche quando il resto della
+pagina funziona.
+Motivazione: le tre scelte insieme trattano la mappa come la feature piu' semplice possibile che
+soddisfi il bisogno reale (mostrare pin geografici su Civitanova Marche), evitando ogni nuovo
+account esterno evitabile e ogni allargamento di scope verso modelli che oggi non hanno ancora
+un'interfaccia di creazione.
+Conseguenze: un admin deve inserire a mano titolo, tipo, luogo e coordinate per ogni punto,
+senza collegamento automatico a un evento o una proposta reale gia' esistente nel database — se
+in futuro si vorra' sincronizzare automaticamente i pin con gli eventi (es. un pin per ogni
+evento con luogo geocodificato), servira' una feature a parte che aggiunga coordinate a `Event`
+insieme alla sua form di creazione, non ancora costruita. Il tile server pubblico OSM resta un
+punto da rivedere se il traffico reale del sito crescesse molto oltre la scala attuale.

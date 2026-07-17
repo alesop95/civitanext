@@ -289,3 +289,56 @@ model CivicSpace {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// Distingue le voci della timeline: storia della citta' oppure tappe dell'associazione
+// (nel prototipo CN_TIMELINE e' il campo kind 'citta'/'cn'). Enum e non String come
+// Event.category perche' e' un insieme chiuso a due valori che pilota il rendering
+// (le tappe dell'associazione sono evidenziate), non una categoria libera.
+enum TimelineKind {
+  CITTA
+  ASSOCIAZIONE
+}
+
+// Timeline storica (Fase 4, sezione "Citta'"). when e' testo libero di proposito: le voci
+// storiche del prototipo valgono "Da completare" o epoche ("Anni '50") che una DateTime non
+// esprime. Proprio perche' when non e' ordinabile, l'ordine cronologico e' un campo esplicito
+// (order, stesso meccanismo di Quiz.order). Il flag photo del prototipo e' omesso: le immagini
+// arriveranno con la galleria (decisione storage ADR-004/005 ancora da confrontare).
+model TimelineEntry {
+  id        String       @id @default(cuid())
+  when      String
+  title     String
+  text      String
+  kind      TimelineKind
+  order     Int          @default(0)
+  createdAt DateTime     @default(now())
+}
+
+// Rassegna stampa (Fase 4, sezione "Community"). Articoli usciti su testate locali, curati a
+// mano da un admin: stesso pattern informativo di CivicSpace, nessuna relazione. publishedAt
+// e' una data vera, non il testo libero del prototipo (CN_PRESS), perche' l'elenco si ordina
+// dal piu' recente; url opzionale perche' un articolo puo' esistere solo su carta. Il conteggio
+// commenti del prototipo e' omesso di proposito: le discussioni dei soci vivono nel forum.
+model PressArticle {
+  id          String   @id @default(cuid())
+  source      String
+  title       String
+  url         String?
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+}
+
+// Pin sulla mappa della citta' (Fase 4, sezione "Citta'"). Punto gestito a mano da un admin,
+// non agganciato a Event/Proposal: quei modelli non hanno coordinate geografiche ne' una form
+// di creazione oggi, quindi collegarli avrebbe allargato lo scope di questa sola feature.
+// lat/lng sono coordinate reali (gradi decimali), non le percentuali x/y del placeholder nel
+// prototipo di design (CN_MAP_POINTS in civitanext-data.jsx).
+model MapPoint {
+  id        String   @id @default(cuid())
+  title     String
+  type      String
+  place     String
+  lat       Float
+  lng       Float
+  createdAt DateTime @default(now())
+}

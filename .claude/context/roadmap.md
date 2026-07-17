@@ -3,7 +3,7 @@ generated-from-commit: 4da8cf9
 generated-from-branch: main
 generated-date: 2026-07-10
 covers-paths: []
-last-verified-commit: 5986a01
+last-verified-commit: 147c741
 ---
 
 # Roadmap
@@ -66,12 +66,25 @@ Rimando esplicito di oggi, non legato a Fase 4 in sé: tutto ciò che richiede l
 dell'associazione (sync Google Calendar reale, configurazione OAuth) resta in pausa; nel
 frattempo si procede con il resto dello sviluppo.
 
-Resto di Fase 4 (mappa città, galleria foto, documenti, timeline, mentorship, competenze,
-webinar, rassegna stampa, reputazione e badge, email digest) non ancora affrontato: mappa,
-galleria/documenti ed email digest richiederanno una decisione di infrastruttura da confrontare
-prima di scrivere codice (libreria di mappe, upload su storage già scelto in ADR-004/005,
-servizio email); le altre voci community (mentorship, competenze, timeline, webinar, rassegna
-stampa) sono probabilmente riuso di pattern già costruiti, come spazi civici.
+Terza feature verticale, mappa della città (ADR-013), in verifica lo stesso giorno: nuovo modello
+`MapPoint` (autonomo, non agganciato a `Event`/`Proposal`), Leaflet + `react-leaflet` con tile
+OpenStreetMap scelta dopo un confronto esplicito con l'utente contro MapLibre GL e Mapbox GL JS
+(vinta perché unica senza account esterno da configurare, stesso principio applicato al rinvio
+dell'account Google). Build pulita; verifica manuale nel browser non ancora fatta dall'utente.
+
+Quarta e quinta feature verticale, timeline della città e rassegna stampa, costruite insieme il
+2026-07-17 (in verifica browser): scelte perché uniche voci rimaste senza account Google, senza
+decisione di infrastruttura e senza design non ovvio, puro riuso del pattern spazi civici. Due
+modelli autonomi (`TimelineEntry` con enum `TimelineKind`, `PressArticle`), scelte di
+modellazione documentate nella voce didattica 11, nessuna nuova ADR. La raccolta del materiale
+storico per la timeline (biblioteca comunale, archivi) resta il compito non tecnico a tempi
+lunghi segnalato dal `ROADMAP.md` di handoff: la piattaforma ora è pronta a riceverlo.
+
+Resto di Fase 4 non ancora affrontato, in due gruppi che richiedono un confronto prima di
+scrivere codice: galleria foto, documenti, webinar ed email digest hanno bisogno di una decisione
+di infrastruttura (upload su storage già scelto in ADR-004/005, servizio email, hosting video);
+mentorship, competenze e reputazione/badge hanno bisogno di una decisione di design (matching,
+sistema punti — e reputazione va per ultima perché calcola sui dati delle altre feature).
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del
