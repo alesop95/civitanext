@@ -6,7 +6,7 @@ covers-paths:
   - wrangler.jsonc
   - open-next.config.ts
   - prisma.config.ts
-last-verified-commit: 4da8cf9
+last-verified-commit: 6495c68
 ---
 
 # Deployment
@@ -25,14 +25,23 @@ progetto, con i deployment di anteprima automatici di Cloudflare Pages per ogni 
 codice non-`main` puntati a quel branch dati invece che a produzione (ADR-007). Nessun dominio
 custom scelto in questa fase.
 
-L'anteprima locale del runtime Cloudflare reale (`wrangler dev`/`preview`) non è disponibile su
-questa macchina (Windows nativo, non WSL2): un bug di bundling di OpenNext, non legato al
-codice applicativo, restituisce 500 su ogni rotta (vedi `memory/progress.md`, voce del
-2026-07-10, e ADR-006). Lo sviluppo quotidiano usa `next dev`/`next build` (Node standard, nessun
-problema riscontrato); la verifica del comportamento specifico su Cloudflare si sposta al primo
-deploy reale o a un'esecuzione automatica su un runner Linux (il remote GitHub `alesop95/civitanext`
-è collegato e già ricevuto un push, quindi una pipeline CI è predisponibile quando serve, non
-ancora fatto in Fase 0).
+L'anteprima locale del runtime Cloudflare reale (`wrangler dev`/`preview`) restituisce 500 su
+ogni rotta su questa macchina (Windows nativo, non WSL2). L'ipotesi originale di ADR-006, un
+problema esclusivamente di Windows, è stata smentita: il job CI dedicato
+`test-cloudflare-adapter` (build `opennextjs-cloudflare`, smoke e2e contro il preview workerd su
+runner Linux) riproduce lo stesso attrito. Durante la sua messa a punto sono stati trovati e
+corretti tre problemi reali indipendenti dal sistema operativo (`postinstall: prisma generate`
+mancante, `AUTH_SECRET` mancante per NextAuth in produzione, `pg-cloudflare` non esterno nel
+bundle di `next.config.ts`). Corretti quelli, resta un blocco più a monte, isolato collegandosi
+al debugger del Worker in locale: `CompileError: WebAssembly.Module(): Wasm code generation
+disallowed by embedder`, dentro il query compiler WASM di Prisma 7.8, con riscontro diretto
+nell'issue upstream `prisma/prisma#28657` (aperta). Il job resta rosso di proposito, senza
+`continue-on-error` che lo mascheri. Decisione presa il 2026-07-20: il fix è dichiarare
+`runtime = "cloudflare"` nel blocco generator (resta su Prisma 7.8, lega il query compiler
+staticamente al deploy), ma la sua applicazione è rimandata al primo deploy reale su Cloudflare,
+perché il blocco tocca solo questo job e non lo sviluppo; il downgrade a Prisma 6.19.0 è scartato
+in quanto superato dal fix di configurazione. Lo sviluppo quotidiano usa `next dev`/`next build`
+(Node standard, nessun problema riscontrato).
 
 ## Comandi
 

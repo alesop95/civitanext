@@ -6,6 +6,60 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-20 — Competenze (bacheca di matching tra soci) e ritorno al referrer dopo il login
+
+Commit di riferimento: da committare sopra `6495c68`.
+File creati: `src/app/competenze/page.tsx` (bacheca pubblica), `src/app/competenze/actions.ts`
+(`createSkill`, guardia di sola autenticazione), `src/app/competenze/nuova/page.tsx` (form),
+`prisma/migrations/20260720000000_skill/migration.sql`. File modificati: `prisma/schema.prisma`
+(+modello `Skill`), `src/components/SiteHeader.tsx` e `src/app/altro/page.tsx` (voce "Competenze"
+sotto Altro), `src/app/accedi/page.tsx` (ritorno al referrer, vedi sotto).
+Motivo/racconto: sesta verticale di Fase 4, scelta dall'utente dopo il confronto delle tre vie di
+modellazione (testo libero, tassonomia chiusa, tag normalizzati). Decisa la prima, testo libero
+fedele al prototipo (`CN_SKILLS`), stessa classe di scelta minore di sondaggi e spazi civici:
+nessuna feature attuale fa matching automatico sul valore (la mentorship del prototipo è separata),
+il long tail delle competenze civiche resiste a un enum. Contenuto autoriale come il forum, non
+CRUD admin: guardia di sola autenticazione, la voce appartiene a un `User`. Modello `Skill`
+(`userId`, `name`, `offer`), migrazione applicata al DB di sviluppo con la procedura ADR-009
+(`migrate diff` non raggiungeva il DB spento, quindi SQL scritto a mano sul modello di una
+migrazione esistente e applicato con `migrate deploy` dopo aver avviato `npx prisma dev`).
+Bug reale trovato durante la verifica browser (non delle competenze): dopo il login si tornava
+sempre in home perché `accedi/page.tsx` cablava `redirectTo` a `"/"`. Corretto facendo onorare a
+`/accedi` un `callbackUrl` interno validato contro open redirect (deve iniziare con `/` ma non
+`//`), default `"/"` invariato per i link che non lo passano; l'invito della bacheca passa
+`callbackUrl=/competenze`. Ciclo completo verificato dall'utente nel browser (screenshot): login
+con ritorno a `/competenze`, voce "Sviluppo tecnico" creata e visibile con tag competenza,
+nome autore e offerta. `npm run build` e `npx tsc --noEmit` puliti.
+
+## 2026-07-20 — Lettura fonti "Prisma su Workers" e riallineamento schede (sync-context)
+
+Commit di riferimento: `6495c68` (HEAD; gli edit delle schede sono da committare sopra questo).
+File toccati: `.claude/context/STACK.md`, `.claude/context/design-and-security.md`,
+`.claude/context/deployment.md`, `.claude/context/dev-testing.md`,
+`.claude/context/current-work.md` (contenuto piu' frontmatter riallineato a HEAD),
+`.claude/memory/index.md` (commit di riferimento, blocco aperto aggiornato, tabella di stato).
+Motivo/racconto: ripresa sessione. Prima `sync-context`: le schede erano ferme a `4da8cf9`/`147c741`
+mentre HEAD e' `6495c68`. Corretti due contenuti fattualmente errati (design-and-security dichiarava
+l'auth non implementata e due ruoli `SOCIO`/`ADMIN`; STACK citava lo stesso enum a due valori,
+entrambi superati da ADR-010, tre livelli `SUPERADMIN`/`ADMIN`/`UTENTE`), chiuse in current-work le
+tre feature di Fase 4 gia' committate (mappa, timeline, rassegna stampa) e aggiunte le sezioni
+fondazione di test (ADR-014) e blocco Prisma/Workers. `deployment.md` aveva `covers-paths` puliti
+ma contenuto impattato dalla scoperta CI: aggiornato comunque, annotato nel report.
+Poi il capitolo "Prisma su Workers" da fonti primarie (issue upstream `prisma/prisma#28657`, schema
+reference Prisma, changelog 7.3.0, howto OpenNext). Esito: la causa non e' un bug da attendere in
+una release, e' configurazione mancante. Un maintainer Prisma (`aqrln`, MEMBER) indica che manca
+`runtime = "cloudflare"` (alias `workerd`) nel blocco generator: il path di default compila la WASM
+a runtime, vietato dall'isolate V8 di workerd (divieto strutturale, nessun compat flag lo abilita),
+mentre quel target lega il query compiler staticamente al deploy. Confermato da piu' utenti su
+Prisma 7.2.0+. Il downgrade a 6.19.0 funziona ma non e' piu' l'unica via ne' la migliore. Da
+verificare sul nostro stack OpenNext + `@prisma/adapter-pg`: possibile secondo errore "WASM file
+not found" e in certi setup il plugin `unwasm`. Decisione (applicare `runtime = "cloudflare"` con
+verifica OpenNext contro le alternative) portata all'utente, non presa in autonomia (metodo di
+`CLAUDE.local.md`). Esito del confronto: rimandare l'applicazione al primo deploy reale su
+Cloudflare (il blocco tocca solo il job CI del deploy, non lo sviluppo), job lasciato rosso e
+documentato; il downgrade a 6.19.0 scartato perché superato dal fix. Il fix (`runtime =
+"cloudflare"` nel generator, oggi assente) si applica alla vigilia del deploy.
+
 ## 2026-07-20 — Indagine sul 500 del preview Cloudflare: isolato un blocco reale (Prisma 7.8 + WASM su Workers), non ancora risolto
 
 Commit di riferimento: `73a6a66` (fix ancora da committare sopra questo, solo diagnostica CI).

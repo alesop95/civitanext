@@ -5,8 +5,8 @@ generated-date: 2026-07-10
 covers-paths:
   - src/**
   - .claude/**
-last-verified-commit: 147c741
-stato: in verifica
+last-verified-commit: 6495c68
+stato: allineata a HEAD; blocco Prisma/Workers rimandato al deploy, fix identificato
 ---
 
 # Lavoro in corso
@@ -117,7 +117,7 @@ in `out of memory` in modo intermittente su questa macchina (due o tre tentativi
 successive, non sempre alla stessa fase), risolto riprovando; non ancora una causa isolata, non
 sembra legato al codice del progetto.
 
-## Feature in corso: Fase 4 — mappa della città
+## Chiusa: Fase 4 — mappa della città
 
 Terza feature verticale di Fase 4, la prima del gruppo "richiede una decisione di infrastruttura"
 (ADR-013): libreria Leaflet + `react-leaflet` con tile OpenStreetMap, confrontata con l'utente
@@ -158,7 +158,7 @@ modulo condiviso `leafletDefaultIcon.ts`. Verificato nel browser dall'utente. De
 Domande aperte: nessuna bloccante. Nuova ADR-013 per la scelta di libreria (confronto esplicito
 con l'utente, non una continuazione di pattern minore come sondaggi/spazi civici).
 
-## Feature in corso: Fase 4 — timeline della città e rassegna stampa
+## Chiusa: Fase 4 — timeline della città e rassegna stampa
 
 Quarta e quinta feature verticale di Fase 4, costruite insieme il 2026-07-17 (ripresa dopo
 riavvio forzato del PC: server Prisma dev riavviato, build di controllo pulita). Scelte in
@@ -197,9 +197,94 @@ bug. Non esiste ancora una UI admin di modifica/cancellazione per questi contenu
 feature informative di Fase 4 sono create-only, limite di perimetro noto e condiviso): i
 contenuti di prova si correggono in SQL o si sostituiscono quando arriveranno quelli veri.
 
+## Chiusa: fondazione di test (ADR-014)
+
+Fondazione di test mirata, non retroattiva: Vitest per la logica delle server action (quattro file
+sulle aree già toccate da bug reali — toggle RSVP, vincolo di voto unico dei sondaggi, scoring del
+quiz, guardie di ruolo delle proposte), Playwright per un solo smoke end-to-end (login, RSVP, voto
+proposta, tentativo quiz), entrambi contro un Postgres reale (in locale via Docker sulla porta
+5433, in CI un service container). CI su GitHub Actions in due job, husky + lint-staged in
+pre-commit. Motivazioni in ADR-014, dettaglio tecnico in voce didattica 13
+(`refactor-13-piano-test.md`), comandi e perimetro in `dev-testing.md`. Il job CI standard (lint,
+build, unit, e2e su runtime Node) è verde. Durante la verifica del secondo job sono stati trovati e
+corretti tre bug reali di configurazione: `postinstall: prisma generate` mancante, `AUTH_SECRET`
+mancante per NextAuth in produzione, `pg-cloudflare` non esterno in `next.config.ts`.
+
+## Aperto: Prisma 7 su Cloudflare Workers (job CI `test-cloudflare-adapter`)
+
+Il secondo job CI resta rosso di proposito (nessun `continue-on-error` a mascherarlo): builda con
+`opennextjs-cloudflare` e fa girare lo smoke e2e contro il preview workerd su runner Linux.
+Corretti i tre bug sopra, resta un blocco più a monte, isolato via debugger del Worker:
+`CompileError: WebAssembly.Module(): Wasm code generation disallowed by embedder`, dentro il query
+compiler WASM di Prisma 7.8. L'ipotesi originale di ADR-006 (problema solo di Windows) è stata
+smentita: il difetto si riproduce identico su Linux in CI (correzione in coda ad ADR-006).
+
+Lettura delle fonti reali completata il 2026-07-20 (issue upstream `prisma/prisma#28657`, aperta,
+più documentazione Prisma e OpenNext). Esito: la causa non è un bug da attendere in una release, è
+una configurazione mancante. Il generator `prisma-client` usa il path di default che compila la
+WASM a runtime, vietato dall'isolate V8 di workerd; il fix indicato da un maintainer Prisma è
+dichiarare `runtime = "cloudflare"` (alias di `workerd`) nel blocco generator, che lega il query
+compiler staticamente al deploy invece di generarlo a runtime, restando su Prisma 7.8 con
+`@prisma/adapter-pg`. Nessun compatibility flag di workerd può abilitare la WASM a runtime: è un
+divieto strutturale, non aggirabile lato configurazione. Il downgrade a Prisma 6.19.0 funziona ma
+non è più l'unica via né la migliore.
+
+Da verificare sul nostro stack specifico (OpenNext + `@prisma/adapter-pg`), non ancora fatto: con
+`@opennextjs/cloudflare` alcuni commentatori riportano un secondo errore ("WASM file not found")
+legato al bundling dell'asset `.wasm`, e in certi setup serve anche il plugin `unwasm`.
+
+Decisione presa con l'utente il 2026-07-20: rimandare l'applicazione del fix al primo deploy reale
+su Cloudflare. Il blocco tocca solo il job CI del deploy (sviluppo locale, build Node e job CI
+standard verdi, nessun deploy ancora avvenuto), quindi il job resta rosso e documentato mentre si
+prosegue con le feature di Fase 4. Il fix è identificato — `runtime = "cloudflare"` nel blocco
+generator, oggi assente, con verifica dell'integrazione OpenNext e del campo `output` — e si
+applica alla vigilia del deploy. Il downgrade a Prisma 6.19.0 è scartato: superato dal fix di
+configurazione.
+
+## Chiusa: Fase 4 — competenze (bacheca di matching tra soci)
+
+Sesta feature verticale di Fase 4, sezione "Community" del prototipo (`CN_SKILLS`). A differenza
+delle altre feature informative di Fase 4, curate da un admin, questa è contenuto autoriale
+generato dagli utenti come i thread del forum: la voce appartiene a un `User` (relazione reale) e
+la guardia è di sola autenticazione, non di ruolo. Un socio loggato dichiara una competenza (testo
+libero) e cosa offre (testo libero, default "Disponibile su richiesta"), e la voce compare subito
+nella bacheca pubblica.
+
+Scelta di modellazione confrontata con l'utente (tre vie: testo libero, tassonomia chiusa, tag
+normalizzati) e decisa per il testo libero, stessa classe di scelta minore di sondaggi e spazi
+civici: nessuna feature attuale fa matching automatico sul valore (la mentorship del prototipo è
+separata, con `area` e slot propri) e il long tail delle competenze civiche resiste a un enum.
+Nessuna nuova ADR; aggancio alla tensione enum/stringa della voce didattica 11. Modello `Skill`
+(`userId`, `name`, `offer`, `createdAt`), una riga per competenza (un socio può averne più d'una).
+
+File creati: `src/app/competenze/page.tsx` (bacheca pubblica), `src/app/competenze/actions.ts`
+(`createSkill`, guardia di sola autenticazione), `src/app/competenze/nuova/page.tsx` (form). File
+modificati: `prisma/schema.prisma` (+`Skill`, migrazione `20260720000000_skill`),
+`src/components/SiteHeader.tsx` e `src/app/altro/page.tsx` (voce "Competenze" sotto Altro, nessun
+chip desktop, stesso trattamento di mappa/timeline/spazi).
+
+Durante la verifica è emersa una lacuna dell'accesso, non specifica delle competenze ma che ne
+rovinava il flusso: `src/app/accedi/page.tsx` aveva `redirectTo` cablato a `"/"`, quindi dopo il
+login si tornava sempre in home. Corretta in modo non distruttivo: `/accedi` ora onora un
+`callbackUrl` interno (validato contro open redirect, deve iniziare con `/` ma non `//`), con
+default `"/"` immutato per i link che non lo passano; l'invito della bacheca passa
+`callbackUrl=/competenze`. Il pulsante "Accedi" dell'header e quello in "Altro" restano al
+comportamento precedente (ritorno in home): estensione a tutta l'app rimandata su richiesta.
+
+Definition of done:
+- [x] Modello `Skill` scritto, validato e migrato (procedura ADR-009, `migrate deploy` applicato)
+- [x] `createSkill` con guardia di sola autenticazione, `name` obbligatorio, `offer` con default
+- [x] Bacheca pubblica `/competenze` (nome autore, competenza come tag, offerta) e form
+      `/competenze/nuova` per i loggati; vista da sloggato con invito ad accedere
+- [x] `npm run build` e `npx tsc --noEmit` puliti
+- [x] Verifica manuale nel browser (2026-07-20: login con ritorno a `/competenze`, voce "Sviluppo
+      tecnico" dell'utente Pippo creata e visibile con tag competenza e offerta)
+
 ## Riconciliazione
 
-Ultima verifica: 2026-07-17, sopra il commit `147c741` (spazi civici e helper orari, ultimo
-committato). Mappa della città (con picker e geocodifica inversa), timeline e rassegna stampa
-tutte verificate nel browser dall'utente, pronte al commit. Vedi `memory/progress.md` per il
-dettaglio completo di ogni feature e bug, e `memory/decisions.md` per le ADR.
+Ultima verifica delle schede: 2026-07-20, sopra l'HEAD `6495c68`. Mappa (con picker e geocodifica
+inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione di test
+ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo deploy con fix
+identificato. Feature competenze verificata nel browser, pronta al commit (più il fix del ritorno
+post-login). Vedi `memory/progress.md` per il dettaglio completo di ogni feature e bug, e
+`memory/decisions.md` per le ADR.

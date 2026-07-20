@@ -6,15 +6,15 @@ covers-paths:
   - src/**
   - prisma/**
   - package.json
-last-verified-commit: 4da8cf9
+last-verified-commit: 6495c68
 ---
 
 # Stack applicativo
 
 > Documento di recupero più importante: tracciato, perché un collega che clona deve vederlo.
-> Riflette lo stato del working tree di Fase 0, non ancora committato al momento della scrittura:
-> `last-verified-commit` va bump con `sync-context` subito dopo il primo commit reale di questo
-> blocco di lavoro.
+> Riflette lo stack effettivo attraverso la Fase 4 (feature verticali costruite e verificate,
+> fondazione di test ADR-014, tutto committato); `last-verified-commit` allineato all'HEAD con
+> `sync-context`.
 
 ## Stack e runtime
 
@@ -30,7 +30,14 @@ output in `src/generated/prisma`, non il vecchio `prisma-client-js`), connesso v
 `bcryptjs`. Storage file: Cloudflare R2 (non ancora integrato in Fase 0, previsto da Fase 4).
 Deploy target: Cloudflare Pages/Workers tramite l'adapter `@opennextjs/cloudflare` (non il
 deprecato `@cloudflare/next-on-pages`), con il compatibility flag `nodejs_compat` obbligatorio
-in `wrangler.jsonc`.
+in `wrangler.jsonc`. Il runtime Cloudflare reale resta non verificato con esito positivo: il job
+CI dedicato ha isolato un blocco upstream di Prisma 7 su Workers, aperto (vedi `deployment.md` e
+ADR-006).
+
+Cartografia: `leaflet` con `react-leaflet`, tile OpenStreetMap e geocodifica inversa Nominatim,
+scelti per non richiedere account esterni (ADR-013). Stack di test: Vitest per le server action e
+Playwright per un solo smoke end-to-end, entrambi contro un Postgres reale (ADR-014; comandi e
+perimetro in `dev-testing.md`).
 
 Il materiale in `design_handoff_civitanext/` (React 18 + Babel via CDN, senza bundler) resta
 riferimento di design di sola lettura: non è lo stack applicativo, è il prototipo da cui i token
@@ -68,7 +75,8 @@ Workers al primo deploy reale, vedi ADR-006.
 `src/components/ui/Starburst.tsx:Starburst` — generazione procedurale del path SVG,
 senza `useMemo` (a differenza del prototipo): essendo un Server Component, il calcolo gira una
 sola volta lato server, non ad ogni render client. `prisma/schema.prisma:User` — modello
-utente con ruolo `Role` (`SOCIO`/`ADMIN`). `prisma/schema.prisma:Vote` — vincolo di voto
-unico per utente, generico su più tipi di bersaglio (`VoteTargetType`), anticipato in Fase 0
-come pura definizione di schema. `next.config.ts` — `serverExternalPackages` per tenere
+utente con ruolo `Role` a tre livelli (`SUPERADMIN`/`ADMIN`/`UTENTE`) e stato di tesseramento
+indipendente dal ruolo (ADR-010). `prisma/schema.prisma:Vote` — vincolo di voto unico per
+utente, generico su più tipi di bersaglio (`VoteTargetType`): definito in Fase 0 e poi riusato
+per RSVP eventi, votazioni proposte e sondaggi. `next.config.ts` — `serverExternalPackages` per tenere
 Prisma fuori dal bundle Next, richiesto dall'adapter Cloudflare.

@@ -11,8 +11,7 @@ covers-paths:
   - playwright.config.ts
   - docker-compose.test.yml
   - .github/workflows/**
-last-verified-commit: 4da8cf9
-stato: da bump con sync-context al primo commit reale di questo blocco di lavoro (ADR-014)
+last-verified-commit: 6495c68
 ---
 
 # Test di sviluppo

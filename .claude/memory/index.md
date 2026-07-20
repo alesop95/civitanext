@@ -8,26 +8,33 @@
 
 ```
 Branch attivo:        main
-Commit di riferimento: d33e9bd (pushato, working tree pulito)
+Commit di riferimento: 6495c68 (HEAD; schede riallineate da sync-context, da committare)
 Data snapshot:        2026-07-20
 ```
 
-Aperto e non risolto a questo commit: il job CI `test-cloudflare-adapter` fallisce per un bug
-upstream confermato di Prisma 7 su Cloudflare Workers (query compiler WASM, vietato da workerd),
-non per una nostra configurazione. Vedi `memory/progress.md` (voci del 2026-07-20) e la
-correzione in coda ad ADR-006. Prossimo passo dichiarato: aprire il capitolo "Prisma su Workers"
-leggendo la documentazione reale (link in `_notes/RESUME_PROMPT.md`) prima di decidere.
+Aperto e non risolto a questo commit: il job CI `test-cloudflare-adapter` fallisce per il query
+compiler WASM di Prisma 7 su Cloudflare Workers (`Wasm code generation disallowed by embedder`,
+vietato dall'isolate V8 di workerd). Le fonti reali sono state lette il 2026-07-20 (issue upstream
+`prisma/prisma#28657`, aperta): la causa non è un bug da attendere in una release ma una
+configurazione mancante. Il generator `prisma-client` va dichiarato con `runtime = "cloudflare"`
+(alias di `workerd`), che lega il query compiler staticamente al deploy invece di compilarlo a
+runtime — fix indicato da un maintainer Prisma, resta su Prisma 7.8. Da verificare l'integrazione
+con OpenNext (possibile "WASM file not found", eventuale plugin `unwasm`). Deciso il 2026-07-20 di
+rimandare l'applicazione del fix al primo deploy reale su Cloudflare: il blocco tocca solo il job
+CI del deploy (dev locale, build Node e job CI standard verdi, nessun deploy ancora avvenuto), si
+prosegue con le feature. Il downgrade a Prisma 6.19.0 è scartato perché superato dal fix di
+configurazione. Vedi `deployment.md`, `current-work.md`, la coda di ADR-006 e `memory/progress.md`.
 
 ## Stato di verifica delle schede
 
 | Scheda | last-verified | Stato |
 |---|---|---|
-| STACK.md | 4da8cf9 | aggiornata |
-| design-and-security.md | 4da8cf9 | aggiornata |
-| deployment.md | 4da8cf9 | aggiornata |
-| dev-testing.md | 4da8cf9 | da bump con sync-context al commit (contenuto già riscritto per ADR-014, vedi ADR e work-log) |
-| current-work.md | 147c741 | aggiornata (mappa, timeline e rassegna stampa verificate, pronte al commit) |
-| roadmap.md | 147c741 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
+| STACK.md | 6495c68 | aggiornata (ruoli a tre livelli, cartografia e test stack, blocco Prisma/Workers) |
+| design-and-security.md | 6495c68 | aggiornata (auth e guardie di ruolo ora implementate) |
+| deployment.md | 6495c68 | aggiornata (verifica Cloudflare via CI Linux, blocco Prisma/Workers descritto) |
+| dev-testing.md | 6495c68 | aggiornata (contenuto ADR-014, frontmatter riallineato) |
+| current-work.md | 6495c68 | aggiornata (feature Fase 4 chiuse; blocco Prisma/Workers rimandato al deploy) |
+| roadmap.md | 147c741 | non applicabile (covers-paths vuoto; direzione invariata, dettaglio in `design_handoff_civitanext/ROADMAP.md`) |
 | studio-didattico-master.md | 147c741 | 13 voci |
 
 ## Punto di ripresa

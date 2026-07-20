@@ -101,8 +101,10 @@ password.
 
 Da verificare quando si arriverà a Fase 4: se due bucket R2 separati per dev/produzione bastano
 o se la crescita reale della galleria fotografica richiede rivedere la stima di capacità fatta
-in ADR-004. Da verificare prima del primo deploy reale: se il bug di bundling OpenNext su
-Windows (ADR-006) si manifesta anche sull'infrastruttura di build di Cloudflare stessa o è
-limitato all'anteprima locale — non ancora testato. Da verificare in Fase 1: se il piano gratuito
+in ADR-004. Aggiornato il 2026-07-20: il bug di bundling OpenNext (ADR-006) non era specifico di
+Windows, si riproduce identico su Linux in CI; il blocco residuo del deploy su Cloudflare è il
+query compiler WASM di Prisma 7 su Workers, con fix di configurazione identificato da fonte
+(`runtime = "cloudflare"` nel generator) e alla decisione dell'utente (vedi `current-work.md`,
+`deployment.md` e la coda di ADR-006). Da verificare in Fase 1: se il piano gratuito
 di Neon regge la stima aggiornata di 10.000 utenti massimi (rivista rispetto alle "centinaia"
 assunte in ADR-004/005), non ancora confrontata con i limiti effettivi del piano gratuito.
