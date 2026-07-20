@@ -6,6 +6,23 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-20 — Secondo run reale della CI: mancava `AUTH_SECRET` per NextAuth in produzione
+
+Commit di riferimento: `3bd3722` (fix ancora da committare sopra questo).
+File toccati: `.github/workflows/ci.yml` (aggiunta `AUTH_SECRET` all'`env` di livello workflow).
+Motivo/racconto: col fix precedente (`postinstall`) il job `test` e' passato oltre lint/tsc/build/
+Vitest, fermandosi allo step Playwright con `[auth][error] MissingSecret: Please define a
+secret`, log letto da uno screenshot dell'utente (i log dettagliati di GitHub Actions non sono
+leggibili via API pubblica senza autenticazione). NextAuth richiede `AUTH_SECRET` per firmare i
+JWT in modalita' produzione; in locale arriva da `.env` (mai versionato), che in CI non esiste.
+Riprodotto in locale spostando `.env` fuori dal progetto e rilanciando `CI=true npm run
+test:e2e` (stesso `MissingSecret` del log CI), poi confermato che impostando `AUTH_SECRET` come
+variabile d'ambiente il test passa. Valore scelto non segreto (`civitanext-ci-only-not-a-real-secret`,
+in chiaro nel workflow, non un secret di GitHub Actions): firma solo JWT su un database e un
+server entrambi effimeri, distrutti a fine job, nessun valore da proteggere. Quarto bug della
+fondazione stessa (non della logica applicativa) trovato solo perche' si e' insistito a far
+girare la CI per davvero fino in fondo, non fermandosi al primo verde parziale.
+
 ## 2026-07-20 — Primo run reale della CI: mancava `prisma generate` dopo `npm ci`
 
 Commit di riferimento: `f1abacd` (fix ancora da committare sopra questo).

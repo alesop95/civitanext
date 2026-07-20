@@ -7,6 +7,11 @@ on:
 
 env:
   DATABASE_URL: postgresql://civitanext_ci:civitanext_ci@localhost:5432/civitanext_ci
+  # Non un segreto di produzione: serve solo a firmare i JWT per la durata di un singolo run,
+  # su un database e un server entrambi effimeri e distrutti a fine job. In locale arriva da
+  # .env (mai versionato), che qui non esiste: senza questa variabile NextAuth rifiuta ogni
+  # richiesta in modalita' produzione con MissingSecret.
+  AUTH_SECRET: civitanext-ci-only-not-a-real-secret
 
 jobs:
   test:
