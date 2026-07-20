@@ -486,3 +486,72 @@ in futuro si vorra' sincronizzare automaticamente i pin con gli eventi (es. un p
 evento con luogo geocodificato), servira' una feature a parte che aggiunga coordinate a `Event`
 insieme alla sua form di creazione, non ancora costruita. Il tile server pubblico OSM resta un
 punto da rivedere se il traffico reale del sito crescesse molto oltre la scala attuale.
+
+## ADR-014 — Fondazione di test: Vitest per la logica server, Playwright per l'e2e, Postgres reale in CI, husky+lint-staged in pre-commit
+
+Data: 2026-07-20
+Stato: accettata
+Contesto: cinque fasi chiuse (Fase 0-4, nove verticali) verificate finora solo a mano nel
+browser, senza alcun framework di test automatico installato: `dev-testing.md` di Fase 0
+rimandava esplicitamente la scelta "a quando si apre Fase 1". L'utente ha chiesto di portare il
+progetto a una fase di sviluppo matura con un piano di test affidabile. Decisione presa dopo un
+confronto esplicito con l'utente su quattro assi (non delegata in autonomia, per lo stesso
+principio gia' seguito in ADR-013): ampiezza della prima suite, se verificare anche il runtime
+Cloudflare reale in CI, come procurare un Postgres per i test, se adottare gia' ora husky.
+Decisione, in sei parti.
+Primo, runner: Vitest, non Jest, per la logica lato server (server action). Non una preferenza:
+la documentazione reale spacchettata con Next 16.2.10
+(`node_modules/next/dist/docs/01-app/02-guides/testing/vitest.md`) copre solo Vitest per l'App
+Router, non Jest, e dichiara esplicitamente che i Server Component asincroni, quasi tutte le
+pagine di questo progetto, non sono renderizzabili con Vitest: per quelli rimanda all'e2e. Le
+server action non ricadono in quel limite perche' non sono componenti, sono funzioni asincrone
+qualunque, richiamabili direttamente con `await`.
+Secondo, e2e: Playwright, non Cypress. La guida ufficiale per validare gli adapter di deploy
+custom (`04-testing-adapters.md`, la stessa categoria dell'adapter Cloudflare di questo
+progetto) e' scritta interamente attorno a Playwright, non e' una preferenza stilistica.
+Terzo, perimetro della prima suite ("fondazione mirata", scelta esplicita tra tre opzioni
+presentate): non un test per ognuna delle tredici server action e delle nove verticali gia'
+chiuse, ma unit/integration test solo sulla logica gia' toccata da bug reali durante la verifica
+manuale (vincolo di voto unico su sondaggi/proposte, sblocco progressivo quiz con punteggio
+migliore, guardie di ruolo admin, toggle RSVP), piu' un solo smoke e2e che attraversa quattro
+verticali in sequenza (login, RSVP, voto proposta, tentativo quiz). Le feature future si testano
+man mano che si scrivono, non retroattivamente sul pregresso.
+Quarto, database di test: Postgres reale, non un mock del client Prisma ne' sqlite. In locale un
+container Docker dedicato (`docker-compose.test.yml`, porta 5433, mai il Neon di sviluppo); in
+CI un service container Postgres di GitHub Actions. Scartata l'alternativa di un branch Neon
+effimero per CI: piu' fedele alle quirk del provider di produzione, ma richiede un token Neon
+come secret e uno script di gestione branch, dipendenza in piu' per un progetto che usa gia'
+l'adapter Postgres standard (`@prisma/adapter-pg`), non funzionalita' Neon-specifiche.
+Quinto, verifica del runtime Cloudflare reale: job CI separato e piu' lento
+(`test-cloudflare-adapter` in `.github/workflows/ci.yml`) che builda con
+`opennextjs-cloudflare build` e fa girare lo stesso smoke e2e contro il preview reale (workerd,
+via wrangler), su runner Linux. Chiude la domanda lasciata esplicitamente aperta da ADR-006 (se
+il bug di bundling osservato su Windows fosse un limite del toolchain o un problema reale
+dell'adapter): non verificabile in locale su questa macchina per lo stesso motivo di ADR-006, la
+prima esecuzione reale di questo job in CI e' la verifica stessa.
+Sesto, pre-commit: husky + lint-staged adottati nello stesso blocco di lavoro invece che
+rimandati (`eslint --fix` sui file staged, poi `tsc --noEmit` sull'intero progetto e la suite
+Vitest, che si salta da sola senza Postgres locale attivo, senza bloccare il commit).
+Motivazione: le sei scelte insieme allineano lo stack di test ai vincoli reali di questo
+progetto (Next 16, adapter Cloudflare, Postgres via `@prisma/adapter-pg`) invece che a
+convenzioni generiche, e dimensionano lo sforzo iniziale sul rischio gia' dimostrato (i bug reali
+gia' trovati a mano) invece che sulla copertura totale. Tre problemi reali, non ipotetici, sono
+emersi scrivendo questa stessa fondazione, non nella logica applicativa gia' esistente: (a)
+NextAuth rifiuta ogni richiesta in modalita' produzione con `UntrustedHost` se `trustHost` non e'
+impostato, mai visto prima perche' lo sviluppo quotidiano gira solo su `next dev`, dove il
+controllo non scatta; risolto in `src/auth.ts` con `trustHost: true`, sicuro perche' nessun
+redirect del progetto e' derivato dall'header Host (verificato per tutti i redirect del
+codebase); (b) i quattro file di test Vitest, eseguiti in parallelo per default, corrompono i
+dati a vicenda perche' condividono un solo Postgres reale con fixture identificate da un marker
+comune, risolto forzando `fileParallelism: false`; (c) il seed dei dati e2e non era idempotente,
+lo stato di RSVP/voto restava da un'esecuzione all'altra, scoperto rilanciando lo smoke e2e due
+volte di seguito, risolto azzerando esplicitamente lo stato transazionale dell'utente e2e a ogni
+seed e richiamando il seed da un `beforeEach` cosi' anche un retry di Playwright riparte da zero.
+Conseguenze: `npm test`, `npm run test:e2e`, `.github/workflows/ci.yml` (due job),
+`docker-compose.test.yml`, il pre-commit husky sono ora parte del ciclo di sviluppo quotidiano.
+Attivando il gate di lint in CI e' emersa una lacuna di configurazione preesistente, non
+introdotta da questo lavoro: `design_handoff_civitanext/**` (prototipo di sola lettura, non
+stack applicativo) e `prisma/seed.js` (script CommonJS deliberato, vedi commento in testa al
+file) non erano esclusi dall'ambito di ESLint, ora corretto in `eslint.config.mjs`. Prossimo
+passo: nessuno bloccante; la copertura di test si estende feature per feature d'ora in avanti,
+non retroattivamente sulle nove verticali gia' chiuse.

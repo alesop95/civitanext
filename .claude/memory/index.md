@@ -8,8 +8,9 @@
 
 ```
 Branch attivo:        main
-Commit di riferimento: 147c741 (working tree con mappa, timeline e rassegna stampa non committate)
-Data snapshot:        2026-07-17
+Commit di riferimento: 147c741 (working tree con mappa, timeline, rassegna stampa e la
+                       fondazione di test, ADR-014, non committate)
+Data snapshot:        2026-07-20
 ```
 
 ## Stato di verifica delle schede
@@ -19,10 +20,10 @@ Data snapshot:        2026-07-17
 | STACK.md | 4da8cf9 | aggiornata |
 | design-and-security.md | 4da8cf9 | aggiornata |
 | deployment.md | 4da8cf9 | aggiornata |
-| dev-testing.md | 4da8cf9 | aggiornata |
+| dev-testing.md | 4da8cf9 | da bump con sync-context al commit (contenuto già riscritto per ADR-014, vedi ADR e work-log) |
 | current-work.md | 147c741 | aggiornata (mappa, timeline e rassegna stampa verificate, pronte al commit) |
 | roadmap.md | 147c741 | aggiornata (direzione e priorità; il dettaglio in fasi resta `design_handoff_civitanext/ROADMAP.md`) |
-| studio-didattico-master.md | 147c741 | 12 voci |
+| studio-didattico-master.md | 147c741 | 13 voci |
 
 ## Punto di ripresa
 
@@ -70,6 +71,18 @@ validazione url compreso), tutte e tre pronte al commit, non ancora committate a
 questo snapshot. Resto di Fase 4 non affrontato, tutto dietro un confronto da fare: decisione di
 infrastruttura (galleria foto, documenti, webinar, email digest) o di design (mentorship,
 competenze, reputazione/badge, quest'ultima per ultima perché calcola sulle altre feature).
+
+Il 2026-07-20, su richiesta dell'utente di arrivare a una fase di sviluppo matura, fondazione di
+test completa aggiunta e verificata per davvero (non solo scritta): Vitest per la logica delle
+server action (vincolo scoperto nella documentazione reale di Next 16, i Server Component
+asincroni — quasi tutte le pagine del progetto — non sono renderizzabili con Vitest), Playwright
+per l'e2e (stesso strumento con cui Next valida gli adapter di deploy custom), Postgres reale sia
+in locale (Docker) sia in CI (service container GitHub Actions), un secondo job CI che builda con
+l'adapter Cloudflare reale per chiudere la verifica lasciata aperta da ADR-006, husky+lint-staged
+in pre-commit. Tre bug reali trovati e corretti costruendo la fondazione stessa: `UntrustedHost`
+di NextAuth in modalità produzione (`trustHost: true`), corruzione dati tra file di test Vitest
+paralleli su un solo Postgres condiviso, seed e2e non idempotente tra run successivi. Dettaglio
+in ADR-014 e voce didattica 13 (`refactor-13-piano-test.md`).
 
 Dettaglio completo di ogni bug/decisione in `memory/progress.md`, ADR in `memory/decisions.md`.
 Sintesi stakeholder unificata in `_notes/stakeholder-brief.md` (documento vivo, aggiornato a ogni

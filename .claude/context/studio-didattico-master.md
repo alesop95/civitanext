@@ -367,3 +367,49 @@ un form, l'automatismo va trattato come un ospite, che aiuta finché l'umano non
 sparisce senza danni quando la rete non risponde.
 
 Dove leggere il dettaglio: `refactor-12-picker-geocodifica.md`.
+
+## 13. Testare senza poter renderizzare: una fondazione scelta dai vincoli reali del progetto, non da convenzione
+
+Contesto. Cinque fasi chiuse, nove verticali, zero framework di test installato: ogni feature
+verificata solo a mano nel browser, compresi i bug reali gia' trovati cosi' (il ritorno
+silenzioso di `createProposal`/`createThread` su un campo vuoto, il redirect mancante in
+`/accedi`). Su richiesta dell'utente di arrivare a una fase di sviluppo matura con un piano di
+test affidabile, prima di scrivere una riga di configurazione si e' cercata la documentazione
+reale spacchettata con Next 16.2.10 in `node_modules/next/dist/docs`, non affidandosi a
+convenzioni generiche su Next.js.
+
+Com'era e perche' era fragile. La verifica manuale nel browser, per quanto disciplinata (ogni
+fase di questo progetto la documenta con dettaglio), non lascia una rete di sicurezza contro la
+regressione: niente impedisce che una modifica a una feature rompa silenziosamente un'altra
+gia' verificata mesi prima, e ogni nuova fase aumenta la superficie da ricontrollare a mano.
+Inoltre la scelta ovvia, "Jest perche' e' il piu' noto", si sarebbe rivelata disallineata dalla
+piattaforma reale: la guida ufficiale di Next 16 per l'App Router copre solo Vitest, non lo
+cita nemmeno, e Jest avrebbe richiesto una configurazione aggiuntiva (`next/jest`, trasformazione
+Babel) per una piattaforma che gia' lo sconsiglia implicitamente.
+
+Il salto senior e perche' e' meglio. La fondazione scelta non e' un pacchetto di convenzioni
+generiche "come si testa un'app Next.js", ma la conseguenza diretta di due fatti concreti
+verificati nella documentazione reale del progetto. Primo: Vitest non sa renderizzare Server
+Component asincroni (dichiarazione esplicita della guida ufficiale), e quasi tutte le pagine di
+questo progetto lo sono, quindi la copertura Vitest si ferma dove il vincolo lo permette, le
+server action (funzioni asincrone, non componenti), e tutto cio' che richiede vedere una pagina
+renderizzata passa da un browser vero, Playwright. Secondo: la guida che Next stesso usa per
+validare un adapter di deploy custom, la stessa categoria dell'adapter Cloudflare di questo
+progetto, e' scritta attorno a Playwright, non a caso lo stesso strumento scelto per l'e2e:
+questo ha permesso di aggiungere un secondo job CI che builda con l'adapter OpenNext reale e
+chiude una domanda lasciata esplicitamente aperta da ADR-006 (se il bug di build osservato su
+Windows fosse del toolchain o dell'adapter), invece di continuare a rimandarla al primo deploy.
+Il perimetro della prima suite e' stato dimensionato sul rischio gia' dimostrato (la logica gia'
+toccata da bug reali) piuttosto che sulla copertura totale del pregresso, una scelta esplicita
+tra tre opzioni presentate, non decisa in autonomia. Un effetto laterale non pianificato ma
+istruttivo: costruire ed eseguire davvero questa fondazione, non solo scriverla, ha fatto
+emergere tre problemi reali che la sola verifica manuale su `next dev` non avrebbe mai potuto
+mostrare, perche' vivono esattamente nella differenza tra ambiente di sviluppo e produzione
+(NextAuth che rifiuta le richieste in modalita' produzione senza `trustHost`), tra test isolati e
+test paralleli su un database condiviso (corruzione reciproca dei dati senza
+`fileParallelism: false`), e tra un'esecuzione singola e una ripetuta (un seed non idempotente
+che sembra un test rotto quando e' solo lo stato residuo del run precedente). Nessuno dei tre era
+un bug della logica applicativa: erano tutti bug della fondazione di test stessa, trovati solo
+perche' si e' insistito a farla girare per davvero invece di fermarsi alla scrittura del codice.
+
+Dove leggere il dettaglio: `refactor-13-piano-test.md`.

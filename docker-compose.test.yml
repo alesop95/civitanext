@@ -1,0 +1,17 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: civitanext_test
+      POSTGRES_PASSWORD: civitanext_test
+      POSTGRES_DB: civitanext_test
+    ports:
+      # Porta non standard per non entrare mai in conflitto con un Postgres locale gia' in uso
+      # e per rendere impossibile scambiarlo per errore con quello di sviluppo (Neon, in .env).
+      - "5433:5432"
+    volumes:
+      - civitanext-postgres-test:/var/lib/postgresql/data
+
+volumes:
+  civitanext-postgres-test:

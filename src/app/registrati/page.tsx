@@ -85,7 +85,7 @@ export default function RegistratiPage() {
       </form>
 
       <p className="font-ui text-sm text-ink-soft">
-        Hai gia' un account?{" "}
+        Hai già un account?{" "}
         <a href="/accedi" className="underline">
           Accedi
         </a>

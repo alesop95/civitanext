@@ -6,6 +6,35 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-20 — Fondazione di test: Vitest, Playwright, Postgres reale in CI, husky (ADR-014, voce didattica 13)
+
+Commit di riferimento: working tree in corso, sopra `147c741`.
+File toccati: `vitest.config.mts`, `vitest.setup.ts`, `playwright.config.ts`,
+`docker-compose.test.yml`, `.env.test.example`, `scripts/test-env.mjs`, `scripts/seed-e2e.ts`,
+`src/test/fixtures.ts`, quattro `*/actions.test.ts` (eventi, sondaggi, quiz, admin/proposte),
+`e2e/credentials.ts`, `e2e/smoke.spec.ts`, `.github/workflows/ci.yml`, `.husky/pre-commit`,
+`.lintstagedrc.json`, `eslint.config.mjs` (esclusi `design_handoff_civitanext/**` e
+`prisma/seed.js` dal lint), `src/auth.ts` (`trustHost: true`), `src/app/registrati/page.tsx`
+(refuso tipografico corretto, `&apos;`/accento). Package aggiunti: vitest, @testing-library/react,
+jsdom, vite-tsconfig-paths, @vitejs/plugin-react, @playwright/test, tsx, husky, lint-staged.
+Motivo/racconto: richiesta dell'utente di portare il progetto a una fase di sviluppo matura con
+un piano di test affidabile. Confronto dettagliato con l'utente su quattro assi (ampiezza suite,
+e2e su adapter Cloudflare in CI, provisioning Postgres, adozione husky) prima di scrivere codice,
+motivato dai fatti concreti trovati in `node_modules/next/dist/docs` (Vitest non renderizza
+Server Component asincroni, la guida di validazione adapter usa Playwright). Verificato
+davvero, non solo scritto: 14 test Vitest passano contro un Postgres reale (Docker locale, porta
+5433), lo smoke e2e passa sia contro `next dev` sia contro `next start` con build di produzione,
+`npm run lint`/`npx tsc --noEmit`/`npm run build` puliti, il pre-commit husky eseguito a mano via
+`bash .husky/pre-commit`. Tre bug reali trovati e corretti costruendo la fondazione stessa (non
+nella logica applicativa): `UntrustedHost` di NextAuth in modalita' produzione (mai visto prima,
+`next dev` non fa quel controllo), corruzione dati tra file di test Vitest paralleli su un solo
+Postgres condiviso (`fileParallelism: false`), seed e2e non idempotente tra run successivi
+(azzeramento esplicito dello stato transazionale, richiamato da un `beforeEach`). Il job CI che
+verifica l'adapter Cloudflare reale (`test-cloudflare-adapter`, chiude la domanda aperta da
+ADR-006) non e' verificabile su questa macchina Windows per lo stesso motivo di ADR-006: resta da
+confermare alla prima esecuzione reale in CI. Dettaglio completo in ADR-014
+(`memory/decisions.md`) e nel deep-dive `refactor-13-piano-test.md`.
+
 ## 2026-07-17 — Verifica browser completata per timeline e rassegna stampa: le tre feature del blocco sono pronte al commit
 
 Commit di riferimento: working tree in corso, sopra `147c741`.

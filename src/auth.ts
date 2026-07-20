@@ -17,6 +17,15 @@ export const { handlers, auth, signIn, signOut } = NextAuth(() => {
   const prisma = getPrisma();
 
   return {
+    // Necessario ogni volta che l'host non e' noto in anticipo a chi ospita l'app (Cloudflare
+    // Workers, come qualunque runtime serverless/edge dietro proxy): senza, Auth.js rifiuta ogni
+    // richiesta in modalita' produzione con UntrustedHost, confrontando l'header Host contro una
+    // lista che qui non avrebbe senso mantenere. Il controllo non scatta in `next dev` (percio'
+    // il problema e' emerso solo eseguendo lo smoke e2e contro `next start`, non prima). Sicuro
+    // perche' il progetto non fa mai redirect assoluti costruiti dall'header Host lato server: i
+    // redirect nelle action sono tutti path relativi statici (vedi "@/auth"),  non derivati da
+    // input dell'utente o dalla richiesta.
+    trustHost: true,
     // Con un adapter configurato, Auth.js userebbe sessioni su database di default: va forzato
     // esplicitamente "jwt", anche perche' il provider Credentials lo richiede comunque (non
     // persiste utenti autenticati via credenziali come sessione database).

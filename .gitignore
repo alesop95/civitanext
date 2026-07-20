@@ -22,8 +22,15 @@ next-env.d.ts
 # === Variabili d'ambiente: mai valori reali, gli .example restano tracciati ===
 .env*
 !.env.example
+!.env.test.example
 .dev.vars*
 !.dev.vars.example
+
+# === Test: Postgres via Docker per Vitest/Playwright, report ed evidenze di corsa ===
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
 
 # === Prisma client generato (rigenerabile con `prisma generate`) ===
 /src/generated/prisma
