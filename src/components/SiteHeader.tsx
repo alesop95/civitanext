@@ -33,6 +33,7 @@ const ALTRO_HREFS = [
   "/admin/rassegna-stampa/nuovo",
   "/competenze",
   "/competenze/nuova",
+  "/classifica",
 ];
 
 export async function SiteHeader({ activeHref }: { activeHref: string }) {

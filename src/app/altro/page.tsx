@@ -39,6 +39,10 @@ export default async function AltroPage() {
         Competenze
       </Link>
 
+      <Link href="/classifica" className={btnClassName({ kind: "secondary" })}>
+        Classifica
+      </Link>
+
       {session?.user ? (
         <Link href="/profilo" className={btnClassName({ kind: "secondary" })}>
           Profilo

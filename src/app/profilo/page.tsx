@@ -4,6 +4,7 @@ import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Tag } from "@/components/ui/Tag";
 import { Waves } from "@/components/ui/Waves";
+import { getUserReputation } from "@/lib/reputation";
 
 const ROLE_LABELS: Record<string, string> = {
   SUPERADMIN: "Responsabile generale",
@@ -24,6 +25,13 @@ export default async function ProfiloPage() {
   const prisma = getPrisma();
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) redirect("/accedi");
+
+  const reputation = await getUserReputation(user.id, new Date());
+  const { level, points } = reputation;
+  const pointsToNext = level.next ? level.next.at - points : 0;
+  const levelProgressPct = level.next
+    ? Math.min(100, Math.round(((points - level.min) / (level.next.at - level.min)) * 100))
+    : 100;
 
   return (
     <main className="flex flex-1 flex-col gap-12 px-6 py-16 sm:px-16">
@@ -69,6 +77,52 @@ export default async function ProfiloPage() {
             </p>
           </div>
         )}
+      </section>
+
+      <section className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard">
+          <div className="flex items-baseline justify-between gap-4">
+            <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+              Reputazione
+            </p>
+            <Tag color="var(--ink)">{level.name}</Tag>
+          </div>
+          <p className="font-display text-4xl font-black">{points} punti</p>
+          {level.next ? (
+            <div className="flex flex-col gap-2">
+              <div className="h-3 w-full overflow-hidden rounded-full border-2 border-ink bg-paper">
+                <div className="h-full bg-accent" style={{ width: `${levelProgressPct}%` }} />
+              </div>
+              <p className="font-ui text-xs text-ink-soft">
+                Ti mancano {pointsToNext} punti per il livello {level.next.name}
+              </p>
+            </div>
+          ) : (
+            <p className="font-ui text-xs text-ink-soft">Livello massimo raggiunto.</p>
+          )}
+          <p className="font-ui text-sm text-ink-soft">
+            Si guadagnano punti partecipando a eventi, completando quiz, proponendo e votando.
+          </p>
+        </div>
+
+        <div className="flex flex-col gap-3">
+          <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">Badge</p>
+          <div className="flex flex-wrap gap-3">
+            {reputation.badges.map((badge) => (
+              <span
+                key={badge.label}
+                className={
+                  badge.earned
+                    ? "rounded-cn border-2 border-ink bg-paper-card px-3 py-2 font-ui text-sm font-bold shadow-hard"
+                    : "rounded-cn border-2 border-dashed border-ink/40 px-3 py-2 font-ui text-sm text-ink-soft/60"
+                }
+              >
+                {badge.earned ? "★ " : "☆ "}
+                {badge.label}
+              </span>
+            ))}
+          </div>
+        </div>
       </section>
     </main>
   );
