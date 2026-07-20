@@ -6,6 +6,37 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-20 — Il job sull'adapter Cloudflare reale chiude (con un fix) la domanda aperta da ADR-006
+
+Commit di riferimento: `8eb3145` (fix ancora da committare sopra questo).
+File toccati: `next.config.ts` (`pg-cloudflare` aggiunto a `serverExternalPackages`),
+`eslint.config.mjs` (esclusi `.open-next/**` e `.wrangler/**` dal lint, emerso testando il fix).
+Motivo/racconto: col fix precedente (`AUTH_SECRET`) il job `test` e' passato, e per la prima
+volta e' partito davvero `test-cloudflare-adapter`. E' fallito, ma non per il motivo che ADR-006
+lasciava in sospeso: non un problema del toolchain OpenNext specifico di Windows, ma un bug di
+bundling reale, riproducibile anche su Linux in build pulita. `npx opennextjs-cloudflare build`
+falliva con `Could not resolve "pg-cloudflare"` (dipendenza opzionale di `pg`, usata sotto
+`@prisma/adapter-pg`). Causa isolata leggendo il sorgente reale dell'adapter
+(`node_modules/@opennextjs/cloudflare/dist/cli/build/bundle-server.js`): il file-tracing di
+Next (`nft`, usato da `next build`) risolve gli export condizionali di `pg-cloudflare` senza la
+condizione `"workerd"`, quindi copia solo lo stub vuoto (`dist/empty.js`) nel bundle standalone;
+il passo di bundling di OpenNext, subito dopo, risolve lo stesso pacchetto CON la condizione
+`"workerd"` (corretta per il runtime di destinazione) e cerca `dist/index.js`, che pero' non e'
+mai stato copiato nel primo passo. Due passi diversi, due condizioni diverse, sullo stesso
+pacchetto a doppio export condizionale. Fix: `pg-cloudflare` aggiunto a `serverExternalPackages`
+in `next.config.ts`, accanto a `@prisma/client` gia' presente per lo stesso motivo di fondo (un
+pacchetto che deve restare `require()` nativo a runtime, non bundlato/tracciato file per file).
+Verificato in locale (unico ambiente disponibile, ma questa volta la verifica regge: a differenza
+di ADR-006 il problema e' nel build, non nel preview `wrangler dev`, e il build su Windows
+funziona da sempre): `npx opennextjs-cloudflare build` completa, `dist/index.js` di
+`pg-cloudflare` risulta presente nel bundle copiato. Emerso durante la verifica un buco separato
+di configurazione: `.open-next/**`, appena generato per la prima volta in locale, non era escluso
+da ESLint (9724 problemi spuri, tutti su codice di bundle/vendor), corretto insieme.
+Resta da confermare il verde della CI su questo fix specifico (prossimo push), ma la domanda
+architetturale aperta da ADR-006 (Windows-vs-adapter) e' gia' risolta nella sostanza: il problema
+non era mai stato di piattaforma, era una condizione di risoluzione dei moduli non allineata tra
+due passi del pipeline di build dell'adapter.
+
 ## 2026-07-20 — Secondo run reale della CI: mancava `AUTH_SECRET` per NextAuth in produzione
 
 Commit di riferimento: `3bd3722` (fix ancora da committare sopra questo).

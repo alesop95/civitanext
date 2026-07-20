@@ -19,6 +19,11 @@ const eslintConfig = defineConfig([
     // Script CommonJS piano, eseguito con `node` diretto senza transpiler (vedi il commento in
     // testa al file): require() qui e' la sintassi corretta, non un errore.
     "prisma/seed.js",
+    // Output generato dall'adapter Cloudflare (`npx opennextjs-cloudflare build`), gia'
+    // gitignored: codice di bundle/vendor, non sorgente del progetto. Emerso lintando in
+    // locale dopo aver verificato il fix di `pg-cloudflare` (ADR-014 seguito).
+    ".open-next/**",
+    ".wrangler/**",
   ]),
 ]);
 
