@@ -11,6 +11,7 @@
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "postinstall": "prisma generate",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:db:up": "docker compose -f docker-compose.test.yml up -d --wait",

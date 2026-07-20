@@ -6,6 +6,24 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-20 — Primo run reale della CI: mancava `prisma generate` dopo `npm ci`
+
+Commit di riferimento: `f1abacd` (fix ancora da committare sopra questo).
+File toccati: `package.json` (aggiunto `"postinstall": "prisma generate"`).
+Motivo/racconto: prima esecuzione reale di `.github/workflows/ci.yml` dopo il push di ADR-014,
+fallita su `npx tsc --noEmit` con decine di `Cannot find module '@/generated/prisma/client'`.
+Causa: `src/generated/prisma/` e' gitignored (rigenerabile, per scelta corretta), ma non
+esisteva nessun hook che lo rigenerasse dopo l'installazione delle dipendenze; in locale il
+problema non si vedeva mai perche' quella cartella era gia' presente su disco da una
+generazione precedente, mai piu' cancellata. Su un checkout pulito come quello della CI (o come
+quello di un nuovo collega che clona il repository) la cartella semplicemente non esiste.
+Riprodotto in locale spostando `src/generated` fuori dal progetto e rilanciando `tsc --noEmit`
+(stessi errori), poi confermato che `npm install` con il nuovo `postinstall` la rigenera da
+sola e il typecheck torna pulito. Stesso genere di scoperta delle tre gia' registrate in
+ADR-014: un problema della fondazione/toolchain, non della logica applicativa, trovato solo
+perche' si e' insistito a far girare la CI per davvero invece di considerarla pronta dopo la
+sola scrittura del file YAML.
+
 ## 2026-07-20 — Fondazione di test: Vitest, Playwright, Postgres reale in CI, husky (ADR-014, voce didattica 13)
 
 Commit di riferimento: working tree in corso, sopra `147c741`.
