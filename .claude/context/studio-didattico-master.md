@@ -413,3 +413,33 @@ un bug della logica applicativa: erano tutti bug della fondazione di test stessa
 perche' si e' insistito a farla girare per davvero invece di fermarsi alla scrittura del codice.
 
 Dove leggere il dettaglio: `refactor-13-piano-test.md`.
+
+## 14. Un numero che si calcola non si disallinea: la reputazione come funzione dei dati, non come contatore
+
+Com'era la tentazione fragile. La reputazione di un socio, punti piu' livello piu' badge, sembra
+il caso tipico di un contatore da mantenere: una colonna `points` su `User`, incrementata a ogni
+iscrizione a un evento, a ogni quiz completato, a ogni proposta o voto. E' l'implementazione che
+viene in mente per prima ed e' anche quella che si rompe per prima. Ogni azione che da' punti deve
+ricordarsi di aggiornare il contatore, e basta una che se ne dimentica, o un record cancellato a
+monte senza decremento, perche' il numero mostrato smetta di corrispondere alla realta'. Peggio,
+le nove verticali gia' chiuse hanno prodotto attivita' reale, iscrizioni, tentativi, proposte e
+voti, senza alcun contatore: adottarne uno ora significherebbe scrivere anche un backfill che
+ricostruisce lo storico, cioe' esattamente il calcolo che si voleva evitare di rifare a ogni
+caricamento, eseguito una volta e poi congelato in un numero destinato a divergere di nuovo.
+
+Il salto senior e perche' e' meglio. La reputazione non e' un dato da conservare, e' una domanda
+da porre ai dati che gia' esistono. Punti, livelli e badge sono una funzione pura di cio' che c'e'
+gia' in database: quante iscrizioni, quanti tentativi di quiz, quante proposte, quanti voti, da
+quanto tempo si e' tesserati. Calcolarla in lettura a ogni caricamento significa che il numero
+mostrato e', per costruzione, sempre la verita' corrente: non esiste uno stato parallelo che possa
+disallinearsi, non c'e' un backfill da scrivere, non c'e' un aggancio da ricordare su ogni azione
+futura. E' la stessa mossa gia' fatta due volte nel progetto senza chiamarla per nome: lo sblocco
+progressivo del quiz e' calcolato in query dall'esistenza del tentativo precedente (ADR-011), e le
+percentuali dei sondaggi si contano al momento invece di mantenere un totale. Il prezzo teorico e'
+ricalcolare a ogni caricamento; alla scala reale, soci nell'ordine delle decine e quattro conteggi
+aggregati, e' trascurabile, e in cambio la logica di punteggio diventa una funzione pura testabile
+senza database, coperta da otto casi che girano anche in pre-commit, dove il Postgres di test non
+c'e'. La stessa scelta porta con se' la propria estensibilita': aggiungere un nuovo modo di
+guadagnare punti e' una riga nel catalogo, non una migrazione ne' un campo nuovo da mantenere.
+
+Dove leggere il dettaglio: `refactor-14-reputazione-calcolata.md`.

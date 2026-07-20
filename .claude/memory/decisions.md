@@ -566,3 +566,48 @@ stack applicativo) e `prisma/seed.js` (script CommonJS deliberato, vedi commento
 file) non erano esclusi dall'ambito di ESLint, ora corretto in `eslint.config.mjs`. Prossimo
 passo: nessuno bloccante; la copertura di test si estende feature per feature d'ora in avanti,
 non retroattivamente sulle nove verticali gia' chiuse.
+
+## ADR-015 — Reputazione e badge calcolati in lettura dai dati esistenti, senza tabella ne' contatore memorizzato
+
+Data: 2026-07-20
+Stato: accettata
+Contesto: ultima verticale del gruppo "design" di Fase 4. Il `roadmap.md` teneva la reputazione
+per ultima perche' calcola sui dati delle altre feature, ora tutte presenti (RSVP eventi,
+tentativi quiz, proposte, voti). Feature sviluppata in autonomia su delega esplicita dell'utente
+("una feature importante da sviluppare usando i token in autonomia"), a differenza di ADR-013/014
+confrontate prima di scrivere: il confronto delle alternative e' comunque documentato qui, e i
+pesi restano rivedibili. Riferimento di design: `CN_REPUTATION`, `CN_BADGES`, `CN_LEADERBOARD` del
+prototipo.
+Decisione, in quattro parti.
+Primo, calcolo in lettura, non memorizzato: punti, livelli e badge sono funzione pura dei dati
+gia' in database (`Rsvp`, `QuizAttempt`, `Proposal`, `Vote`, `User.memberSince`), ricalcolati a
+ogni caricamento in `src/lib/reputation.ts`. Scartata l'alternativa di una colonna `points` su
+`User` aggiornata a ogni azione (o una tabella `Badge` con righe assegnate): introdurrebbe drift,
+cioe' un contatore che si disallinea se un'azione dimentica di aggiornarlo o se un dato a monte
+viene cancellato, richiederebbe un backfill dei dati gia' prodotti dalle nove verticali chiuse, e
+un aggancio su ogni azione che scrive; a fronte di nessun beneficio alla scala reale (soci
+nell'ordine delle decine). E' la stessa filosofia "calcola in query" gia' usata per lo sblocco
+progressivo del quiz (ADR-011) e per le percentuali dei sondaggi.
+Secondo, catalogo dei punti ancorato al prototipo: i quattro assi dichiarati da `CN_REPUTATION.how`
+(partecipare a eventi, completare quiz, proporre, votare) valgono RSVP 20, quiz 30, proposta 40,
+voto 10; livelli Nuovo 0 / Attivo 200 / Pilastro 500 come nel prototipo, calibrati perche' un socio
+moderatamente attivo raggiunga "Attivo".
+Terzo, badge come catalogo in codice con criterio calcolato, non tabella: i sei badge di
+`CN_BADGES` mappano su soglie e traguardi calcolabili (RSVP >= 1, RSVP >= 5, proposta >= 1,
+quiz >= 1, un tentativo a punteggio pieno, dodici mesi di tesseramento). Una tabella `Badge`
+servirebbe solo per badge assegnati a mano da un admin, funzione rimandata perche' oggi assente.
+Quarto, classifica come aggregato in lettura: quattro `groupBy` piu' combinazione in memoria e
+ordinamento per punti, non una vista materializzata.
+Motivazione: determinismo e ispezionabilita' (nessuno stato da tenere sincronizzato, il numero
+mostrato e' sempre la verita' corrente dei dati), coerenza col resto del codebase, e costo di
+ricalcolo trascurabile alla scala reale. La logica pura e' coperta da unit test
+(`src/lib/reputation.test.ts`, otto casi su punteggio, soglie dei livelli e criteri dei badge)
+che girano anche senza Postgres, quindi in pre-commit e CI, a differenza dei test delle server
+action.
+Conseguenze: nessuna migrazione di schema, a differenza di quasi tutte le verticali precedenti;
+reputazione mostrata su `/profilo` (punti, livello, avanzamento al successivo, badge), classifica
+pubblica su `/classifica`. Estendibile senza rotture: aggiungere un asse di punteggio e' una riga
+nel catalogo, e la mentorship futura potra' entrare nel calcolo quando esistera'. Punto aperto:
+i pesi dei punti e i criteri dei badge, scelti in autonomia su delega, restano rivedibili con
+l'utente senza impatto sui dati (essendo calcolati, un cambio di peso si riflette al load
+successivo, senza migrazioni).

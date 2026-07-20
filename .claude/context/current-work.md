@@ -280,11 +280,39 @@ Definition of done:
 - [x] Verifica manuale nel browser (2026-07-20: login con ritorno a `/competenze`, voce "Sviluppo
       tecnico" dell'utente Pippo creata e visibile con tag competenza e offerta)
 
+## Chiusa: Fase 4 — reputazione e badge (capstone gamification)
+
+Settima verticale di Fase 4, sezione "Community" del prototipo (`CN_REPUTATION`, `CN_BADGES`,
+`CN_LEADERBOARD`), sviluppata in autonomia su delega esplicita dell'utente. Scelta di design non
+banale documentata in ADR-015 e nella voce didattica 14: reputazione, livelli e badge calcolati in
+lettura come funzione pura dei dati gia' in database (RSVP, tentativi quiz, proposte, voti, data di
+tesseramento), senza colonna `points` memorizzata ne' tabella `Badge` (scartato il contatore per
+il rischio di drift e il backfill del pregresso; stessa filosofia "calcola in query" di ADR-011).
+Punteggio ancorato ai quattro assi del prototipo (RSVP 20, quiz 30, proposta 40, voto 10), livelli
+Nuovo 0 / Attivo 200 / Pilastro 500, sei badge da soglie calcolate, classifica come aggregato di
+quattro `groupBy`.
+
+File creati: `src/lib/reputation.ts` (catalogo punti/livelli/badge, funzioni pure piu'
+`getUserReputation` e `getLeaderboard`), `src/lib/reputation.test.ts` (otto casi, logica pura,
+girano senza Postgres), `src/app/classifica/page.tsx` (classifica pubblica). File modificati:
+`src/app/profilo/page.tsx` (card reputazione con avanzamento al livello successivo e griglia
+badge), `src/components/SiteHeader.tsx` e `src/app/altro/page.tsx` (voce "Classifica" sotto Altro).
+Nessuna migrazione di schema.
+
+Definition of done:
+- [x] Logica calcolata in `src/lib/reputation.ts`, coperta da unit test (8 casi, verdi)
+- [x] Reputazione su `/profilo` (punti, livello, barra al livello successivo, badge)
+- [x] Classifica pubblica su `/classifica`, riga dell'utente corrente evidenziata
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` (22 casi) puliti
+- [x] Verifica manuale nel browser (2026-07-20: utente Pippo a 100 punti — 1 RSVP, 1 proposta, 1
+      quiz, 1 voto — livello Nuovo, badge corretti, primo in classifica sopra "Admin di prova")
+
 ## Riconciliazione
 
 Ultima verifica delle schede: 2026-07-20, sopra l'HEAD `6495c68`. Mappa (con picker e geocodifica
 inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione di test
 ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo deploy con fix
-identificato. Feature competenze verificata nel browser, pronta al commit (più il fix del ritorno
-post-login). Vedi `memory/progress.md` per il dettaglio completo di ogni feature e bug, e
-`memory/decisions.md` per le ADR.
+identificato. Feature competenze verificata nel browser e committata (`60d7f16`), insieme al fix
+del ritorno post-login. Reputazione e badge (ADR-015) verificati nel browser, pronti al commit.
+Vedi `memory/progress.md` per il dettaglio completo di ogni feature e bug, e `memory/decisions.md`
+per le ADR.

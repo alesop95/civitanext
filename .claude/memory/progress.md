@@ -6,6 +6,37 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-20 — Reputazione e badge calcolati in lettura (capstone gamification, ADR-015)
+
+Commit di riferimento: da committare sopra `60d7f16`.
+File creati: `src/lib/reputation.ts`, `src/lib/reputation.test.ts`, `src/app/classifica/page.tsx`,
+`.claude/context/refactor-14-reputazione-calcolata.md`. File modificati: `src/app/profilo/page.tsx`,
+`src/components/SiteHeader.tsx`, `src/app/altro/page.tsx`, `.claude/memory/decisions.md` (ADR-015),
+`.claude/context/studio-didattico-master.md` (voce 14), `.claude/context/current-work.md`,
+`.claude/memory/index.md`.
+Motivo/racconto: settima verticale di Fase 4, il capstone della gamification, sviluppata in
+autonomia su delega esplicita dell'utente ("una feature importante da sviluppare usando i token in
+autonomia"). Il roadmap la teneva per ultima perche' calcola sui dati delle altre feature, ora
+tutte presenti. Scelta di design centrale (ADR-015, voce didattica 14): reputazione, livelli e
+badge calcolati in lettura come funzione pura dei dati gia' esistenti (RSVP, tentativi quiz,
+proposte, voti, `memberSince`), niente colonna `points` memorizzata ne' tabella `Badge`. Scartato
+il contatore memorizzato per il rischio di drift e perche' avrebbe imposto un backfill del
+pregresso delle nove verticali gia' chiuse; stessa filosofia "calcola in query" gia' usata per lo
+sblocco quiz (ADR-011) e le percentuali dei sondaggi. Conseguenza pratica: nessuna migrazione di
+schema, a differenza di quasi tutte le verticali precedenti. Catalogo punti ancorato al prototipo
+(RSVP 20, quiz 30, proposta 40, voto 10; livelli Nuovo 0 / Attivo 200 / Pilastro 500; sei badge da
+soglie), classifica come quattro `groupBy` combinati in memoria (dettaglio non ovvio: la proposta
+si aggrega su `authorId`, non `userId`). Reputazione su `/profilo` (punti, livello, barra di
+avanzamento, badge), classifica pubblica su `/classifica` con la riga dell'utente evidenziata.
+La logica pura e' coperta da `src/lib/reputation.test.ts` (8 casi sui confini: combinazione dei
+quattro assi, soglia di livello a 199/200, "5 eventi" che non scatta a 4, "Un anno con noi" a
+11 contro 12 mesi), che gira anche senza Postgres, a differenza dei test delle server action.
+Verifiche: `npx tsc --noEmit`, `npm run lint`, `npm test` (22 casi, 14 preesistenti + 8 nuovi) e
+`npm run build` tutti puliti; `/classifica` risponde 200 e `/profilo` reindirizza a `/accedi` da
+sloggato sul dev server. Verifica browser interattiva ancora da fare (utente). I pesi dei punti e i
+criteri badge, scelti in autonomia su delega, restano rivedibili senza migrazione (essendo
+calcolati, un cambio si riflette al load successivo).
+
 ## 2026-07-20 — Competenze (bacheca di matching tra soci) e ritorno al referrer dopo il login
 
 Commit di riferimento: da committare sopra `6495c68`.

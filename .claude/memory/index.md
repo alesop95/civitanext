@@ -35,7 +35,7 @@ configurazione. Vedi `deployment.md`, `current-work.md`, la coda di ADR-006 e `m
 | dev-testing.md | 6495c68 | aggiornata (contenuto ADR-014, frontmatter riallineato) |
 | current-work.md | 6495c68 | aggiornata (feature Fase 4 chiuse; blocco Prisma/Workers rimandato al deploy) |
 | roadmap.md | 147c741 | non applicabile (covers-paths vuoto; direzione invariata, dettaglio in `design_handoff_civitanext/ROADMAP.md`) |
-| studio-didattico-master.md | 147c741 | 13 voci |
+| studio-didattico-master.md | 147c741 | 14 voci |
 
 ## Punto di ripresa
 
