@@ -8,10 +8,15 @@
 
 ```
 Branch attivo:        main
-Commit di riferimento: 147c741 (working tree con mappa, timeline, rassegna stampa e la
-                       fondazione di test, ADR-014, non committate)
+Commit di riferimento: d33e9bd (pushato, working tree pulito)
 Data snapshot:        2026-07-20
 ```
+
+Aperto e non risolto a questo commit: il job CI `test-cloudflare-adapter` fallisce per un bug
+upstream confermato di Prisma 7 su Cloudflare Workers (query compiler WASM, vietato da workerd),
+non per una nostra configurazione. Vedi `memory/progress.md` (voci del 2026-07-20) e la
+correzione in coda ad ADR-006. Prossimo passo dichiarato: aprire il capitolo "Prisma su Workers"
+leggendo la documentazione reale (link in `_notes/RESUME_PROMPT.md`) prima di decidere.
 
 ## Stato di verifica delle schede
 
