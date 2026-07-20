@@ -31,6 +31,8 @@ const ALTRO_HREFS = [
   "/admin/timeline/nuovo",
   "/rassegna-stampa",
   "/admin/rassegna-stampa/nuovo",
+  "/competenze",
+  "/competenze/nuova",
 ];
 
 export async function SiteHeader({ activeHref }: { activeHref: string }) {

@@ -35,6 +35,10 @@ export default async function AltroPage() {
         Rassegna stampa
       </Link>
 
+      <Link href="/competenze" className={btnClassName({ kind: "secondary" })}>
+        Competenze
+      </Link>
+
       {session?.user ? (
         <Link href="/profilo" className={btnClassName({ kind: "secondary" })}>
           Profilo

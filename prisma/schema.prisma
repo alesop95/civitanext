@@ -59,6 +59,7 @@ model User {
   rsvps         Rsvp[]
   quizAttempts  QuizAttempt[]
   notifications Notification[]
+  skills        Skill[]
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -340,5 +341,23 @@ model MapPoint {
   place     String
   lat       Float
   lng       Float
+  createdAt DateTime @default(now())
+}
+
+// Competenze (Fase 4, sezione "Community"): bacheca di matching tra soci. A differenza delle
+// altre feature informative di Fase 4 (CivicSpace, MapPoint, TimelineEntry, PressArticle), curate
+// da un admin, questa e' contenuto autoriale generato dagli utenti come i Thread del forum: la
+// voce appartiene a un User (relazione reale) e la guardia e' di sola autenticazione, non di
+// ruolo. name e offer sono testo libero, non una tassonomia chiusa ne' tag normalizzati: stessa
+// scelta di CivicSpace.hours e opposta all'enum TimelineKind (la tensione della voce didattica
+// 11), qui giustificata dal long tail delle competenze civiche e dal fatto che nessuna feature
+// attuale fa matching automatico sul valore (la mentorship del prototipo e' una feature separata,
+// con area e slot propri). Un socio puo' avere piu' righe (piu' competenze offerte).
+model Skill {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  offer     String
   createdAt DateTime @default(now())
 }
