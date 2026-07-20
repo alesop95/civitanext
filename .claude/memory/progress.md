@@ -6,6 +6,47 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-20 — Indagine sul 500 del preview Cloudflare: isolato un blocco reale (Prisma 7.8 + WASM su Workers), non ancora risolto
+
+Commit di riferimento: `73a6a66` (fix ancora da committare sopra questo, solo diagnostica CI).
+File toccati: `.github/workflows/ci.yml` (il controllo di readiness ora cattura e stampa il corpo
+della risposta invece di scartarlo con `curl -sf`, cosi' un fallimento futuro mostra subito
+l'errore vero senza dover richiedere un altro giro di screenshot).
+Motivo/racconto: col fix precedente (`pg-cloudflare` esterno) il build dell'adapter completa, ma
+il preview risponde 500 su ogni rotta, in CI e riprodotto anche in locale su questa macchina (la
+prima volta che il preview arriva a girare per davvero su Windows, mai accaduto prima di oggi).
+`curl -sf` nella CI scartava il corpo della risposta mostrando solo "500", senza dire perche';
+Wrangler non stampa l'eccezione ne' a log-level info ne' debug. Isolato l'errore reale collegandosi
+direttamente, via script Node e il pacchetto `ws` gia' presente in `node_modules` (nessun
+browser, nessuna estensione, nessun account coinvolto), alla porta di ispezione CDP che Wrangler
+espone in locale (`ws://127.0.0.1:9229/ws`), abilitando `Runtime`/`Log` e osservando gli eventi
+mentre si ripete la richiesta.
+Con il build Turbopack (default di Next 16): `ChunkLoadError: Failed to load chunk
+server/chunks/ssr/[root-of-the-server]__1j410u-._.js` — lo stesso genere di errore gia' visto in
+ADR-006, che quindi va corretto: non era mai stato un problema specifico di Windows, e' successo
+identico anche qui.
+Con il build a Webpack (`next build --webpack`, test isolato con `--skipNextBuild` poi con
+l'intera pipeline, package.json ripristinato subito dopo, mai committato cosi'): il ChunkLoadError
+sparisce, ma emerge un errore diverso e piu' a monte: `CompileError: WebAssembly.Module(): Wasm
+code generation disallowed by embedder`, dentro `getQueryCompilerWasmModule` di Prisma
+(`clientVersion: 7.8.0`). Il generator `prisma-client` di Prisma 7.8 (scaffoldato di default,
+non una scelta indipendente, vedi `STACK.md`) compila il proprio "query compiler" WASM a runtime;
+workerd vieta per sicurezza la compilazione dinamica di WebAssembly a richiesta, a prescindere
+dal bundler usato per costruire l'app.
+Stato: NON risolto. Non un fix da tentare per ipotesi successive: richiede di leggere la
+documentazione reale di Prisma sul supporto a Cloudflare Workers/edge (probabile necessita' di
+importare il modulo WASM in modo statico invece che compilarlo a runtime, o di un generator/una
+configurazione diversa) prima di intervenire, con lo stesso approccio "documentazione reale prima
+del codice" gia' seguito per la scelta del test stack (ADR-014). Segnalato esplicitamente
+all'utente come prossimo argomento a se stante, distinto dalla fondazione di test (quella e'
+completa e verificata). Il job CI `test-cloudflare-adapter` restera' rosso finche' non si risolve:
+lasciato cosi' deliberatamente (nessun `continue-on-error` per mascherarlo), coerente con
+l'onesta' di contenuto richiesta dal progetto.
+Pulizia eseguita: processi `workerd` orfani da run di preview precedenti terminati (killavano un
+file lock che impediva un secondo build), `.dev.vars` locale mai toccato nel contenuto reale (solo
+spostato e ripristinato, mai letto: bloccato dalle regole di sicurezza del progetto anche per
+l'agente), `package.json` riportato al build Turbopack di default.
+
 ## 2026-07-20 — Il job sull'adapter Cloudflare reale chiude (con un fix) la domanda aperta da ADR-006
 
 Commit di riferimento: `8eb3145` (fix ancora da committare sopra questo).

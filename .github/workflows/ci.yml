@@ -109,14 +109,31 @@ jobs:
       - name: Installa il browser Playwright
         run: npx playwright install --with-deps chromium
 
+      - name: Scrive .dev.vars per l'emulazione locale di Wrangler
+        # Dentro il Worker, process.env e' popolato dai binding "env" di Wrangler
+        # (populateProcessEnv in @opennextjs/cloudflare), non dall'ambiente della shell: senza
+        # .dev.vars, DATABASE_URL/AUTH_SECRET restano undefined nel Worker anche se gia' presenti
+        # come env del job, e ogni rotta che tocca auth o Prisma risponde 500.
+        run: |
+          echo "DATABASE_URL=${DATABASE_URL}" >> .dev.vars
+          echo "AUTH_SECRET=${AUTH_SECRET}" >> .dev.vars
+
       - name: Avvia il preview Cloudflare (workerd) in background
         run: |
           npx opennextjs-cloudflare preview -- --port 8787 &
+          status=000
           for i in $(seq 1 30); do
-            curl -sf http://localhost:8787 > /dev/null && exit 0
+            status=$(curl -s -o /tmp/cf-preview-response.html -w "%{http_code}" http://localhost:8787 || echo "000")
+            if [ "$status" = "200" ]; then exit 0; fi
             sleep 2
           done
-          echo "Il preview Cloudflare non ha risposto entro il timeout" >&2
+          # A differenza di curl -sf (che scarta il corpo su errore, mostrando solo "500" senza
+          # dire perche'), qui si stampa la risposta vera: se il worker fallisce con un'eccezione
+          # non gestita, wrangler in locale la incorpora nella pagina di errore HTML, non solo nei
+          # log di processo.
+          echo "Il preview Cloudflare non ha risposto con 200 entro il timeout (ultimo status: $status)" >&2
+          echo "--- Corpo dell'ultima risposta ---" >&2
+          cat /tmp/cf-preview-response.html >&2 || true
           exit 1
 
       - name: Smoke e2e contro il runtime Cloudflare reale

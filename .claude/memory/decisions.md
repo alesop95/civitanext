@@ -154,6 +154,17 @@ come primo controllo da eseguire al momento del deploy/CI, non rimossa; va tenut
 esplicito in `current-work.md` (Step 6) che segnala questa verifica come ancora aperta, cosi'
 da non presentarla per errore come gia' fatta.
 
+Correzione del 2026-07-20 (vedi `memory/progress.md` alla stessa data): l'ipotesi "problema di
+bundling della toolchain OpenNext su Windows, non un limite intrinseco dello stack" era solo
+parzialmente corretta e va rettificata onestamente, non lasciata cosi'. Il job CI su runner Linux
+costruito per verificarla (ADR-014) ha riprodotto lo stesso `ChunkLoadError` anche li', quindi non
+era mai stato specifico di Windows. Una parte del problema era pero' un bug di bundling reale e
+risolvibile, non del toolchain in generale ma di una singola dipendenza (`pg-cloudflare`, ora
+esterna in `next.config.ts`); risolto quello, e' emerso un blocco piu' profondo e ancora aperto,
+la compilazione dinamica di WebAssembly del query compiler di Prisma 7.8, vietata dal runtime
+Workers per sicurezza. La domanda originale di ADR-006 resta quindi non completamente chiusa: si
+sa molto di piu' del prima, ma la produzione su Cloudflare Workers non gira ancora.
+
 ## ADR-007 — Separazione ambienti test/produzione: branching nativo, non infrastruttura duplicata
 
 Data: 2026-07-10
