@@ -47,6 +47,10 @@ export default async function AltroPage() {
         Mentorship
       </Link>
 
+      <Link href="/galleria" className={btnClassName({ kind: "secondary" })}>
+        Galleria foto
+      </Link>
+
       {session?.user ? (
         <Link href="/profilo" className={btnClassName({ kind: "secondary" })}>
           Profilo
@@ -81,6 +85,9 @@ export default async function AltroPage() {
           </Link>
           <Link href="/admin/mentorship/nuovo" className={btnClassName({ kind: "secondary" })}>
             Nuovo mentor (admin)
+          </Link>
+          <Link href="/admin/galleria/nuovo" className={btnClassName({ kind: "secondary" })}>
+            Nuovo album galleria (admin)
           </Link>
         </>
       )}

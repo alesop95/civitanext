@@ -611,3 +611,59 @@ nel catalogo, e la mentorship futura potra' entrare nel calcolo quando esistera'
 i pesi dei punti e i criteri dei badge, scelti in autonomia su delega, restano rivedibili con
 l'utente senza impatto sui dati (essendo calcolati, un cambio di peso si riflette al load
 successivo, senza migrazioni).
+
+## ADR-016 — Galleria foto: upload proxato dal server, modello relazionale PhotoAlbum/Photo
+
+Data: 2026-07-21
+Stato: accettata
+Contesto: prima voce del gruppo "infrastruttura" di Fase 4 (galleria foto, documenti, webinar,
+email digest), e prima feature del progetto che introduce upload di file binari. R2 era fino a
+questo punto solo una decisione su carta (ADR-004/005): nessun bucket, nessuna credenziale,
+nessun SDK S3 installato, nessun pattern di upload nel codice reale. Due assi restavano aperti e
+sono stati confrontati esplicitamente con l'utente prima di scrivere codice, con due piani
+paralleli messi a confronto: il meccanismo con cui i byte arrivano dal browser a R2, e il modello
+dati/governance della galleria.
+Decisione, in due parti.
+Primo, meccanismo di upload: **proxato dal server** (una Server Action riceve `multipart/form-data`,
+legge l'intero file, lo valida, poi lo scrive su R2 con l'SDK S3-compatibile `@aws-sdk/client-s3`),
+non una URL presigned che il browser userebbe per scrivere direttamente su R2. Scartata la
+presigned perche' la validazione vera (magic bytes sui byte reali) potrebbe avvenire solo dopo
+che l'oggetto e' gia' nel bucket, richiederebbe configurare CORS su un bucket altrimenti privo di
+accesso diretto dal browser, ed e' l'unico dei due approcci che introdurrebbe la prima Route
+Handler o comunque un flusso client a piu' round-trip nel progetto, che oggi passa sempre da una
+sola Server Action per ogni scrittura. Nessun binding nativo Workers (`r2_buckets` in
+`wrangler.jsonc`): funzionerebbe solo dentro un Worker deployato, non sotto `next dev` Node
+standard usato quotidianamente (ADR-005/006), creando una divergenza dev/prod evitata di
+proposito. Limite accettato: il body di una Server Action ha un tetto di default 1 MB,
+alzato globalmente a 25 MB (`next.config.ts`, `experimental.serverActions.bodySizeLimit`); il
+tempo CPU sotto Cloudflare Workers piano gratuito resta da verificare al primo deploy reale
+(nessun deploy ancora avvenuto, stesso tipo di incertezza gia' vissuta con ADR-006), non un fatto
+assunto oggi.
+Secondo, modello dati: **`PhotoAlbum` + `Photo` relazionale**, non un campo `album` testuale su
+`Photo`. L'album e' un contenitore che l'admin apre (nome + `Event` collegato opzionale, stesso
+principio di non forzare una FK gia' preso per `MapPoint`), le foto le aggiunge chiunque sia
+autenticato (self-service), stesso schema gia' visto per `Mentor`/`MentorRequest`: il punto di
+ingresso pubblico ad alto rischio (apertura di un nuovo contenitore, crescita libera della quota
+storage) resta gated, il contributo a basso rischio (una foto in un album esistente) resta
+libero. Scartato il campo testuale libero (che sarebbe stato coerente col criterio minimalista
+gia' usato per `Skill.offer`/`CivicSpace.hours`) perche' qui, a differenza di quei casi, la
+feature aggrega davvero (conteggio foto per album, copertina) e un campo libero frammenterebbe
+gli album per semplici errori di digitazione, senza modo di correggerli.
+Contenuto rilevato, non dichiarato: `r2Key`, `contentType` e `size` salvati su `Photo` sono
+sempre quelli calcolati dal server sui byte reali (`src/lib/photo-validation.ts`, confronto dei
+magic bytes JPEG/PNG/WEBP), mai l'estensione del nome file o il `File.type` dichiarati dal
+browser, entrambi falsificabili rinominando un file qualsiasi.
+Motivazione: coerenza con l'architettura esistente del progetto (una sola Server Action per
+scrittura, nessuna Route Handler, nessuna configurazione CORS aggiuntiva) pesa di piu', per
+un'associazione di soci con volumi modesti, dei vantaggi di banda e upload paralleli della
+presigned; il modello relazionale evita una classe di bug di frammentazione dati che il progetto
+non ha mai accettato altrove quando l'aggregazione conta.
+Conseguenze: chiude anche la domanda aperta lasciata da ADR-007 sui bucket dev/produzione
+separati: due bucket reali, `civitanext-media-dev` e `civitanext-media-prod`, selezionati dal
+valore di `R2_BUCKET_NAME` per ambiente (stesso principio del branch Neon `development`/
+`production`), non due nomi di variabile diversi nel codice. Variabili nuove documentate in
+`deployment.md`: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`,
+`R2_PUBLIC_BASE_URL`. Nessuna eliminazione self-service delle proprie foto in questo primo
+taglio (nessun precedente nel codice prima di questa feature): la sola valvola di moderazione e'
+`deleteAlbum`/`deletePhoto` lato admin, scope cut esplicito, non un'omissione silenziosa. Voce
+didattica associata: `refactor-15-galleria-upload.md`.

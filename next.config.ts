@@ -10,6 +10,15 @@ const nextConfig: NextConfig = {
   // lui, come pg stesso (gia' nella lista di default di Next), cosi' l'intero pacchetto viene
   // copiato invece che tracciato file per file sotto condizioni diverse.
   serverExternalPackages: ["@prisma/client", ".prisma/client", "pg-cloudflare"],
+  experimental: {
+    // Default 1MB e' troppo poco per l'upload proxato della galleria foto (ADR-016): il body
+    // della Server Action porta i byte dell'immagine, non solo campi di testo. Impostazione
+    // globale per tutta l'app, non solo per l'upload foto; da ricalibrare quando si conoscono
+    // volumi reali.
+    serverActions: {
+      bodySizeLimit: "25mb",
+    },
+  },
 };
 
 export default nextConfig;

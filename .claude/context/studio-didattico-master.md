@@ -443,3 +443,41 @@ c'e'. La stessa scelta porta con se' la propria estensibilita': aggiungere un nu
 guadagnare punti e' una riga nel catalogo, non una migrazione ne' un campo nuovo da mantenere.
 
 Dove leggere il dettaglio: `refactor-14-reputazione-calcolata.md`.
+
+## 15. Il file che il server non vede per intero non si puo' validare davvero: perche' la galleria foto passa dal server, non dal browser dritto su R2
+
+Com'era la tentazione fragile. Per il primo upload di file del progetto, l'opzione che si
+presenta come piu' moderna e piu' economica in banda e' una URL presigned: il server firma un
+permesso di scrittura verso R2, il browser carica il file direttamente sul bucket senza che i
+byte passino mai dal server Next.js, e solo dopo il fatto una seconda chiamata conferma
+l'avvenuto upload. E' un pattern reale e diffuso, non un'invenzione sbagliata in se': ma applicato
+a questo progetto introduce una fragilita' specifica. La validazione vera, quella che guarda i
+byte reali di un file per distinguere una foto autentica da un eseguibile rinominato con
+estensione `.jpg`, puo' avvenire solo *dopo* che l'oggetto e' gia' scritto nel bucket, perche' e'
+l'unico momento in cui qualcosa che non sia il browser stesso vede il file per intero. Nel
+frattempo il bucket deve accettare scritture dirette da un'origine browser (configurazione CORS
+altrimenti non necessaria), e il client deve orchestrare due chiamate in sequenza con uno stato
+intermedio scomodo: upload riuscito ma conferma mai arrivata lascia un oggetto orfano nel bucket,
+proprio la stessa quota gratuita di 10 GB che il progetto vuole preservare.
+
+Il salto senior e perche' e' meglio. La domanda giusta non e' "qual e' il pattern piu' efficiente
+in astratto" ma "qual e' l'unico punto in cui questo server puo' vedere l'intero file prima che
+esista da qualche parte al di fuori del suo controllo". La risposta e' una sola: se il file passa
+dal server, il server lo vede tutto, sempre, prima di scriverlo su R2. Per questo la galleria
+proxa l'upload attraverso una Server Action che legge l'intero corpo del file e ne confronta i
+primi byte contro le firme note di JPEG, PNG e WEBP (`src/lib/photo-validation.ts`) prima di
+chiamare R2: nessun oggetto non valido raggiunge mai il bucket, non c'e' un momento "scritto ma
+non ancora verificato" da gestire, non serve aprire il bucket a scritture dirette dal browser.
+E' anche la mossa che costa meno attrito architetturale: il progetto non ha mai una Route Handler
+dedicata, ogni scrittura passa da una Server Action con un form che funziona anche senza
+JavaScript, e il flusso proxato e' l'unico dei due che non rompe quella coerenza. Il prezzo
+accettato e' reale, non negato: il body di una Server Action ha un tetto (alzato da 1 MB a 25 MB,
+un'impostazione globale, non solo per le foto) e il tempo CPU sotto Cloudflare Workers per
+leggere e riscrivere un file resta da verificare quando avverra' il primo deploy vero, non prima
+(lo stesso tipo di incertezza gia' accettato con ADR-006 per l'intero runtime Workers). Un secondo
+salto, minore ma della stessa famiglia, riguarda il modello dati: l'album e' un'entita' propria
+(`PhotoAlbum`) invece di un campo testo libero su `Photo`, perche' qui, a differenza di
+`Skill.offer` o `CivicSpace.hours`, la feature aggrega davvero (quante foto in questo album) e un
+campo libero avrebbe frammentato lo stesso album in due per un semplice errore di digitazione.
+
+Dove leggere il dettaglio: `refactor-15-galleria-upload.md`.

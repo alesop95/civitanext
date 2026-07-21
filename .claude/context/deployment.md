@@ -88,6 +88,12 @@ richiede e lancia un errore se assente; un valore distinto per ambiente test/pro
 `AUTH_GOOGLE_ID` e `AUTH_GOOGLE_SECRET` (nomi inferiti automaticamente da NextAuth v5 per il
 provider Google, formato `AUTH_{PROVIDER}_{ID|SECRET}`, nessuna configurazione esplicita nel
 codice). `.dev.vars` (creato dall'adapter Cloudflare per le variabili lette in emulazione locale
-Workers): `NEXTJS_ENV`. Variabili ancora da introdurre quando si apriranno le fasi corrispondenti:
-credenziali R2 (Fase 4). Nessun valore reale va mai scritto in una scheda tracciata o in un
-commit: solo i nomi delle variabili e dove sono gestite.
+Workers): `NEXTJS_ENV`. Da Fase 4, galleria foto (ADR-016): `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+`R2_SECRET_ACCESS_KEY` (credenziali del token API R2, permesso limitato al bucket, mai
+admin-wide), `R2_BUCKET_NAME` (un solo nome per ambiente attivo: `civitanext-media-dev` in
+sviluppo/test, `civitanext-media-prod` in produzione, selezionati dal valore di questa stessa
+variabile per ambiente, non da due nomi di variabile diversi nel codice — chiude la domanda
+aperta di ADR-007 sui due bucket dev/produzione), `R2_PUBLIC_BASE_URL` (dominio pubblico di
+lettura del bucket, usato solo per comporre l'URL delle immagini, mai per firmare richieste).
+Nessun valore reale va mai scritto in una scheda tracciata o in un commit: solo i nomi delle
+variabili e dove sono gestite.

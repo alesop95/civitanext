@@ -61,6 +61,8 @@ model User {
   notifications  Notification[]
   skills         Skill[]
   mentorRequests MentorRequest[]
+  photoAlbumsCreated PhotoAlbum[] @relation("PhotoAlbumCreatedBy")
+  photos             Photo[]     @relation("PhotoUploader")
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -107,7 +109,8 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  rsvps Rsvp[]
+  rsvps       Rsvp[]
+  photoAlbums PhotoAlbum[]
 }
 
 // Un utente non puo' iscriversi due volte allo stesso evento: vincolo di unicita' a livello di
@@ -395,4 +398,40 @@ model MentorRequest {
   createdAt DateTime @default(now())
 
   @@unique([mentorId, userId])
+}
+
+// Galleria foto (Fase 4, sezione "Citta'"): prima feature del progetto con upload di file
+// binari. Album e' un contenitore curato: lo apre un admin (nome + evento passato opzionale,
+// come Mentor/CivicSpace), le foto le aggiungono i soci self-service (come MentorRequest/Skill).
+// eventId e' opzionale perche' non ogni album corrisponde a un Event esistente in modello (es.
+// un raduno informale) — stessa scelta di non forzare una FK gia' presa per MapPoint verso
+// Event/Proposal. L'upload e' proxato dal server Next.js (non URL presigned dirette a R2): il
+// server legge l'intero file e ne verifica i byte reali prima di scriverlo su R2, cosi' nessun
+// oggetto non valido raggiunge mai il bucket (ADR-016).
+model PhotoAlbum {
+  id          String   @id @default(cuid())
+  title       String
+  eventId     String?
+  event       Event?   @relation(fields: [eventId], references: [id])
+  createdById String
+  createdBy   User     @relation("PhotoAlbumCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  photos Photo[]
+}
+
+// Una foto = un oggetto R2 + metadati rilevati dal server sui byte reali del file (r2Key,
+// contentType, size), mai quelli dichiarati dal client: contentType e' il risultato di
+// detectImageType (magic bytes), non l'estensione o il File.type del browser (falsificabili).
+model Photo {
+  id          String     @id @default(cuid())
+  albumId     String
+  album       PhotoAlbum @relation(fields: [albumId], references: [id])
+  uploaderId  String
+  uploader    User       @relation("PhotoUploader", fields: [uploaderId], references: [id])
+  r2Key       String     @unique
+  contentType String
+  size        Int
+  createdAt   DateTime   @default(now())
 }

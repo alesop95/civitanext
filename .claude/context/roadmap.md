@@ -82,11 +82,15 @@ modellazione documentate nella voce didattica 11, nessuna nuova ADR. La raccolta
 storico per la timeline (biblioteca comunale, archivi) resta il compito non tecnico a tempi
 lunghi segnalato dal `ROADMAP.md` di handoff: la piattaforma ora è pronta a riceverlo.
 
-Resto di Fase 4 non ancora affrontato, in due gruppi che richiedono un confronto prima di
-scrivere codice: galleria foto, documenti, webinar ed email digest hanno bisogno di una decisione
-di infrastruttura (upload su storage già scelto in ADR-004/005, servizio email, hosting video);
-mentorship, competenze e reputazione/badge hanno bisogno di una decisione di design (matching,
-sistema punti — e reputazione va per ultima perché calcola sui dati delle altre feature).
+Mentorship, competenze e reputazione/badge (gruppo "design") sono chiuse. Del gruppo
+"infrastruttura", galleria foto è completa nel codice e nei test automatici (2026-07-21,
+ADR-016): meccanismo di upload (proxato dal server, non URL presigned) e modello dati
+(`PhotoAlbum`/`Photo` relazionale, contenitore admin-gated + foto self-service) confrontati
+esplicitamente con l'utente prima di scrivere codice. Verifica manuale nel browser in attesa
+della creazione del bucket R2 sulla dashboard Cloudflare (passo dell'utente). Restano non
+affrontati documenti, webinar ed email digest, che richiedono ciascuno una propria decisione di
+infrastruttura non ancora confrontata (upload documenti può riusare il pattern R2 appena costruito
+per la galleria; servizio email e hosting video restano scelte aperte).
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del
@@ -99,9 +103,11 @@ password.
 
 ## Idee e ipotesi da verificare
 
-Da verificare quando si arriverà a Fase 4: se due bucket R2 separati per dev/produzione bastano
-o se la crescita reale della galleria fotografica richiede rivedere la stima di capacità fatta
-in ADR-004. Aggiornato il 2026-07-20: il bug di bundling OpenNext (ADR-006) non era specifico di
+Aggiornato il 2026-07-21 (ADR-016): due bucket R2 separati per dev/produzione decisi
+(`civitanext-media-dev`/`civitanext-media-prod`), bucket ancora da creare davvero sulla dashboard
+Cloudflare. Resta da verificare quando ci sarà traffico reale: se la crescita della galleria
+fotografica richiede rivedere la stima di capacità fatta in ADR-004 (10 GB gratuiti). Aggiornato
+il 2026-07-20: il bug di bundling OpenNext (ADR-006) non era specifico di
 Windows, si riproduce identico su Linux in CI; il blocco residuo del deploy su Cloudflare è il
 query compiler WASM di Prisma 7 su Workers, con fix di configurazione identificato da fonte
 (`runtime = "cloudflare"` nel generator) e alla decisione dell'utente (vedi `current-work.md`,

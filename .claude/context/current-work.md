@@ -342,12 +342,48 @@ Definition of done:
       scheda corretta su `/mentorship`, da Pippo "Chiedi un incontro" diventa "Richiesta inviata"
       e persiste)
 
+## Chiusa nel codice, verifica manuale in attesa: Fase 4 — galleria foto (ADR-016)
+
+Prima voce del gruppo "infrastruttura" di Fase 4 (galleria foto, documenti, webinar, email
+digest) e prima feature del progetto con upload di file binari. Meccanismo e modello confrontati
+esplicitamente con l'utente prima di scrivere codice (due piani paralleli, sintesi in ADR-016):
+upload proxato dal server (non URL presigned), modello relazionale `PhotoAlbum` (aperto da un
+admin, con `Event` collegato opzionale) + `Photo` (aggiunta self-service da chiunque sia
+autenticato). Validazione lato server sui byte reali (magic bytes JPEG/PNG/WEBP,
+`src/lib/photo-validation.ts`), mai sull'estensione o sul `File.type` dichiarati dal client.
+Nessuna eliminazione self-service delle proprie foto in questo primo taglio, scope cut esplicito:
+la sola valvola di moderazione e' `deleteAlbum`/`deletePhoto` lato admin.
+
+File creati: `src/lib/r2.ts`, `src/lib/photo-validation.ts`, `src/app/galleria/{actions.ts,
+page.tsx,[id]/page.tsx}`, `src/app/admin/galleria/{actions.ts,nuovo/page.tsx}`, migrazione
+`prisma/migrations/20260721132916_add_photo_gallery/`, test `src/lib/photo-validation.test.ts`,
+`src/lib/r2.test.ts`, `src/app/galleria/actions.test.ts`, `src/app/admin/galleria/actions.test.ts`.
+File modificati: `prisma/schema.prisma` (+`PhotoAlbum`, +`Photo`), `next.config.ts`
+(`serverActions.bodySizeLimit: "25mb"`), `src/components/SiteHeader.tsx` e `src/app/altro/page.tsx`
+(voce "Galleria foto"), `src/test/fixtures.ts` (`createTestPhotoAlbum`, `createTestPhoto`,
+pulizia in `resetTestData`), `package.json` (+`@aws-sdk/client-s3`).
+
+Definition of done:
+- [x] Modelli `PhotoAlbum`/`Photo` scritti, validati e migrati (procedura ADR-009) su DB di
+      sviluppo e di test (`test:db:migrate`)
+- [x] `createAlbum` con guardia di ruolo; `uploadPhoto` con guardia di sola autenticazione e
+      validazione dei byte reali prima di scrivere su R2 (verificata da unit/integration test)
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` (43 casi, 10 file) puliti
+- [ ] Verifica manuale nel browser: **in attesa**, richiede prima la creazione del bucket R2 e
+      delle credenziali sulla dashboard Cloudflare (passo dell'utente, fuori dal codice) e la
+      scrittura delle variabili reali in `.env` locale (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
+      `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`, vedi `deployment.md`); non
+      dichiarata come fatta finche' non osservata davvero nel browser (regola di onesta' del
+      contenuto)
+
 ## Riconciliazione
 
-Ultima verifica delle schede: 2026-07-20, sopra l'HEAD `6495c68`. Mappa (con picker e geocodifica
-inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione di test
-ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo deploy con fix
-identificato. Feature competenze verificata nel browser e committata (`60d7f16`), insieme al fix
-del ritorno post-login. Reputazione e badge (ADR-015) verificati nel browser e committati
-(`c2b5a87`). Mentorship verificata nel browser, pronta al commit. Vedi `memory/progress.md` per il dettaglio
-completo di ogni feature e bug, e `memory/decisions.md` per le ADR.
+Ultima verifica delle schede: 2026-07-21, sopra l'HEAD dopo `4608ecf`. Mappa (con picker e
+geocodifica inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione
+di test ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo
+deploy con fix identificato. Feature competenze verificata nel browser e committata (`60d7f16`),
+insieme al fix del ritorno post-login. Reputazione e badge (ADR-015) verificati nel browser e
+committati (`c2b5a87`). Mentorship verificata nel browser e committata (`17cd21e`/`4608ecf`).
+Galleria foto (ADR-016) completa nel codice e nei test automatici, non ancora committata né
+verificata nel browser (bucket R2 da creare). Vedi `memory/progress.md` per il dettaglio completo
+di ogni feature e bug, e `memory/decisions.md` per le ADR.

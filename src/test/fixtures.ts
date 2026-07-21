@@ -76,6 +76,26 @@ export async function createTestPoll(optionTexts: string[]) {
   });
 }
 
+export async function createTestPhotoAlbum(createdById: string, eventId?: string) {
+  const prisma = getPrisma();
+  return prisma.photoAlbum.create({
+    data: { title: MARKER, createdById, eventId: eventId ?? null },
+  });
+}
+
+export async function createTestPhoto(albumId: string, uploaderId: string) {
+  const prisma = getPrisma();
+  return prisma.photo.create({
+    data: {
+      albumId,
+      uploaderId,
+      r2Key: `${MARKER}-${randomUUID()}.jpg`,
+      contentType: "image/jpeg",
+      size: 1024,
+    },
+  });
+}
+
 export async function createTestQuiz(questions: Array<{ correctIndex: number; optionTexts: string[] }>) {
   const prisma = getPrisma();
   return prisma.quiz.create({
@@ -115,6 +135,12 @@ export async function resetTestData() {
     where: { OR: [{ user: { name: MARKER } }, { mentor: { name: MARKER } }] },
   });
   await prisma.mentor.deleteMany({ where: { name: MARKER } });
+  await prisma.photo.deleteMany({
+    where: { OR: [{ album: { title: MARKER } }, { uploader: { name: MARKER } }] },
+  });
+  await prisma.photoAlbum.deleteMany({
+    where: { OR: [{ title: MARKER }, { createdBy: { name: MARKER } }] },
+  });
   await prisma.proposal.deleteMany({ where: { title: MARKER } });
   await prisma.event.deleteMany({ where: { title: MARKER } });
   await prisma.user.deleteMany({ where: { name: MARKER } });
