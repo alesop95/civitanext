@@ -26,7 +26,9 @@ export function getR2Client() {
   return client;
 }
 
-export async function putPhotoObject(key: string, bytes: Uint8Array, contentType: string) {
+// Generico: nessuna nozione di "foto" o "documento" qui, solo scrittura di byte a una chiave.
+// Riusato da galleria (src/app/galleria/actions.ts) e documenti (src/app/admin/documenti/actions.ts).
+export async function putObject(key: string, bytes: Uint8Array, contentType: string) {
   await getR2Client().send(
     new PutObjectCommand({
       Bucket: process.env.R2_BUCKET_NAME,

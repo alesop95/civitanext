@@ -96,6 +96,23 @@ export async function createTestPhoto(albumId: string, uploaderId: string) {
   });
 }
 
+export async function createTestDocument(
+  createdById: string,
+  category: "STATUTO" | "VERBALI" | "BILANCI" = "STATUTO",
+) {
+  const prisma = getPrisma();
+  return prisma.document.create({
+    data: {
+      title: MARKER,
+      category,
+      createdById,
+      r2Key: `${MARKER}-${randomUUID()}.pdf`,
+      contentType: "application/pdf",
+      size: 1024,
+    },
+  });
+}
+
 export async function createTestQuiz(questions: Array<{ correctIndex: number; optionTexts: string[] }>) {
   const prisma = getPrisma();
   return prisma.quiz.create({
@@ -139,6 +156,9 @@ export async function resetTestData() {
     where: { OR: [{ album: { title: MARKER } }, { uploader: { name: MARKER } }] },
   });
   await prisma.photoAlbum.deleteMany({
+    where: { OR: [{ title: MARKER }, { createdBy: { name: MARKER } }] },
+  });
+  await prisma.document.deleteMany({
     where: { OR: [{ title: MARKER }, { createdBy: { name: MARKER } }] },
   });
   await prisma.proposal.deleteMany({ where: { title: MARKER } });

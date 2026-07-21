@@ -86,11 +86,15 @@ Mentorship, competenze e reputazione/badge (gruppo "design") sono chiuse. Del gr
 "infrastruttura", galleria foto è completa nel codice e nei test automatici (2026-07-21,
 ADR-016): meccanismo di upload (proxato dal server, non URL presigned) e modello dati
 (`PhotoAlbum`/`Photo` relazionale, contenitore admin-gated + foto self-service) confrontati
-esplicitamente con l'utente prima di scrivere codice. Verifica manuale nel browser in attesa
+esplicitamente con l'utente prima di scrivere codice. Documenti, seconda voce del gruppo, è
+completa nello stesso giorno: nessuna nuova decisione di infrastruttura (riusa il client R2 e il
+meccanismo di upload proxato appena costruiti, generalizzato da `putPhotoObject` a `putObject`),
+governance senza ambiguità (admin-curato, il prototipo non mostra self-service per i documenti a
+differenza della galleria), nessuna nuova ADR. Verifica manuale nel browser di entrambe in attesa
 della creazione del bucket R2 sulla dashboard Cloudflare (passo dell'utente). Restano non
-affrontati documenti, webinar ed email digest, che richiedono ciascuno una propria decisione di
-infrastruttura non ancora confrontata (upload documenti può riusare il pattern R2 appena costruito
-per la galleria; servizio email e hosting video restano scelte aperte).
+affrontati webinar ed email digest, che richiedono ciascuno una propria decisione di
+infrastruttura non ancora confrontata (servizio email e hosting video restano scelte aperte, da
+tenere entrambe nel piano gratuito).
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del

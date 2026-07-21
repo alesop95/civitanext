@@ -23,7 +23,7 @@ vi.mock("@aws-sdk/client-s3", () => {
   return { S3Client, PutObjectCommand, DeleteObjectCommand };
 });
 
-const { putPhotoObject, deleteObject } = await import("./r2");
+const { putObject, deleteObject } = await import("./r2");
 
 beforeEach(() => {
   sendMock.mockClear();
@@ -33,10 +33,10 @@ beforeEach(() => {
   process.env.R2_BUCKET_NAME = "test-bucket";
 });
 
-describe("putPhotoObject", () => {
+describe("putObject", () => {
   it("scrive su R2 con Bucket/Key/ContentType/Body corretti", async () => {
     const bytes = new Uint8Array([1, 2, 3]);
-    await putPhotoObject("photos/abc.jpg", bytes, "image/jpeg");
+    await putObject("photos/abc.jpg", bytes, "image/jpeg");
 
     expect(sendMock).toHaveBeenCalledTimes(1);
     const command = sendMock.mock.calls[0][0] as { input: unknown };

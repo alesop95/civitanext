@@ -11,9 +11,9 @@ import { uploadPhoto } from "./actions";
 
 vi.mock("@/auth", () => ({ auth: vi.fn() }));
 
-const putPhotoObjectMock = vi.fn();
+const putObjectMock = vi.fn();
 vi.mock("@/lib/r2", () => ({
-  putPhotoObject: (...args: unknown[]) => putPhotoObjectMock(...args),
+  putObject: (...args: unknown[]) => putObjectMock(...args),
 }));
 
 const JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0, 0]);
@@ -31,7 +31,7 @@ function invalidFile() {
 
 describe.skipIf(!process.env.DATABASE_URL)("uploadPhoto", () => {
   afterAll(resetTestData);
-  beforeEach(() => putPhotoObjectMock.mockClear());
+  beforeEach(() => putObjectMock.mockClear());
 
   it("scrive la foto su R2 e su Postgres per un file valido", async () => {
     const user = await createTestUser();
@@ -45,7 +45,7 @@ describe.skipIf(!process.env.DATABASE_URL)("uploadPhoto", () => {
       `NEXT_REDIRECT:/galleria/${album.id}`,
     );
 
-    expect(putPhotoObjectMock).toHaveBeenCalledTimes(1);
+    expect(putObjectMock).toHaveBeenCalledTimes(1);
     const prisma = getPrisma();
     expect(await prisma.photo.count({ where: { albumId: album.id } })).toBe(1);
   });
@@ -62,7 +62,7 @@ describe.skipIf(!process.env.DATABASE_URL)("uploadPhoto", () => {
       `NEXT_REDIRECT:/galleria/${album.id}?error=1`,
     );
 
-    expect(putPhotoObjectMock).not.toHaveBeenCalled();
+    expect(putObjectMock).not.toHaveBeenCalled();
     const prisma = getPrisma();
     expect(await prisma.photo.count({ where: { albumId: album.id } })).toBe(0);
   });
@@ -77,7 +77,7 @@ describe.skipIf(!process.env.DATABASE_URL)("uploadPhoto", () => {
 
     await expect(uploadPhoto(album.id, formData)).rejects.toThrow("NEXT_REDIRECT:/accedi");
 
-    expect(putPhotoObjectMock).not.toHaveBeenCalled();
+    expect(putObjectMock).not.toHaveBeenCalled();
     const prisma = getPrisma();
     expect(await prisma.photo.count({ where: { albumId: album.id } })).toBe(0);
   });

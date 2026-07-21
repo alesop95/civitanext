@@ -51,6 +51,10 @@ export default async function AltroPage() {
         Galleria foto
       </Link>
 
+      <Link href="/documenti" className={btnClassName({ kind: "secondary" })}>
+        Documenti
+      </Link>
+
       {session?.user ? (
         <Link href="/profilo" className={btnClassName({ kind: "secondary" })}>
           Profilo
@@ -88,6 +92,9 @@ export default async function AltroPage() {
           </Link>
           <Link href="/admin/galleria/nuovo" className={btnClassName({ kind: "secondary" })}>
             Nuovo album galleria (admin)
+          </Link>
+          <Link href="/admin/documenti/nuovo" className={btnClassName({ kind: "secondary" })}>
+            Nuovo documento (admin)
           </Link>
         </>
       )}

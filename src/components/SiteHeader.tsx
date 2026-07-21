@@ -38,6 +38,8 @@ const ALTRO_HREFS = [
   "/admin/mentorship/nuovo",
   "/galleria",
   "/admin/galleria/nuovo",
+  "/documenti",
+  "/admin/documenti/nuovo",
 ];
 
 export async function SiteHeader({ activeHref }: { activeHref: string }) {

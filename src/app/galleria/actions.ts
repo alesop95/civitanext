@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
-import { putPhotoObject } from "@/lib/r2";
+import { putObject } from "@/lib/r2";
 import { validatePhotoFile, extensionForType } from "@/lib/photo-validation";
 
 // Upload proxato dal server (ADR-016): il browser invia il/i file a questa Server Action, il
@@ -34,7 +34,7 @@ export async function uploadPhoto(albumId: string, formData: FormData) {
     if (!result.valid) redirect(`/galleria/${albumId}?error=1`);
 
     const key = `photos/${randomUUID()}.${extensionForType(result.contentType)}`;
-    await putPhotoObject(key, bytes, result.contentType);
+    await putObject(key, bytes, result.contentType);
     await prisma.photo.create({
       data: {
         albumId,

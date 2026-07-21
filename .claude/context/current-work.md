@@ -376,14 +376,48 @@ Definition of done:
       dichiarata come fatta finche' non osservata davvero nel browser (regola di onesta' del
       contenuto)
 
+## Chiusa nel codice, verifica manuale in attesa: Fase 4 — documenti
+
+Seconda voce del gruppo "infrastruttura" di Fase 4. A differenza della galleria, nessuna nuova
+decisione di infrastruttura: riusa esattamente il meccanismo appena costruito (upload proxato dal
+server, client `src/lib/r2.ts`, ora generalizzato da `putPhotoObject` a `putObject` perche' non ha
+piu' nulla di specifico alle foto). Governance senza ambiguita' da confrontare con l'utente: il
+prototipo (`CN_DOCS`) non mostra alcun testo "caricate dai soci" per i documenti (a differenza
+della galleria), solo lettura/filtro/download, quindi upload riservato all'admin, stesso principio
+di `CivicSpace`/`PressArticle`/`MapPoint`. `category` e' un enum chiuso (`STATUTO`/`VERBALI`/
+`BILANCI`, dal filtro a chip del prototipo), non testo libero: pilota il filtro della UI come
+`TimelineKind` (voce didattica 11), non e' un valore descrittivo libero come `CivicSpace.type`.
+Validazione lato server sul magic number PDF (`%PDF`, `src/lib/document-validation.ts`), stesso
+principio della galleria. Nessuna nuova ADR (pattern riusati, nessun asse di incertezza aperto).
+
+File creati: `src/lib/document-validation.ts`, `src/app/admin/documenti/{actions.ts,
+nuovo/page.tsx}`, `src/app/documenti/page.tsx`, migrazione
+`prisma/migrations/20260721142413_add_document/`, test `src/lib/document-validation.test.ts`,
+`src/app/admin/documenti/actions.test.ts`. File modificati: `prisma/schema.prisma`
+(+`DocumentCategory`, +`Document`), `src/lib/r2.ts` (rinominato `putPhotoObject` → `putObject`,
+generico), `src/app/galleria/actions.ts` e i relativi test (aggiornati alla nuova firma),
+`src/components/SiteHeader.tsx` e `src/app/altro/page.tsx` (voce "Documenti").
+
+Definition of done:
+- [x] Enum `DocumentCategory` e modello `Document` scritti, validati e migrati (procedura
+      ADR-009) su DB di sviluppo e di test (`test:db:migrate`)
+- [x] `createDocument`/`deleteDocument` con guardia di ruolo, validazione dei byte reali (magic
+      number PDF) prima di scrivere su R2 (verificata da unit/integration test)
+- [x] Elenco pubblico `/documenti` con filtro a chip per categoria e download diretto da R2
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` (54 casi, 12 file) puliti
+- [ ] Verifica manuale nel browser: **in attesa**, stesso bucket R2 della galleria (nessuna
+      variabile d'ambiente aggiuntiva), non dichiarata come fatta finche' non osservata davvero
+
 ## Riconciliazione
 
-Ultima verifica delle schede: 2026-07-21, sopra l'HEAD dopo `4608ecf`. Mappa (con picker e
+Ultima verifica delle schede: 2026-07-21, sopra l'HEAD dopo `93be748`. Mappa (con picker e
 geocodifica inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione
 di test ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo
 deploy con fix identificato. Feature competenze verificata nel browser e committata (`60d7f16`),
 insieme al fix del ritorno post-login. Reputazione e badge (ADR-015) verificati nel browser e
 committati (`c2b5a87`). Mentorship verificata nel browser e committata (`17cd21e`/`4608ecf`).
-Galleria foto (ADR-016) completa nel codice e nei test automatici, non ancora committata né
-verificata nel browser (bucket R2 da creare). Vedi `memory/progress.md` per il dettaglio completo
-di ogni feature e bug, e `memory/decisions.md` per le ADR.
+Galleria foto (ADR-016) committata (`93be748`), completa nei test automatici, non ancora
+verificata nel browser (bucket R2 da creare). Documenti completi nel codice e nei test automatici
+(stesso bucket R2, nessuna nuova ADR), non ancora committati né verificati nel browser. Vedi
+`memory/progress.md` per il dettaglio completo di ogni feature e bug, e `memory/decisions.md` per
+le ADR.

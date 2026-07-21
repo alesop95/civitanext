@@ -63,6 +63,7 @@ model User {
   mentorRequests MentorRequest[]
   photoAlbumsCreated PhotoAlbum[] @relation("PhotoAlbumCreatedBy")
   photos             Photo[]     @relation("PhotoUploader")
+  documentsCreated   Document[]
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -434,4 +435,31 @@ model Photo {
   contentType String
   size        Int
   createdAt   DateTime   @default(now())
+}
+
+// Categorie chiuse del filtro a chip del prototipo (CN_DOCS in civitanext-data.jsx): enum, non
+// testo libero, perche' pilota il filtro della UI come TimelineKind (voce didattica 11), non e'
+// un valore descrittivo libero come CivicSpace.type.
+enum DocumentCategory {
+  STATUTO
+  VERBALI
+  BILANCI
+}
+
+// Documenti istituzionali (Fase 4, sezione "Citta'"): statuto, verbali, bilanci. A differenza
+// della galleria, il prototipo non mostra alcun caricamento self-service ("caricate dai soci" e'
+// testo esplicito solo per CN_GALLERY, assente per CN_DOCS: solo lettura/filtro/download):
+// upload riservato all'admin, stesso principio di CivicSpace/PressArticle/MapPoint. Stesso
+// meccanismo di upload proxato + validazione sui byte reali della galleria (ADR-016), qui sul
+// magic number PDF (%PDF) invece che JPEG/PNG/WEBP.
+model Document {
+  id          String           @id @default(cuid())
+  title       String
+  category    DocumentCategory
+  r2Key       String           @unique
+  contentType String
+  size        Int
+  createdById String
+  createdBy   User             @relation(fields: [createdById], references: [id])
+  createdAt   DateTime         @default(now())
 }
