@@ -51,6 +51,13 @@ export async function createTestEvent() {
   });
 }
 
+export async function createTestMentor(slots = 1) {
+  const prisma = getPrisma();
+  return prisma.mentor.create({
+    data: { name: MARKER, area: MARKER, description: MARKER, slots },
+  });
+}
+
 export async function createTestProposal(status: "REVISIONE" | "VOTAZIONE" | "APPROVATA", authorId: string) {
   const prisma = getPrisma();
   return prisma.proposal.create({
@@ -104,6 +111,10 @@ export async function resetTestData() {
   await prisma.poll.deleteMany({ where: { question: MARKER } });
   await prisma.rsvp.deleteMany({ where: { user: { name: MARKER } } });
   await prisma.notification.deleteMany({ where: { user: { name: MARKER } } });
+  await prisma.mentorRequest.deleteMany({
+    where: { OR: [{ user: { name: MARKER } }, { mentor: { name: MARKER } }] },
+  });
+  await prisma.mentor.deleteMany({ where: { name: MARKER } });
   await prisma.proposal.deleteMany({ where: { title: MARKER } });
   await prisma.event.deleteMany({ where: { title: MARKER } });
   await prisma.user.deleteMany({ where: { name: MARKER } });

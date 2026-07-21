@@ -57,9 +57,10 @@ model User {
   votes         Vote[]
   accounts      Account[]
   rsvps         Rsvp[]
-  quizAttempts  QuizAttempt[]
-  notifications Notification[]
-  skills        Skill[]
+  quizAttempts   QuizAttempt[]
+  notifications  Notification[]
+  skills         Skill[]
+  mentorRequests MentorRequest[]
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -360,4 +361,38 @@ model Skill {
   name      String
   offer     String
   createdAt DateTime @default(now())
+}
+
+// Mentorship (Fase 4, sezione "Community"). Lista curata da un admin, non self-service: nel
+// prototipo (CN_MENTORS) diventare mentor passa da un contatto offline ("scrivici dal forum o
+// agli eventi"), quindi Mentor e' un modello autonomo gestito dall'admin come CivicSpace o
+// PressArticle, non contenuto autoriale legato a un User come Skill. slots e' un numero
+// informativo ("posti disponibili questo mese"), non un contatore che si decrementa: nel
+// prototipo i posti non calano alla richiesta.
+model Mentor {
+  id          String   @id @default(cuid())
+  name        String
+  area        String
+  description String
+  slots       Int      @default(1)
+  createdAt   DateTime @default(now())
+
+  requests MentorRequest[]
+}
+
+// La richiesta di incontro persiste (a differenza del prototipo, dove il bottone "Chiedi un
+// incontro" cambia solo stato locale): un socio loggato esprime interesse una sola volta per
+// mentor (@@unique), stesso principio di unicita' gia' applicato a Rsvp e Vote. Nessun
+// decremento di slots ne' flusso di accettazione: il mentor non e' un account, il coordinamento
+// resta offline com'e' nel prototipo; la richiesta serve a non avere un bottone finto e a far
+// vedere all'admin chi ha chiesto.
+model MentorRequest {
+  id        String   @id @default(cuid())
+  mentorId  String
+  mentor    Mentor   @relation(fields: [mentorId], references: [id])
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([mentorId, userId])
 }
