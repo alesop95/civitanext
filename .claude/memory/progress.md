@@ -6,6 +6,35 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-21 — Mentorship: bacheca mentori curata dall'admin + richiesta di incontro persistita
+
+Commit di riferimento: da committare sopra `c2b5a87`.
+File creati: `src/app/mentorship/page.tsx`, `src/app/mentorship/actions.ts`,
+`src/app/admin/mentorship/actions.ts`, `src/app/admin/mentorship/nuovo/page.tsx`,
+`src/app/mentorship/actions.test.ts`, `prisma/migrations/20260721000000_mentor/migration.sql`.
+File modificati: `prisma/schema.prisma` (+`Mentor`, +`MentorRequest`), `src/test/fixtures.ts`
+(`createTestMentor` e pulizia FK-aware), `src/components/SiteHeader.tsx`, `src/app/altro/page.tsx`,
+`.claude/context/current-work.md`.
+Motivo/racconto: ottava verticale di Fase 4, ultima del gruppo "design" costruibile senza account
+esterni, sviluppata in autonomia su delega. Perimetro ancorato al prototipo (`CN_MENTORS`), nessuna
+nuova ADR perche' riuso di pattern gia' decisi: i mentori sono una lista curata da un admin, non
+self-service (nel prototipo diventare mentor passa da un contatto offline), quindi `Mentor` e' un
+modello autonomo con CRUD admin come `PressArticle`, non contenuto autoriale come `Skill`; `slots`
+resta informativo, non cala. La richiesta "Chiedi un incontro" si persiste (`MentorRequest`,
+`@@unique([mentorId, userId])`) invece di restare stato locale come nel prototipo, cosi' il
+bottone non e' finto: un socio esprime interesse una volta sola, lo rivede al ricaricamento e
+l'admin vede il conteggio. Nessun decremento di slot ne' flusso di accettazione (il mentor non e'
+un account).
+Bug operativo trovato e risolto scrivendo il test: il primo giro di `src/app/mentorship/actions.test.ts`
+falliva con `PrismaClientKnownRequestError` su `mentor.create`, perche' le tabelle nuove
+(`Skill`, `Mentor`, `MentorRequest`) erano state migrate solo sul DB di sviluppo (51218) e non sul
+Postgres di test (5433), dove le migrazioni si applicano a parte con `npm run test:db:migrate`;
+allineato il test DB, i test passano (24 totali). Promemoria per le prossime feature con schema
+nuovo: dopo `migrate deploy` sul dev, serve anche `test:db:migrate` prima di far girare la suite.
+Verifiche: `npx tsc --noEmit`, `npm run lint`, `npm test` (24 casi) e `npm run build` puliti;
+`/mentorship` risponde 200 sul dev server con lo stato vuoto. Verifica browser interattiva ancora
+da fare (utente).
+
 ## 2026-07-20 — Reputazione e badge calcolati in lettura (capstone gamification, ADR-015)
 
 Commit di riferimento: da committare sopra `60d7f16`.

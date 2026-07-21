@@ -307,12 +307,47 @@ Definition of done:
 - [x] Verifica manuale nel browser (2026-07-20: utente Pippo a 100 punti — 1 RSVP, 1 proposta, 1
       quiz, 1 voto — livello Nuovo, badge corretti, primo in classifica sopra "Admin di prova")
 
+## Chiusa: Fase 4 — mentorship (bacheca mentori curata + richiesta di incontro)
+
+Ottava verticale di Fase 4, sezione "Community" del prototipo (`CN_MENTORS`), sviluppata in
+autonomia su delega. Scelta di perimetro ancorata al prototipo, non una nuova ADR (riuso dei
+pattern press/timeline e RSVP): i mentori sono una lista curata da un admin, non self-service,
+perche' nel prototipo diventare mentor passa da un contatto offline ("scrivici dal forum o agli
+eventi"); quindi `Mentor` e' un modello autonomo con CRUD admin, come `PressArticle`, non contenuto
+autoriale legato a un `User` come `Skill`. Il campo `slots` resta informativo ("posti questo
+mese"), non un contatore che cala. La richiesta "Chiedi un incontro" invece si persiste
+(`MentorRequest`, `@@unique([mentorId, userId])`, stesso principio di unicita' di `Rsvp`/`Vote`):
+un socio loggato esprime interesse una sola volta, lo rivede al ricaricamento, e l'admin vede il
+conteggio richieste per mentor. Nessun decremento di slot ne' flusso di accettazione: il mentor
+non e' un account, il coordinamento resta offline com'e' nel prototipo.
+
+File creati: `src/app/mentorship/page.tsx` (bacheca pubblica), `src/app/mentorship/actions.ts`
+(`requestMentor`, guardia di sola autenticazione), `src/app/admin/mentorship/actions.ts`
+(`createMentor`, guardia di ruolo), `src/app/admin/mentorship/nuovo/page.tsx` (form),
+`src/app/mentorship/actions.test.ts` (idempotenza della richiesta e caso non autenticato),
+`prisma/migrations/20260721000000_mentor/migration.sql`. File modificati: `prisma/schema.prisma`
+(+`Mentor`, +`MentorRequest`), `src/test/fixtures.ts` (`createTestMentor` e pulizia nel rispetto
+delle FK), `src/components/SiteHeader.tsx` e `src/app/altro/page.tsx` (voce "Mentorship" sotto
+Altro e link admin).
+
+Definition of done:
+- [x] Modelli `Mentor` e `MentorRequest` scritti, validati e migrati (procedura ADR-009) su DB di
+      sviluppo e di test (`test:db:migrate`)
+- [x] `createMentor` con guardia di ruolo; `requestMentor` con guardia di sola autenticazione e
+      unicita' della richiesta (verificata da unit test, 24 casi totali verdi)
+- [x] Bacheca pubblica `/mentorship` (mentore, area, descrizione, posti; "Chiedi un incontro" o
+      "Richiesta inviata"; conteggio richieste per l'admin) e form admin `/admin/mentorship/nuovo`
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` puliti
+- [x] Verifica manuale nel browser (2026-07-21: admin pubblica "Luca Bonifazi/Bandi e fondi",
+      scheda corretta su `/mentorship`, da Pippo "Chiedi un incontro" diventa "Richiesta inviata"
+      e persiste)
+
 ## Riconciliazione
 
 Ultima verifica delle schede: 2026-07-20, sopra l'HEAD `6495c68`. Mappa (con picker e geocodifica
 inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione di test
 ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo deploy con fix
 identificato. Feature competenze verificata nel browser e committata (`60d7f16`), insieme al fix
-del ritorno post-login. Reputazione e badge (ADR-015) verificati nel browser, pronti al commit.
-Vedi `memory/progress.md` per il dettaglio completo di ogni feature e bug, e `memory/decisions.md`
-per le ADR.
+del ritorno post-login. Reputazione e badge (ADR-015) verificati nel browser e committati
+(`c2b5a87`). Mentorship verificata nel browser, pronta al commit. Vedi `memory/progress.md` per il dettaglio
+completo di ogni feature e bug, e `memory/decisions.md` per le ADR.
