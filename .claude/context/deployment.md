@@ -94,6 +94,15 @@ admin-wide), `R2_BUCKET_NAME` (un solo nome per ambiente attivo: `civitanext-med
 sviluppo/test, `civitanext-media-prod` in produzione, selezionati dal valore di questa stessa
 variabile per ambiente, non da due nomi di variabile diversi nel codice — chiude la domanda
 aperta di ADR-007 sui due bucket dev/produzione), `R2_PUBLIC_BASE_URL` (dominio pubblico di
-lettura del bucket, usato solo per comporre l'URL delle immagini, mai per firmare richieste).
-Nessun valore reale va mai scritto in una scheda tracciata o in un commit: solo i nomi delle
-variabili e dove sono gestite.
+lettura del bucket, usato solo per comporre l'URL delle immagini, mai per firmare richieste). Da
+Fase 4, email digest (ADR-017): `RESEND_API_KEY` (credenziale del servizio Resend),
+`DIGEST_FROM_EMAIL` (indirizzo mittente verificato su un dominio dell'associazione),
+`CRON_SECRET` (segreto condiviso che protegge `/api/digest`, confrontato a tempo costante — non
+una credenziale di un servizio esterno, generato una volta e messo sia in `.env` sia nei secret
+GitHub del repository). Nessun valore reale va mai scritto in una scheda tracciata o in un commit:
+solo i nomi delle variabili e dove sono gestite.
+
+Secret del repository GitHub (non `.env`, gestiti in Settings → Secrets and variables → Actions),
+usati dal workflow `.github/workflows/weekly-digest.yml`: `DEPLOY_URL` (URL pubblico dell'app
+deployata, non ancora esistente: vedi "Interventi manuali in sospeso" in `current-work.md`) e
+`CRON_SECRET` (lo stesso valore scritto in `.env` come variabile applicativa).

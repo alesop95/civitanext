@@ -48,6 +48,11 @@ model User {
   memberSince   DateTime  @default(now())
   emailVerified DateTime?
   image         String?
+  // Preferenza esplicita, default false: a differenza del toggle del prototipo (solo
+  // localStorage, default "acceso"), qui l'invio e' un'email vera a un indirizzo reale, quindi
+  // un utente gia' esistente al momento della migrazione non riceve nulla finche' non lo attiva
+  // lui stesso (nessun opt-in implicito su una feature che prima non esisteva).
+  digestOptIn   Boolean   @default(false)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
@@ -462,4 +467,22 @@ model Document {
   createdById String
   createdBy   User             @relation(fields: [createdById], references: [id])
   createdAt   DateTime         @default(now())
+}
+
+// Webinar (Fase 4, sezione "Community"): registrazioni di assemblee e lezioni civiche. Solo dati
+// e imbed, mai storage del video (nota di ADR-004, qui formalizzata): il prototipo (CN_WEBINARS)
+// non mostra ne' upload self-service ne' sezione admin, stesso trattamento informativo di
+// PressArticle/CivicSpace/MapPoint (curato da un admin, nessuna relazione con User). youtubeId e'
+// solo l'id del video (11 caratteri), non l'URL intero: l'URL di embed e la thumbnail si
+// compongono a runtime (src/lib/youtube.ts), stessa scelta di comporre l'URL pubblico da r2Key
+// invece di salvare un URL completo. Nessun campo "views": richiederebbe la YouTube Data API,
+// una seconda integrazione esterna non giustificata dal valore che aggiungerebbe oggi.
+model Webinar {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  youtubeId   String
+  duration    String
+  recordedAt  DateTime
+  createdAt   DateTime @default(now())
 }

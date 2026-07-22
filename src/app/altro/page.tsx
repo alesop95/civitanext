@@ -55,6 +55,10 @@ export default async function AltroPage() {
         Documenti
       </Link>
 
+      <Link href="/webinar" className={btnClassName({ kind: "secondary" })}>
+        Webinar
+      </Link>
+
       {session?.user ? (
         <Link href="/profilo" className={btnClassName({ kind: "secondary" })}>
           Profilo
@@ -95,6 +99,9 @@ export default async function AltroPage() {
           </Link>
           <Link href="/admin/documenti/nuovo" className={btnClassName({ kind: "secondary" })}>
             Nuovo documento (admin)
+          </Link>
+          <Link href="/admin/webinar/nuovo" className={btnClassName({ kind: "secondary" })}>
+            Nuovo webinar (admin)
           </Link>
         </>
       )}

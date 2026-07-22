@@ -17,6 +17,29 @@ stato: allineata a HEAD; blocco Prisma/Workers rimandato al deploy, fix identifi
 > riepilogo compresso qui sotto: il dettaglio completo (file toccati, bug trovati, come sono
 > stati diagnosticati) vive in `memory/progress.md`, che è append-only e non si riscrive mai.
 
+## Interventi manuali in sospeso
+
+Lista unica, accumulata invece di fermare lo sviluppo a ogni feature: l'utente li esegue tutti
+insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne genera uno nuovo.
+
+- Galleria foto e documenti (ADR-016): creare due bucket R2 (`civitanext-media-dev`,
+  `civitanext-media-prod`) e le credenziali sulla dashboard Cloudflare; scrivere in `.env` locale
+  `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`,
+  `R2_PUBLIC_BASE_URL` (nomi in `deployment.md`, mai i valori in una scheda tracciata).
+- Verifica manuale nel browser di galleria e documenti (login admin per creare album/documento,
+  login socio per caricare foto, tentativo di file non valido), possibile solo dopo il punto sopra.
+- Webinar (ADR-017): creare/usare l'account YouTube dell'associazione, pubblicare almeno un video
+  come "non in elenco pubblico" e verificare nel browser che l'admin possa incollarne il link
+  (`/admin/webinar/nuovo`) e che l'embed si veda su `/webinar/[id]`.
+- Email digest (ADR-017): creare l'account Resend, verificare un dominio dell'associazione,
+  generare `RESEND_API_KEY`; scegliere e scrivere `DIGEST_FROM_EMAIL`; generare `CRON_SECRET` e
+  scriverlo sia in `.env` locale sia nei secret del repository GitHub insieme a `DEPLOY_URL`.
+  **Bloccante aggiuntivo, non solo un intervento manuale**: il workflow
+  `.github/workflows/weekly-digest.yml` non può inviare nulla finché non esiste un URL pubblico
+  raggiungibile, cioè finché il deploy reale su Cloudflare (bloccato da ADR-006) non è avvenuto:
+  fino a quel momento il digest si può solo testare a mano chiamando `/api/digest` in locale con
+  l'header `Authorization` corretto.
+
 ## Chiuse: Fase 0 e Fase 1
 
 Fase 0 (fondamenta): allineamento `.claude`, stack gratuito (ADR-004/005/006/007), bootstrap
@@ -369,12 +392,9 @@ Definition of done:
 - [x] `createAlbum` con guardia di ruolo; `uploadPhoto` con guardia di sola autenticazione e
       validazione dei byte reali prima di scrivere su R2 (verificata da unit/integration test)
 - [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` (43 casi, 10 file) puliti
-- [ ] Verifica manuale nel browser: **in attesa**, richiede prima la creazione del bucket R2 e
-      delle credenziali sulla dashboard Cloudflare (passo dell'utente, fuori dal codice) e la
-      scrittura delle variabili reali in `.env` locale (`R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`,
-      `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_BASE_URL`, vedi `deployment.md`); non
-      dichiarata come fatta finche' non osservata davvero nel browser (regola di onesta' del
-      contenuto)
+- [ ] Verifica manuale nel browser: **in attesa**, vedi "Interventi manuali in sospeso" in testa a
+      questa scheda; non dichiarata come fatta finche' non osservata davvero (regola di onesta'
+      del contenuto)
 
 ## Chiusa nel codice, verifica manuale in attesa: Fase 4 — documenti
 
@@ -405,19 +425,89 @@ Definition of done:
       number PDF) prima di scrivere su R2 (verificata da unit/integration test)
 - [x] Elenco pubblico `/documenti` con filtro a chip per categoria e download diretto da R2
 - [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` (54 casi, 12 file) puliti
-- [ ] Verifica manuale nel browser: **in attesa**, stesso bucket R2 della galleria (nessuna
-      variabile d'ambiente aggiuntiva), non dichiarata come fatta finche' non osservata davvero
+- [ ] Verifica manuale nel browser: **in attesa**, vedi "Interventi manuali in sospeso" in testa a
+      questa scheda (stesso bucket R2 della galleria, nessuna variabile aggiuntiva); non
+      dichiarata come fatta finche' non osservata davvero
+
+## Chiusa nel codice, verifica manuale in attesa: Fase 4 — webinar (ADR-017)
+
+Terza voce del gruppo "infrastruttura" di Fase 4. Decisione confrontata con l'utente: hosting
+video su YouTube (video non in elenco pubblico), non storage self-hosted su R2 né Vimeo né
+Cloudflare Stream — il primo perché i video pesano troppo per i limiti gratuiti di R2/Workers
+usati da galleria/documenti, gli altri due per limiti di piano gratuito più stretti o assenza di
+piano gratuito. Modello `Webinar` senza relazione con `User` (nessuna attribuzione di chi
+pubblica), stesso trattamento informativo di `PressArticle`/`CivicSpace`/`MapPoint`: il prototipo
+non mostra né upload self-service né sezione admin per questa feature. `youtubeId` salva solo
+l'id del video (parsing di URL comuni in `src/lib/youtube.ts`), embed e thumbnail composti a
+runtime. Nessun campo "views" (richiederebbe la YouTube Data API, non giustificata oggi).
+
+File creati: `src/lib/youtube.ts`, `src/app/admin/webinar/{actions.ts,nuovo/page.tsx}`,
+`src/app/webinar/{page.tsx,[id]/page.tsx}`, migrazione
+`prisma/migrations/20260721144358_add_webinar_digest/` (insieme a `User.digestOptIn`, vedi sotto),
+test `src/lib/youtube.test.ts`, `src/app/admin/webinar/actions.test.ts`. File modificati:
+`prisma/schema.prisma` (+`Webinar`), `src/components/SiteHeader.tsx` e `src/app/altro/page.tsx`
+(voce "Webinar").
+
+Definition of done:
+- [x] Modello `Webinar` scritto, validato e migrato (procedura ADR-009) su DB di sviluppo e di
+      test (`test:db:migrate`)
+- [x] `createWebinar`/`deleteWebinar` con guardia di ruolo; parsing e validazione del link/id
+      YouTube prima di scrivere (verificata da unit/integration test)
+- [x] Elenco pubblico `/webinar` (copertina da thumbnail YouTube) e dettaglio `/webinar/[id]`
+      con embed reale (`youtube-nocookie.com`)
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` puliti
+- [ ] Verifica manuale nel browser: **in attesa**, vedi "Interventi manuali in sospeso" in testa a
+      questa scheda (richiede un video reale pubblicato come non in elenco su YouTube); non
+      dichiarata come fatta finche' non osservata davvero
+
+## Chiusa nel codice, attivazione e verifica in attesa: Fase 4 — email digest (ADR-017)
+
+Quarta e ultima voce del gruppo "infrastruttura" di Fase 4 — con questa, tutte le nove voci di
+Fase 4 sono complete nel codice. Tre decisioni confrontate con l'utente: servizio email Resend
+(nominato nel `ROADMAP.md` del prototipo insieme a SendGrid, confrontato anche con Brevo);
+contenuto del digest interpretato dal prototipo come eventi nei prossimi 7 giorni + thread del
+forum degli ultimi 7 giorni (non l'intero forum né le proposte); trigger settimanale via GitHub
+Actions schedulato (non il Cron Trigger nativo di Cloudflare Workers, non disponibile prima del
+deploy reale). `User.digestOptIn` default **false**, scelta in autonomia e segnalata come tale:
+il toggle del prototipo era solo `localStorage` (mai un'email vera) con default "acceso", ma
+attivare di default l'invio a utenti già esistenti al momento della migrazione avrebbe mandato
+email a chi non ha mai davvero acconsentito attraverso questa feature.
+
+File creati: `src/lib/resend.ts`, `src/lib/digest.ts` (con fuga HTML esplicita sul contenuto
+scritto dai soci, titoli/nomi dei thread), `src/app/profilo/actions.ts` (`toggleDigestOptIn`),
+`src/app/api/digest/route.ts` (protetta da `CRON_SECRET` a confronto tempo-costante, nessuna
+sessione: chi chiama è un workflow, non un utente loggato), `.github/workflows/weekly-digest.yml`,
+test `src/lib/digest.test.ts`. File modificati: `prisma/schema.prisma` (+`User.digestOptIn`),
+`src/app/profilo/page.tsx` (card preferenze con toggle), `src/test/fixtures.ts`
+(`createTestThread`, `createTestWebinar`, estensione `createTestEvent`, pulizia thread/reply mai
+coperta finora in `resetTestData`).
+
+Definition of done:
+- [x] `User.digestOptIn` migrato (procedura ADR-009) su DB di sviluppo e di test
+- [x] `toggleDigestOptIn` con guardia di sola autenticazione; toggle visibile su `/profilo`
+- [x] `buildDigestContent`/`renderDigestHtml`/`sendWeeklyDigest` con fuga HTML e nessun invio se
+      il contenuto è vuoto (verificati da unit/integration test, DB reale mockando solo Resend)
+- [x] `/api/digest` protetta, confronto a tempo costante, non una sessione
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` puliti
+- [ ] **Non solo verifica manuale: attivazione reale in sospeso**, vedi "Interventi manuali in
+      sospeso" in testa a questa scheda. A differenza di galleria/documenti/webinar (dove basta
+      creare un account e verificare nel browser), qui il workflow schedulato non può inviare
+      nulla finché non esiste un URL pubblico raggiungibile, cioè finché il deploy reale su
+      Cloudflare (bloccato da ADR-006) non sarà avvenuto. Testabile solo a mano in locale
+      chiamando `/api/digest` con l'header `Authorization` corretto finché quel momento non arriva.
 
 ## Riconciliazione
 
-Ultima verifica delle schede: 2026-07-21, sopra l'HEAD dopo `93be748`. Mappa (con picker e
+Ultima verifica delle schede: 2026-07-22, sopra l'HEAD dopo `93be748`. Mappa (con picker e
 geocodifica inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione
 di test ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo
 deploy con fix identificato. Feature competenze verificata nel browser e committata (`60d7f16`),
 insieme al fix del ritorno post-login. Reputazione e badge (ADR-015) verificati nel browser e
 committati (`c2b5a87`). Mentorship verificata nel browser e committata (`17cd21e`/`4608ecf`).
 Galleria foto (ADR-016) committata (`93be748`), completa nei test automatici, non ancora
-verificata nel browser (bucket R2 da creare). Documenti completi nel codice e nei test automatici
-(stesso bucket R2, nessuna nuova ADR), non ancora committati né verificati nel browser. Vedi
-`memory/progress.md` per il dettaglio completo di ogni feature e bug, e `memory/decisions.md` per
-le ADR.
+verificata nel browser (bucket R2 da creare). Documenti, webinar ed email digest (ADR-017)
+completi nel codice e nei test automatici, non ancora committati: con questi si chiudono tutte le
+nove voci di Fase 4. Nessuno dei tre ancora verificato nel browser/attivato davvero (bucket R2,
+account YouTube, account Resend e deploy Cloudflare tutti in sospeso, vedi "Interventi manuali in
+sospeso" in testa a questa scheda). Vedi `memory/progress.md` per il dettaglio completo di ogni
+feature e bug, e `memory/decisions.md` per le ADR.

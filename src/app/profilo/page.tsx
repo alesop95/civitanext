@@ -4,7 +4,9 @@ import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Tag } from "@/components/ui/Tag";
 import { Waves } from "@/components/ui/Waves";
+import { Btn } from "@/components/ui/Btn";
 import { getUserReputation } from "@/lib/reputation";
+import { toggleDigestOptIn } from "./actions";
 
 const ROLE_LABELS: Record<string, string> = {
   SUPERADMIN: "Responsabile generale",
@@ -122,6 +124,25 @@ export default async function ProfiloPage() {
               </span>
             ))}
           </div>
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-3 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard sm:max-w-md">
+        <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+          Preferenze
+        </p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <p className="font-ui text-sm font-bold">Digest settimanale via email</p>
+            <p className="font-ui text-xs text-ink-soft">
+              Eventi in programma e nuove discussioni del forum, ogni lunedì.
+            </p>
+          </div>
+          <form action={toggleDigestOptIn}>
+            <Btn type="submit" kind={user.digestOptIn ? "primary" : "secondary"} small>
+              {user.digestOptIn ? "Attivo" : "Disattivo"}
+            </Btn>
+          </form>
         </div>
       </section>
     </main>

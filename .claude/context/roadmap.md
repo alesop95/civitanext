@@ -90,11 +90,17 @@ esplicitamente con l'utente prima di scrivere codice. Documenti, seconda voce de
 completa nello stesso giorno: nessuna nuova decisione di infrastruttura (riusa il client R2 e il
 meccanismo di upload proxato appena costruiti, generalizzato da `putPhotoObject` a `putObject`),
 governance senza ambiguità (admin-curato, il prototipo non mostra self-service per i documenti a
-differenza della galleria), nessuna nuova ADR. Verifica manuale nel browser di entrambe in attesa
-della creazione del bucket R2 sulla dashboard Cloudflare (passo dell'utente). Restano non
-affrontati webinar ed email digest, che richiedono ciascuno una propria decisione di
-infrastruttura non ancora confrontata (servizio email e hosting video restano scelte aperte, da
-tenere entrambe nel piano gratuito).
+differenza della galleria), nessuna nuova ADR. Webinar ed email digest, terza e quarta voce,
+completi nel codice il 2026-07-21/22 (ADR-017): hosting video su YouTube (non in elenco pubblico,
+non storage self-hosted né Vimeo né Cloudflare Stream), servizio email Resend, trigger settimanale
+via GitHub Actions in attesa del Cron Trigger nativo di Cloudflare Workers (non disponibile prima
+del deploy reale). Con queste, **tutte le nove voci di Fase 4 sono complete nel codice**.
+
+Verifica manuale nel browser (galleria, documenti, webinar) e attivazione reale (email digest,
+che richiede in più un URL pubblico raggiungibile) restano in sospeso: creazione bucket R2,
+account YouTube, account Resend con dominio verificato, secret GitHub, e soprattutto il deploy
+reale su Cloudflare (bloccato da ADR-006) di cui l'email digest ha bisogno per poter davvero
+inviare qualcosa. Dettaglio completo in "Interventi manuali in sospeso", `current-work.md`.
 
 Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
 Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del

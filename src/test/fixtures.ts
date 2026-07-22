@@ -38,15 +38,35 @@ export async function createTestUser(role: Role = "UTENTE") {
   });
 }
 
-export async function createTestEvent() {
+export async function createTestEvent(date: Date = new Date()) {
   const prisma = getPrisma();
   return prisma.event.create({
     data: {
       title: MARKER,
       description: MARKER,
-      date: new Date(),
+      date,
       location: MARKER,
       category: MARKER,
+    },
+  });
+}
+
+export async function createTestThread(authorId: string, createdAt: Date = new Date()) {
+  const prisma = getPrisma();
+  return prisma.thread.create({
+    data: { title: MARKER, category: MARKER, body: MARKER, authorId, createdAt },
+  });
+}
+
+export async function createTestWebinar(recordedAt: Date = new Date()) {
+  const prisma = getPrisma();
+  return prisma.webinar.create({
+    data: {
+      title: MARKER,
+      description: MARKER,
+      youtubeId: "dQw4w9WgXcQ",
+      duration: "3 min",
+      recordedAt,
     },
   });
 }
@@ -161,6 +181,11 @@ export async function resetTestData() {
   await prisma.document.deleteMany({
     where: { OR: [{ title: MARKER }, { createdBy: { name: MARKER } }] },
   });
+  await prisma.webinar.deleteMany({ where: { title: MARKER } });
+  await prisma.reply.deleteMany({
+    where: { OR: [{ author: { name: MARKER } }, { thread: { title: MARKER } }] },
+  });
+  await prisma.thread.deleteMany({ where: { title: MARKER } });
   await prisma.proposal.deleteMany({ where: { title: MARKER } });
   await prisma.event.deleteMany({ where: { title: MARKER } });
   await prisma.user.deleteMany({ where: { name: MARKER } });

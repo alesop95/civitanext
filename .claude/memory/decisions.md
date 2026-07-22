@@ -667,3 +667,66 @@ valore di `R2_BUCKET_NAME` per ambiente (stesso principio del branch Neon `devel
 taglio (nessun precedente nel codice prima di questa feature): la sola valvola di moderazione e'
 `deleteAlbum`/`deletePhoto` lato admin, scope cut esplicito, non un'omissione silenziosa. Voce
 didattica associata: `refactor-15-galleria-upload.md`.
+
+## ADR-017 — Webinar ed email digest: embed YouTube non in elenco, Resend, trigger GitHub Actions in attesa del deploy
+
+Data: 2026-07-21
+Stato: accettata
+Contesto: ultime due voci del gruppo "infrastruttura" di Fase 4, entrambe con una decisione reale
+mai confrontata con l'utente. Webinar: ADR-004 aveva gia' annotato come "nota per il futuro" (non
+decisione) l'embed YouTube/Vimeo non in elenco pubblico invece di storage self-hosted. Email
+digest: nessuna infrastruttura email esisteva nel progetto (verificato: nessuna dipendenza, nessun
+`sendMail`/SMTP/servizio in `src/`); il prototipo (`ProfiloView`, `civitanext-features.jsx`) mostra
+solo un toggle di preferenza persistito in `localStorage`, testo "Digest settimanale via email,
+Eventi e discussioni della settimana, ogni lunedi'", nessun invio reale. Confronto fatto con
+l'utente su tre assi.
+Decisione, in tre parti.
+Primo, hosting video: **YouTube, video non in elenco pubblico** (non Vimeo, non storage
+self-hosted, non Cloudflare Stream). Storage self-hosted su R2 e' scartato per lo stesso vincolo
+di gratuita' del progetto: i video pesano ordini di grandezza piu' delle foto/PDF gia' su R2, e
+servirli tramite un upload proxato dal server (il pattern scelto in ADR-016) urterebbe contro i
+limiti di CPU/tempo di un Worker sul piano gratuito Cloudflare in modo molto piu' probabile che
+per un'immagine o un PDF. Cloudflare Stream e' un prodotto a consumo, non gratuito: scartato senza
+ambiguita'. Tra YouTube e Vimeo, entrambi gratuiti per l'embed non in elenco, YouTube non ha un
+tetto di upload settimanale stretto come il piano gratuito Vimeo (dato storicamente vero, da
+riverificare al momento dell'attivazione: sono termini di un servizio esterno che possono
+cambiare). Modello `Webinar` senza relazione con `User` (nessun campo "chi lo ha pubblicato"),
+stesso trattamento informativo di `PressArticle`/`CivicSpace`/`MapPoint`, coerente col prototipo
+che non mostra ne' upload self-service ne' sezione admin per questa feature. `youtubeId` salva
+solo l'id dell'oggetto embeddabile (parsing di URL comuni in `src/lib/youtube.ts`), non un URL
+completo: stessa scelta di comporre l'URL pubblico da `r2Key` invece di salvare un URL intero.
+Nessun campo "views" (presente nel prototipo come dato statico): richiederebbe la YouTube Data
+API, una seconda integrazione esterna non giustificata dal valore che aggiungerebbe oggi.
+Secondo, servizio email: **Resend**, tra le alternative nominate esplicitamente nel `ROADMAP.md`
+del prototipo insieme a SendGrid, confrontata anche con Brevo. Per un digest settimanale a un
+numero di soci nell'ordine delle decine/centinaia, tutte e tre le alternative restano comodamente
+nel piano gratuito rispettivo (cifre esatte non verificate qui, da riconfermare all'attivazione
+dell'account): Resend vince per l'SDK moderno con integrazione diretta a Next.js, a fronte di
+richiedere comunque la verifica di un dominio dell'associazione per l'invio in produzione (stesso
+tipo di passo esterno gia' accettato per R2/Cloudflare). Contenuto del digest interpretato dal
+testo del prototipo ("Eventi e discussioni della settimana"): eventi in programma nei prossimi 7
+giorni (non quelli passati, un digest del lunedi' guarda avanti) piu' i thread del forum apparsi
+negli ultimi 7 giorni, non l'intero forum né le proposte. Nessun invio se il contenuto e' vuoto
+(un digest vuoto ogni settimana e' rumore). Preferenza (`User.digestOptIn`) di default **false**,
+non true come il toggle del prototipo: quel toggle era solo `localStorage`, mai un'email vera;
+attivare di default l'invio a ogni utente gia' esistente al momento della migrazione avrebbe
+mandato email a persone che non hanno mai davvero acconsentito a riceverle attraverso questa
+feature, scelta fatta in autonomia e segnalata qui come tale, non silenziosamente.
+Terzo, meccanismo di trigger settimanale: **GitHub Actions schedulato** (`schedule: cron`) che
+chiama una route protetta (`/api/digest`, guardia a confronto a tempo costante contro
+`CRON_SECRET`, non una sessione: non c'e' nessun utente loggato dietro questa chiamata), non il
+Cron Trigger nativo di Cloudflare Workers. Il Cron Trigger sarebbe la scelta naturale una volta
+deployato (gratuito, nessun servizio esterno aggiuntivo), ma il deploy reale su Cloudflare non e'
+ancora avvenuto (blocco Prisma/WASM in coda, ADR-006): GitHub Actions funziona da subito su
+qualunque runtime, migrabile al Cron Trigger quando il deploy sara' fatto.
+Motivazione: su tutti e tre gli assi, la scelta che rispetta meglio il vincolo di gratuita' del
+progetto e riusa cio' che esiste (il pattern di validazione/embed di ADR-016 per il primo asse,
+l'assenza di infrastruttura propria per il secondo, GitHub Actions gia' presente nel repository
+per CI per il terzo) batte le alternative piu' pesanti o piu' costose.
+Conseguenze: **il workflow GitHub Actions non puo' effettivamente inviare nulla finche' non
+esiste un URL pubblico raggiungibile** (dopo il deploy Cloudflare) e finche' i secret
+`DEPLOY_URL`/`CRON_SECRET` non sono impostati su GitHub, oltre alle credenziali Resend
+(`RESEND_API_KEY`, `DIGEST_FROM_EMAIL`, dominio verificato) e all'account YouTube
+dell'associazione: tutti interventi manuali elencati in "Interventi manuali in sospeso"
+(`current-work.md`), non bloccanti per il codice scritto oggi. Variabili nuove documentate in
+`deployment.md`. Voce didattica associata: `refactor-16-webinar-e-digest.md`.

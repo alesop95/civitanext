@@ -481,3 +481,45 @@ salto, minore ma della stessa famiglia, riguarda il modello dati: l'album e' un'
 campo libero avrebbe frammentato lo stesso album in due per un semplice errore di digitazione.
 
 Dove leggere il dettaglio: `refactor-15-galleria-upload.md`.
+
+## 16. Non tutto quello che assomiglia a un file va trattato come un file: webinar ed email digest
+
+Com'era la tentazione fragile. Dopo aver costruito un pattern solido per l'upload di file veri
+(galleria, documenti: byte che il server legge, valida e scrive su R2), la tentazione con i
+webinar e' applicare lo stesso stampino: un video e' comunque un file grosso, quindi si carica
+allo stesso modo, magari su R2 come le foto. Sarebbe un errore silenzioso di categoria, non di
+codice: un video pesa ordini di grandezza piu' di una foto o di un PDF, e lo stesso meccanismo di
+upload proxato che funziona bene per pochi megabyte urterebbe contro i limiti di tempo CPU di un
+Worker molto prima, e contro la soglia dei 10 GB gratuiti di R2 molto piu' in fretta. La stessa
+tentazione, in una forma diversa, vale per l'email digest: sembra "solo" un altro invio come
+tanti altri nel progetto, quindi la mente cerca subito una libreria SMTP o un provider qualsiasi
+senza fermarsi a chiedere se il volume, la cadenza e il vincolo di gratuita' cambiano davvero le
+alternative valide.
+
+Il salto senior e perche' e' meglio. La domanda giusta, per il webinar, non e' "come carico questo
+file" ma "questo contenuto ha davvero bisogno di essere un file che il mio server possiede".
+Un video di un'assemblea non ha bisogno di essere posseduto: ha bisogno di essere mostrato. Chi
+risolve gia' egregiamente il problema di ospitare, transcodificare e servire video in streaming,
+gratis, e' YouTube (o Vimeo): la piattaforma corretta non e' quella verso cui punta il pattern gia'
+costruito, e' quella pensata apposta per questo tipo di contenuto. "Non in elenco pubblico" non e'
+un compromesso di sicurezza, e' esattamente la visibilita' giusta: raggiungibile da chi ha il
+link (il sito di CivitaNext), invisibile alla ricerca pubblica di YouTube. Il modello dati lo
+riflette: `Webinar` salva un id di undici caratteri, non un file, e nessun campo "chi lo ha
+caricato" perche' non c'e' alcun caricamento nel senso in cui la galleria ne ha uno.
+
+Per l'email digest, il salto e' notare che il progetto non aveva ancora nessuna decisione presa,
+non una decisione gia' presa da riusare: a differenza del webinar (dove ADR-004 aveva gia'
+lasciato una traccia), qui si parte da zero, e la domanda diventa "quali alternative reali
+esistono e cosa cambia scegliendo l'una o l'altra", non "qual e' il nome che viene in mente per
+primo" (la stessa tensione gia' vista nella voce didattica 10 per le librerie). La scelta di
+Resend non e' arbitraria: e' quella nominata nel materiale di partenza del progetto stesso, e
+il piano gratuito di ciascuna alternativa considerata basta abbondantemente al volume reale
+(soci nell'ordine delle decine). Il dettaglio meno ovvio e' il meccanismo di innesco: il posto
+naturale per un cron gratuito, una volta che il progetto sara' su Cloudflare, e' il Cron Trigger
+nativo dei Workers, ma quel momento non e' ancora arrivato (il deploy resta bloccato dallo stesso
+problema Prisma/WASM aperto da settimane). Insistere ad aspettarlo avrebbe significato scrivere
+codice che non si puo' nemmeno provare oggi; usare GitHub Actions, gia' presente nel repository
+per la CI, da' un meccanismo che funziona davvero da subito e si sposta al Cron Trigger con una
+sola modifica quando il deploy sara' fatto, non un ripiego permanente.
+
+Dove leggere il dettaglio: `refactor-16-webinar-e-digest.md`.
