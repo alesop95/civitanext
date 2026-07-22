@@ -44,7 +44,10 @@ dedicata (ADR-012, verificato su telefono reale), app installabile come PWA (l'i
 vera del prompt richiede HTTPS, da verificare al primo deploy reale), notifiche in-app (un
 utente notificato quando una sua proposta viene approvata per il voto o definitivamente,
 verificato nel browser con un ciclo completo). Notifiche push, il passo successivo dichiarato nel
-documento di handoff, richiedono chiavi VAPID e la libreria `web-push`, non ancora introdotte.
+documento di handoff, completate nel codice il 2026-07-22: Web Push API standard + libreria
+`web-push`, chiavi VAPID generate in locale (nessun account esterno, nessun servizio terzo come
+OneSignal/Firebase). Verifica manuale nel browser in sospeso (scrittura chiavi in `.env`), non
+legata al blocco deploy Cloudflare — indipendente dal resto del lavoro in coda.
 
 Fase 4 aperta e primo passo chiuso il 2026-07-16 con sondaggi rapidi in home: un admin crea un
 sondaggio, chiunque sia loggato vota (un voto per sondaggio, riuso di

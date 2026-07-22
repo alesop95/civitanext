@@ -69,6 +69,7 @@ model User {
   photoAlbumsCreated PhotoAlbum[] @relation("PhotoAlbumCreatedBy")
   photos             Photo[]     @relation("PhotoUploader")
   documentsCreated   Document[]
+  pushSubscriptions  PushSubscription[]
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -263,6 +264,24 @@ model Notification {
   message   String
   link      String?
   read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+// Notifiche push (passo dichiarato dopo le notifiche in-app di Fase 3, mai affrontato finora).
+// Un abbonamento per dispositivo/browser, non per utente: lo stesso socio su telefono e desktop
+// ha due righe distinte, ciascuna con l'endpoint del push service del proprio browser
+// (endpoint e' univoco per costruzione: e' l'URL che il browser assegna a quella sottoscrizione).
+// p256dh/auth sono le chiavi pubbliche del dispositivo richieste dal protocollo Web Push per
+// cifrare il payload, non credenziali del progetto. notifyUser (src/lib/notifications.ts) invia
+// un push a ogni riga di un utente quando crea una Notification in-app; una sottoscrizione che il
+// push service segnala come scaduta (404/410) viene cancellata li', non qui.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
   createdAt DateTime @default(now())
 }
 

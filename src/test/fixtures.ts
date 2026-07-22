@@ -133,6 +133,13 @@ export async function createTestDocument(
   });
 }
 
+export async function createTestPushSubscription(userId: string, endpoint = `${MARKER}-${randomUUID()}`) {
+  const prisma = getPrisma();
+  return prisma.pushSubscription.create({
+    data: { userId, endpoint, p256dh: MARKER, auth: MARKER },
+  });
+}
+
 export async function createTestQuiz(questions: Array<{ correctIndex: number; optionTexts: string[] }>) {
   const prisma = getPrisma();
   return prisma.quiz.create({
@@ -186,6 +193,7 @@ export async function resetTestData() {
     where: { OR: [{ author: { name: MARKER } }, { thread: { title: MARKER } }] },
   });
   await prisma.thread.deleteMany({ where: { title: MARKER } });
+  await prisma.pushSubscription.deleteMany({ where: { user: { name: MARKER } } });
   await prisma.proposal.deleteMany({ where: { title: MARKER } });
   await prisma.event.deleteMany({ where: { title: MARKER } });
   await prisma.user.deleteMany({ where: { name: MARKER } });

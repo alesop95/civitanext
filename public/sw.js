@@ -30,3 +30,41 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_URL)));
   }
 });
+
+// Payload inviato da sendPushNotification (src/lib/push.ts) come JSON.stringify({title, body,
+// link}): il fallback su event.data.text() copre solo il caso limite di un push senza quel
+// formato (mai generato da questo backend, ma il protocollo Web Push non lo garantisce).
+self.addEventListener("push", (event) => {
+  let data = { title: "CivitaNext", body: "" };
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch {
+      data = { title: "CivitaNext", body: event.data.text() };
+    }
+  }
+
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: "/icon-192x192.png",
+      data: { link: data.link ?? "/" },
+    }),
+  );
+});
+
+// Riusa una finestra dell'app già aperta sulla stessa pagina invece di aprirne sempre una nuova:
+// lo stesso principio di comodità di un link "normale" cliccato due volte.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const link = event.notification.data?.link ?? "/";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then((clientsList) => {
+      for (const client of clientsList) {
+        if (client.url.endsWith(link) && "focus" in client) return client.focus();
+      }
+      return self.clients.openWindow(link);
+    }),
+  );
+});

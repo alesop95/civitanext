@@ -6,6 +6,7 @@ import { Tag } from "@/components/ui/Tag";
 import { Waves } from "@/components/ui/Waves";
 import { Btn } from "@/components/ui/Btn";
 import { getUserReputation } from "@/lib/reputation";
+import { PushToggle } from "@/components/PushToggle";
 import { toggleDigestOptIn } from "./actions";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -143,6 +144,9 @@ export default async function ProfiloPage() {
               {user.digestOptIn ? "Attivo" : "Disattivo"}
             </Btn>
           </form>
+        </div>
+        <div className="border-t-2 border-dashed border-ink/20 pt-3">
+          <PushToggle />
         </div>
       </section>
     </main>

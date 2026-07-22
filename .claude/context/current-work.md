@@ -39,6 +39,11 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   raggiungibile, cioè finché il deploy reale su Cloudflare (bloccato da ADR-006) non è avvenuto:
   fino a quel momento il digest si può solo testare a mano chiamando `/api/digest` in locale con
   l'header `Authorization` corretto.
+- Notifiche push: le chiavi VAPID sono già generate (nessun account esterno, pura crittografia
+  locale) e riportate all'utente in chat; restano da scrivere in `.env` locale
+  (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
+  verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
+  un admin, verificare che arrivi la notifica di sistema).
 
 ## Chiuse: Fase 0 e Fase 1
 
@@ -97,7 +102,8 @@ definitivamente (unico trigger cablato per ora), pagina `/notifiche` con "segna 
 lette", indicatore col conteggio non lette nell'header. Ciclo completo verificato nel browser:
 proposta approvata dall'admin → badge "Notifiche (1)" per l'autore → messaggio corretto su
 `/notifiche` → "segna tutte come lette" → badge sparito. Notifiche push, il passo successivo
-dichiarato da `ROADMAP.md`, non affrontate: richiedono chiavi VAPID e la libreria `web-push`.
+dichiarato da `ROADMAP.md`, completate nel codice il 2026-07-22: vedi la sezione dedicata più
+sotto, dopo la chiusura di Fase 4.
 
 ## Chiusa: Fase 4 — sondaggi rapidi in home
 
@@ -496,18 +502,61 @@ Definition of done:
       Cloudflare (bloccato da ADR-006) non sarà avvenuto. Testabile solo a mano in locale
       chiamando `/api/digest` con l'header `Authorization` corretto finché quel momento non arriva.
 
+## Chiusa nel codice, verifica manuale in attesa: notifiche push
+
+Chiude il passo dichiarato subito dopo le notifiche in-app di Fase 3 (mai affrontato finora),
+indipendente dal blocco deploy Cloudflare: Web Push API standard + libreria `web-push`, nessun
+servizio terzo (OneSignal, Firebase Cloud Messaging) — stessa preferenza già seguita per
+NextAuth self-hosted su Clerk e R2 su Cloudflare Images, standard aperto e gratuito invece di un
+account esterno aggiuntivo. Le chiavi VAPID sono pura crittografia locale (`npx web-push
+generate-vapid-keys`), non una credenziale di servizio: generate in sessione e già consegnate
+all'utente, senza bisogno di un intervento manuale su un account esterno.
+
+`notifyUser` (`src/lib/notifications.ts`) è ora il punto unico sia della notifica in-app sia del
+push: dopo aver scritto la riga `Notification`, invia un push a ogni `PushSubscription` (un
+abbonamento per dispositivo/browser, non per utente) del destinatario, best-effort — un fallimento
+del push non fa fallire la scrittura in-app, che resta comunque visibile su `/notifiche`. Una
+sottoscrizione che il push service segnala come scaduta (404/410 via `WebPushError`) viene
+cancellata lì stesso; altri errori (rete, 5xx) non la cancellano, si ritenta alla notifica
+successiva. `PushToggle.tsx` è la prima eccezione del progetto al pattern "solo form": essendo
+una sottoscrizione del browser (endpoint + chiavi da `pushManager.subscribe()`), chiama
+`subscribeToPush`/`unsubscribeFromPush` come funzioni direttamente da un componente client, non
+tramite un `<form>`.
+
+File creati: `src/lib/push.ts`, `src/components/PushToggle.tsx`, migrazione
+`prisma/migrations/20260722071101_add_push_subscription/`, test `src/lib/push.test.ts`,
+`src/lib/notifications.test.ts` (mai esistito finora nonostante `notifyUser` risalga a Fase 2).
+File modificati: `prisma/schema.prisma` (+`PushSubscription`), `src/lib/notifications.ts`,
+`src/app/profilo/{page.tsx,actions.ts}` (`subscribeToPush`, `unsubscribeFromPush`), `public/sw.js`
+(listener `push` e `notificationclick`), `src/test/fixtures.ts` (`createTestPushSubscription`,
+pulizia in `resetTestData`).
+
+Definition of done:
+- [x] Modello `PushSubscription` scritto, validato e migrato (procedura ADR-009) su DB di
+      sviluppo e di test (`test:db:migrate`)
+- [x] `subscribeToPush`/`unsubscribeFromPush` con guardia di sola autenticazione (upsert su
+      `endpoint`, cancellazione filtrata anche su `userId`)
+- [x] `notifyUser` invia push best-effort e cancella le sole sottoscrizioni segnalate scadute
+      (verificato da unit/integration test, web-push mockato)
+- [x] Service worker aggiornato con `push`/`notificationclick`
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` (80 casi, 17 file) puliti
+- [ ] Verifica manuale nel browser: **in attesa**, vedi "Interventi manuali in sospeso" in testa
+      a questa scheda (scrivere le chiavi VAPID in `.env`, poi attivare il toggle su `/profilo` e
+      far approvare una proposta di test); non dichiarata come fatta finche' non osservata davvero
+
 ## Riconciliazione
 
-Ultima verifica delle schede: 2026-07-22, sopra l'HEAD dopo `93be748`. Mappa (con picker e
+Ultima verifica delle schede: 2026-07-22, sopra l'HEAD dopo `b330de2`. Mappa (con picker e
 geocodifica inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione
 di test ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo
 deploy con fix identificato. Feature competenze verificata nel browser e committata (`60d7f16`),
 insieme al fix del ritorno post-login. Reputazione e badge (ADR-015) verificati nel browser e
 committati (`c2b5a87`). Mentorship verificata nel browser e committata (`17cd21e`/`4608ecf`).
-Galleria foto (ADR-016) committata (`93be748`), completa nei test automatici, non ancora
-verificata nel browser (bucket R2 da creare). Documenti, webinar ed email digest (ADR-017)
-completi nel codice e nei test automatici, non ancora committati: con questi si chiudono tutte le
-nove voci di Fase 4. Nessuno dei tre ancora verificato nel browser/attivato davvero (bucket R2,
-account YouTube, account Resend e deploy Cloudflare tutti in sospeso, vedi "Interventi manuali in
-sospeso" in testa a questa scheda). Vedi `memory/progress.md` per il dettaglio completo di ogni
+Galleria foto (ADR-016) committata (`93be748`); documenti (`b33b974`); webinar ed email digest
+(ADR-017, `b330de2`): con queste si chiudono tutte le nove voci di Fase 4, tutte complete nei test
+automatici, nessuna ancora verificata nel browser/attivata davvero (bucket R2, account YouTube,
+account Resend e deploy Cloudflare tutti in sospeso). Notifiche push (completamento di Fase 3)
+complete nel codice e nei test automatici, non ancora committate. Vedi "Interventi manuali in
+sospeso" in testa a questa scheda per il dettaglio di cosa resta da attivare a mano.
+Vedi `memory/progress.md` per il dettaglio completo di ogni
 feature e bug, e `memory/decisions.md` per le ADR.

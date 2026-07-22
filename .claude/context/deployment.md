@@ -99,8 +99,14 @@ Fase 4, email digest (ADR-017): `RESEND_API_KEY` (credenziale del servizio Resen
 `DIGEST_FROM_EMAIL` (indirizzo mittente verificato su un dominio dell'associazione),
 `CRON_SECRET` (segreto condiviso che protegge `/api/digest`, confrontato a tempo costante — non
 una credenziale di un servizio esterno, generato una volta e messo sia in `.env` sia nei secret
-GitHub del repository). Nessun valore reale va mai scritto in una scheda tracciata o in un commit:
-solo i nomi delle variabili e dove sono gestite.
+GitHub del repository). Da Fase 3 completata in Fase 4, notifiche push: `VAPID_PUBLIC_KEY`,
+`VAPID_PRIVATE_KEY` (coppia generata in locale con `npx web-push generate-vapid-keys`, nessun
+account esterno: e' pura crittografia, non una credenziale di servizio), `VAPID_SUBJECT` (un
+recapito di contatto per i push service, formato `mailto:...` o un URL `https://`),
+`NEXT_PUBLIC_VAPID_PUBLIC_KEY` (stesso valore di `VAPID_PUBLIC_KEY`, ma col prefisso che Next.js
+richiede per le variabili leggibili anche lato client — usata da `PushToggle.tsx` per
+`pushManager.subscribe()`). Nessun valore reale va mai scritto in una scheda tracciata o in un
+commit: solo i nomi delle variabili e dove sono gestite.
 
 Secret del repository GitHub (non `.env`, gestiti in Settings → Secrets and variables → Actions),
 usati dal workflow `.github/workflows/weekly-digest.yml`: `DEPLOY_URL` (URL pubblico dell'app
