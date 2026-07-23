@@ -11,7 +11,7 @@ covers-paths:
   - playwright.config.ts
   - docker-compose.test.yml
   - .github/workflows/**
-last-verified-commit: 6495c68
+last-verified-commit: a220a33
 ---
 
 # Test di sviluppo
@@ -32,19 +32,27 @@ Postgres leggendo `.env.test` (copiare da `.env.test.example`). Le suite Vitest 
 sole (`describe.skipIf`) se `DATABASE_URL`/`.env.test` non sono presenti, cosi' l'assenza del
 Postgres di test non blocca comandi che non ne hanno bisogno.
 
-Perimetro coperto oggi ("fondazione mirata", ADR-014): quattro file di test Vitest sulla
-logica gia' toccata da bug reali durante la verifica manuale delle fasi precedenti
+Perimetro coperto oggi: partito come "fondazione mirata" (ADR-014) su quattro file Vitest, si è
+poi esteso mano a mano che le feature successive venivano toccate, fino a circa 116 casi in 25
+file al commit corrente. Restano coperte le aree toccate da bug reali delle fasi precedenti
 (`src/app/eventi/actions.test.ts` per il toggle RSVP, `src/app/sondaggi/actions.test.ts` per il
-vincolo di voto unico sui sondaggi, `src/app/quiz/actions.test.ts` per lo scoring e la regola
-"si sovrascrive solo se il punteggio migliora", `src/app/admin/proposte/actions.test.ts` per le
-guardie di ruolo); fixture condivise in `src/test/fixtures.ts` (crea dati con un marker
+vincolo di voto unico sui sondaggi, `src/app/quiz/actions.test.ts` per lo scoring, e le guardie
+di ruolo delle proposte); a queste si sono aggiunti i test delle librerie di logica pura o
+isolabile (`src/lib/reputation.test.ts`, che gira senza Postgres, `src/lib/youtube.ts`,
+`photo-validation`, `document-validation`, `rate-limit`, `digest`, `push`, `notifications`, `r2`
+con Resend e web-push mockati) e delle server action delle verticali più recenti (forum e sua
+moderazione, competenze, mentorship, galleria, documenti, webinar, preferenze del profilo, e la
+cancellazione account GDPR con un caso che verifica che un thread reale resti agganciato dopo
+l'anonimizzazione). Fixture condivise in `src/test/fixtures.ts` (crea dati con un marker
 riconoscibile, `resetTestData()` li cancella in ordine che rispetta le foreign key,
-`setMockSession()` mocka `auth()` aggirando la sua firma overloaded). Un solo smoke e2e,
+`setMockSession()` mocka `auth()` aggirando la sua firma overloaded); un bug di pulizia
+preesistente è stato corretto durante l'hardening (il filtro per marker sul solo titolo non
+bastava più dopo che l'anonimizzazione GDPR cambia `User.name`). Un solo smoke e2e,
 `e2e/smoke.spec.ts`: login, RSVP, voto proposta, tentativo quiz, seedato da
 `scripts/seed-e2e.ts` (idempotente, richiamato anche da un `beforeEach` cosi' un retry
-Playwright non eredita lo stato del tentativo precedente). Le altre otto verticali gia' chiuse
-(forum, spazi civici, mappa, timeline, rassegna stampa...) non hanno ancora test: si aggiungono
-mano a mano che si toccano, non retroattivamente.
+Playwright non eredita lo stato del tentativo precedente). La copertura resta comunque parziale
+e non retroattiva: le verticali puramente informative (spazi civici, mappa, timeline, rassegna
+stampa) non hanno test dedicati, si aggiungono solo se e quando le si tocca.
 
 Vincolo tecnico non ovvio: Vitest non sa renderizzare Server Component asincroni (dichiarato
 esplicitamente dalla guida ufficiale Next), e quasi tutte le pagine di questo progetto lo sono:

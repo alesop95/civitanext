@@ -5,7 +5,7 @@ generated-date: 2026-07-10
 covers-paths:
   - src/**
   - .claude/**
-last-verified-commit: 6495c68
+last-verified-commit: a220a33
 stato: allineata a HEAD; blocco Prisma/Workers rimandato al deploy, fix identificato
 ---
 

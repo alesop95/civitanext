@@ -8,8 +8,8 @@
 
 ```
 Branch attivo:        main
-Commit di riferimento: 6495c68 (HEAD; schede riallineate da sync-context, da committare)
-Data snapshot:        2026-07-20
+Commit di riferimento: a220a33 (HEAD; schede riallineate da sync-context 2026-07-23)
+Data snapshot:        2026-07-23
 ```
 
 Aperto e non risolto a questo commit: il job CI `test-cloudflare-adapter` fallisce per il query
@@ -29,11 +29,11 @@ configurazione. Vedi `deployment.md`, `current-work.md`, la coda di ADR-006 e `m
 
 | Scheda | last-verified | Stato |
 |---|---|---|
-| STACK.md | 6495c68 | aggiornata (ruoli a tre livelli, cartografia e test stack, blocco Prisma/Workers) |
-| design-and-security.md | 6495c68 | aggiornata (auth e guardie di ruolo ora implementate) |
-| deployment.md | 6495c68 | aggiornata (verifica Cloudflare via CI Linux, blocco Prisma/Workers descritto) |
-| dev-testing.md | 6495c68 | aggiornata (contenuto ADR-014, frontmatter riallineato) |
-| current-work.md | 6495c68 | aggiornata (feature Fase 4 chiuse; blocco Prisma/Workers rimandato al deploy) |
+| STACK.md | a220a33 | aggiornata (R2 integrato, YouTube/Resend/web-push, schema ~30 modelli, Fase 5) |
+| design-and-security.md | a220a33 | aggiornata (guardie estese, rate limiting, validazione byte upload, GDPR) |
+| deployment.md | a220a33 | aggiornata (nessun file coperto cambiato dal 6495c68; blocco Prisma/Workers) |
+| dev-testing.md | a220a33 | aggiornata (perimetro test esteso a ~116 casi/25 file) |
+| current-work.md | a220a33 | aggiornata (tutta Fase 4, push, Fase 5 hardening + GDPR, OAuth chiuso) |
 | roadmap.md | 147c741 | non applicabile (covers-paths vuoto; direzione invariata, dettaglio in `design_handoff_civitanext/ROADMAP.md`) |
 | studio-didattico-master.md | 147c741 | 14 voci |
 
@@ -95,6 +95,24 @@ in pre-commit. Tre bug reali trovati e corretti costruendo la fondazione stessa:
 di NextAuth in modalità produzione (`trustHost: true`), corruzione dati tra file di test Vitest
 paralleli su un solo Postgres condiviso, seed e2e non idempotente tra run successivi. Dettaglio
 in ADR-014 e voce didattica 13 (`refactor-13-piano-test.md`).
+
+Dal 2026-07-20 al 2026-07-23 Fase 4 è stata chiusa per intero e si è aperta Fase 5. Le verticali
+di community: competenze (bacheca soci, testo libero, con fix del ritorno post-login al referrer),
+reputazione e badge calcolati in lettura come funzione pura dei dati (ADR-015, voce didattica 14,
+nessuna colonna `points` memorizzata), mentorship (lista curata da admin più richiesta di incontro
+persistita, `Mentor`/`MentorRequest`). Il gruppo infrastruttura: galleria foto e documenti con
+upload proxato su R2 e validazione dei byte reali (ADR-016), webinar via id YouTube ed email
+digest via Resend con trigger GitHub Actions (ADR-017). Le notifiche push (Web Push API, VAPID,
+`web-push`) chiudono Fase 3. Fase 5 hardening: rate limiting su conteggio righe Postgres,
+validazione di lunghezza su tutte le action con testo libero, moderazione admin su forum e
+competenze, e cancellazione account GDPR ibrida anonimizzazione più mediazione admin (ADR-018).
+Google OAuth (ADR-010) chiuso e verificato funzionante nel browser il 2026-07-23, con un bug reale
+del service worker sul ritorno OAuth trovato e corretto (`refactor-17-sw-oauth-redirect.md`). Tutto
+committato e pushato fino a `a220a33`. Resta il blocco Prisma/Workers (sopra) e una lista di
+interventi manuali esterni in sospeso (bucket R2, account YouTube, account Resend, chiavi VAPID in
+`.env`, backup Neon): dettaglio in cima a `current-work.md`. Le feature del gruppo infrastruttura e
+le notifiche push sono complete nei test automatici ma non ancora verificate nel browser, in attesa
+di quegli interventi.
 
 Dettaglio completo di ogni bug/decisione in `memory/progress.md`, ADR in `memory/decisions.md`.
 Sintesi stakeholder unificata in `_notes/stakeholder-brief.md` (documento vivo, aggiornato a ogni

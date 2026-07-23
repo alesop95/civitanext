@@ -6,6 +6,29 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-23 — Riconciliazione schede tecniche core con sync-context (nessun codice)
+
+Commit di riferimento: sopra `a220a33`, da committare.
+File toccati: `.claude/context/STACK.md`, `.claude/context/design-and-security.md`,
+`.claude/context/dev-testing.md` (delta di contenuto), `.claude/context/current-work.md`,
+`.claude/context/deployment.md` (solo bump frontmatter), `.claude/memory/index.md` (commit di
+riferimento, tabella stato, sintesi punto di ripresa), questo work-log.
+Motivo: a inizio sessione di ripresa, il confronto di drift di `sync-context` ha mostrato che le
+tre schede tecniche core erano ferme al contenuto di `6495c68` (~ADR-014/mappa) mentre HEAD era
+`a220a33`, con circa otto commit di feature non riflessi: competenze, reputazione, mentorship,
+galleria/documenti su R2, webinar/digest, notifiche push, hardening di Fase 5 e cancellazione
+account GDPR (ADR-018). `current-work.md`, `studio-didattico` e i file di `memory/` erano invece
+già allineati nel contenuto (solo frontmatter indietro), contrariamente a quanto suggeriva
+`RESUME_PROMPT.md` ("solo la conferma"). `deployment.md` non aveva alcun file coperto cambiato
+(`wrangler.jsonc`/`open-next.config.ts`/`prisma.config.ts` invariati), quindi solo checkpoint.
+Delta applicati (chirurgici, non rigenerazione): STACK — R2 ora integrato via `@aws-sdk/client-s3`,
+librerie `web-push`/`resend`/YouTube, schema cresciuto a ~30 modelli e 5 enum; design-and-security
+— guardie di ruolo estese alle nuove action admin, sezione Hardening di Fase 5 (rate limiting su
+righe Postgres, validazione byte reali degli upload, moderazione, GDPR anonimizzazione+mediazione,
+sicurezza di `/api/digest` a tempo costante e fuga HTML del digest); dev-testing — perimetro test
+da 4 file a ~116 casi/25 file. Bump `last-verified-commit` a `a220a33` su tutte e cinque le schede
+coperte. `roadmap.md` resta non applicabile (`covers-paths` vuoto). Nessuna modifica di codice.
+
 ## 2026-07-21 — Mentorship: bacheca mentori curata dall'admin + richiesta di incontro persistita
 
 Commit di riferimento: da committare sopra `c2b5a87`.

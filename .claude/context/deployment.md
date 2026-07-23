@@ -6,7 +6,7 @@ covers-paths:
   - wrangler.jsonc
   - open-next.config.ts
   - prisma.config.ts
-last-verified-commit: 6495c68
+last-verified-commit: a220a33
 ---
 
 # Deployment

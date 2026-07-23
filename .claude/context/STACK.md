@@ -6,15 +6,16 @@ covers-paths:
   - src/**
   - prisma/**
   - package.json
-last-verified-commit: 6495c68
+last-verified-commit: a220a33
 ---
 
 # Stack applicativo
 
 > Documento di recupero più importante: tracciato, perché un collega che clona deve vederlo.
-> Riflette lo stack effettivo attraverso la Fase 4 (feature verticali costruite e verificate,
-> fondazione di test ADR-014, tutto committato); `last-verified-commit` allineato all'HEAD con
-> `sync-context`.
+> Riflette lo stack effettivo attraverso l'intera Fase 4 (comprese le voci con infrastruttura:
+> galleria e documenti su R2, webinar su YouTube, email digest su Resend), le notifiche push che
+> chiudono la Fase 3 e i tre assi di hardening di Fase 5 più la cancellazione account GDPR
+> (ADR-018); tutto committato. `last-verified-commit` allineato all'HEAD con `sync-context`.
 
 ## Stack e runtime
 
@@ -27,7 +28,9 @@ Persistenza: Postgres tramite Prisma 7.8 con generator `prisma-client` (client T
 output in `src/generated/prisma`, non il vecchio `prisma-client-js`), connesso via
 `@prisma/adapter-pg` invece del client Node standard. Provider di hosting Postgres: Neon
 (vedi `deployment.md`). Autenticazione: NextAuth (Auth.js) self-hosted, hashing password con
-`bcryptjs`. Storage file: Cloudflare R2 (non ancora integrato in Fase 0, previsto da Fase 4).
+`bcryptjs`. Storage file: Cloudflare R2, integrato dal gruppo infrastruttura di Fase 4 via
+`@aws-sdk/client-s3` (client S3-compatibile), upload proxato dal server (non URL presigned) per
+galleria foto e documenti, con validazione sui byte reali prima della scrittura (ADR-016).
 Deploy target: Cloudflare Pages/Workers tramite l'adapter `@opennextjs/cloudflare` (non il
 deprecato `@cloudflare/next-on-pages`), con il compatibility flag `nodejs_compat` obbligatorio
 in `wrangler.jsonc`. Il runtime Cloudflare reale resta non verificato con esito positivo: il job
@@ -38,6 +41,26 @@ Cartografia: `leaflet` con `react-leaflet`, tile OpenStreetMap e geocodifica inv
 scelti per non richiedere account esterni (ADR-013). Stack di test: Vitest per le server action e
 Playwright per un solo smoke end-to-end, entrambi contro un Postgres reale (ADR-014; comandi e
 perimetro in `dev-testing.md`).
+
+Servizi e librerie aggiunti dal gruppo infrastruttura di Fase 4, tutti scelti per restare su
+standard aperti o piani gratuiti (ADR-017): i webinar non sono video self-hosted ma id YouTube
+salvati (`src/lib/youtube.ts` fa il parsing dell'url, embed e thumbnail composti a runtime),
+perché i video eccedono i limiti gratuiti di R2/Workers; l'email digest usa `resend` come
+servizio di invio, il contenuto è generato in `src/lib/digest.ts` con fuga HTML esplicita sul
+testo scritto dai soci, e il trigger settimanale è un workflow GitHub Actions
+(`.github/workflows/weekly-digest.yml`), non il Cron Trigger nativo di Cloudflare (non
+disponibile prima del deploy reale). Le notifiche push (chiusura di Fase 3) usano la Web Push
+API standard tramite `web-push` con chiavi VAPID, nessun servizio terzo tipo Firebase o
+OneSignal.
+
+Il modello dati è cresciuto molto oltre il nucleo di Fase 0: lo schema conta oggi circa trenta
+modelli e cinque enum in `prisma/schema.prisma`, aggiunti fase per fase senza riscrivere il
+nucleo — sondaggi (`Poll`/`PollOption`, riuso di `Vote`), contenuti informativi
+(`CivicSpace`, `MapPoint`, `TimelineEntry` con enum `TimelineKind`, `PressArticle`), community
+autoriale (`Skill`, `Mentor`/`MentorRequest`), infrastruttura file (`PhotoAlbum`/`Photo`,
+`Document` con enum `DocumentCategory`, `Webinar`), notifiche push (`PushSubscription`) e
+cancellazione account GDPR (`AccountDeletionRequest`, più `User.digestOptIn`). Il dettaglio
+delle scelte di modellazione vive nelle ADR e nelle voci didattiche, non qui.
 
 Il materiale in `design_handoff_civitanext/` (React 18 + Babel via CDN, senza bundler) resta
 riferimento di design di sola lettura: non è lo stack applicativo, è il prototipo da cui i token
