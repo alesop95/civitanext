@@ -76,6 +76,9 @@ export default async function AltroPage() {
 
       {isAdmin && (
         <>
+          <Link href="/admin" className={btnClassName({ kind: "primary" })}>
+            Pannello admin
+          </Link>
           <Link href="/admin/proposte" className={btnClassName({ kind: "secondary" })}>
             Coda di approvazione (admin)
           </Link>

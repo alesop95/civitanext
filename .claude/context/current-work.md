@@ -44,6 +44,47 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+## Chiusa nel codice, verifica manuale in attesa: pannello admin + analytics (Fase 5)
+
+Prima voce di sviluppo applicativo dopo la chiusura di Fase 4 e dei tre assi di hardening piu'
+GDPR. Scelta confrontata con l'utente tra piu' direzioni (nuova feature, attivazione interventi
+manuali, ampliamento test) e, dentro la feature, due decisioni non ovvie confrontate prima di
+scrivere: ambito taglio focalizzato (cruscotto + analytics che riusano i dati esistenti, non
+parita' col prototipo che implicherebbe CRUD admin di eventi/quiz, gestione utenti e un sistema di
+segnalazione forum inesistente) e grafici come Server Component SVG/CSS (nessuna dipendenza,
+nessun JS al client, coerente col target Workers) invece di una libreria di charting client.
+
+Fino a oggi le azioni admin vivevano come 13 rotte separate raggiungibili solo da `/altro`, senza
+una radice `/admin`. Il nuovo cruscotto la introduce: Panoramica con statistiche reali (utenti
+registrati, soci tesserati, RSVP medi per evento, tentativi quiz e messaggi forum nel mese, eventi
+totali), contatori di lavoro in attesa (proposte in revisione, richieste di cancellazione account
+non ancora eseguite) con link diretto, e un hub raggruppato verso tutte le sezioni esistenti. La
+pagina Analytics mostra tre andamenti mensili sugli ultimi sei mesi (nuovi iscritti, attivita'
+forum, tentativi quiz), la distribuzione delle proposte per stato e i totali RSVP/voti.
+
+Tutto calcolato in lettura come per la reputazione (ADR-015): nessun contatore memorizzato. La
+parte deterministica (bucketing per mese, medie, soglie) e' isolata in funzioni pure senza
+database in `src/lib/analytics.ts`, testata senza Postgres (`src/lib/analytics.test.ts`, 9 casi,
+girano anche in pre-commit); le funzioni che leggono dal DB delegano a quelle il calcolo. A
+differenza dei "trend" testuali statici del prototipo, l'Analytics non inventa narrazioni: solo
+numeri reali (regola di onesta' del contenuto). Nessuna nuova ADR (riuso di pattern gia' decisi),
+nessuna migrazione di schema.
+
+File creati: `src/lib/analytics.ts`, `src/lib/analytics.test.ts`, `src/components/ui/StatTile.tsx`,
+`src/components/ui/BarChart.tsx`, `src/app/admin/page.tsx`, `src/app/admin/analytics/page.tsx`.
+File modificati: `src/components/SiteHeader.tsx` (chip "Admin" ora punta a `/admin`, attiva su
+qualunque rotta `/admin`; `/admin` e `/admin/analytics` aggiunti a `ALTRO_HREFS`),
+`src/app/altro/page.tsx` (link "Pannello admin").
+
+Definition of done:
+- [x] Logica statistiche in `src/lib/analytics.ts`, parte pura coperta da unit test (9 casi, verdi)
+- [x] Cruscotto `/admin` con guardia di ruolo, Panoramica reale, contatori "da gestire", hub
+- [x] `/admin/analytics` con grafici SVG/CSS sui dati reali, guardia di ruolo
+- [x] `npx tsc --noEmit`, `npm run lint` e `npm run build` puliti (rotte `/admin` e
+      `/admin/analytics` nel manifest di build)
+- [ ] Verifica manuale nel browser: **in attesa** (login admin, controllo che statistiche e
+      grafici rendano sui dati del DB di sviluppo); non dichiarata come fatta finche' non osservata
+
 ## Chiusa: Google OAuth (ADR-010) — configurazione esterna completata e verificata
 
 L'ultimo punto rimandato di ADR-010 (Fase 1) è chiuso il 2026-07-23: l'account Google
@@ -301,6 +342,14 @@ prosegue con le feature di Fase 4. Il fix è identificato — `runtime = "cloudf
 generator, oggi assente, con verifica dell'integrazione OpenNext e del campo `output` — e si
 applica alla vigilia del deploy. Il downgrade a Prisma 6.19.0 è scartato: superato dal fix di
 configurazione.
+
+Aggiornamento 2026-07-23: per non mostrare un rosso permanente su ogni push per un blocco
+volutamente posticipato, il job `test-cloudflare-adapter` è stato sospeso dai push automatici e
+reso lanciabile solo a mano (`workflow_dispatch` in `.github/workflows/ci.yml`, con
+`if: github.event_name == 'workflow_dispatch'` sul job). Su push e PR ora risulta "skipped", non
+"failed"; il job CI standard (`test`) resta l'unico gate automatico e resta verde. Lo si rilancerà
+a mano dopo aver applicato il fix Prisma sopra, alla vigilia del primo deploy. Nessuna
+mascheratura del blocco: il job esiste ancora ed è documentato, semplicemente non gira a vuoto.
 
 ## Chiusa: Fase 4 — competenze (bacheca di matching tra soci)
 

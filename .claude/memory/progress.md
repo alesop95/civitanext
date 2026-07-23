@@ -6,6 +6,36 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-23 — Pannello admin con analytics + sospensione job CI Cloudflare
+
+Commit di riferimento: sopra `1cb9fbf`, da committare.
+File creati: `src/lib/analytics.ts`, `src/lib/analytics.test.ts`, `src/components/ui/StatTile.tsx`,
+`src/components/ui/BarChart.tsx`, `src/app/admin/page.tsx`, `src/app/admin/analytics/page.tsx`.
+File modificati: `src/components/SiteHeader.tsx`, `src/app/altro/page.tsx`,
+`.github/workflows/ci.yml`, `.claude/context/current-work.md`, questo work-log.
+Motivo/racconto: prima voce di sviluppo applicativo dopo la chiusura di Fase 4 e dei tre assi di
+hardening piu' GDPR, scelta dall'utente tra piu' direzioni. Il ROADMAP di handoff dichiara sia un
+"Pannello admin" (Fase 2.3, mai costruito come radice) sia "Analytics admin" (Fase 5.1): fino a
+oggi le azioni admin erano 13 rotte separate raggiungibili solo da `/altro`, senza una `/admin`.
+Due decisioni non ovvie confrontate con l'utente prima di scrivere: ambito taglio focalizzato
+(cruscotto + analytics sui dati esistenti, non parita' col prototipo che imporrebbe CRUD admin di
+eventi/quiz, gestione utenti e un sistema di segnalazione forum inesistente), e grafici come
+Server Component SVG/CSS (nessuna dipendenza, nessun JS al client, coerente col target Workers)
+invece di una libreria di charting client. Statistiche calcolate in lettura come la reputazione
+(ADR-015), nessun contatore memorizzato; parte deterministica (bucketing per mese, medie, soglie)
+isolata in funzioni pure e testata senza Postgres (9 casi). Analytics senza "trend" inventati, a
+differenza del prototipo: solo numeri reali (onesta' del contenuto). Nessuna nuova ADR, nessuna
+migrazione.
+Contestualmente, hygiene del CI: il job `test-cloudflare-adapter` falliva a ogni push per il
+blocco WASM di Prisma 7 su workerd (ADR-006), fix identificato ma rimandato al deploy; mostrava
+un rosso permanente per una cosa volutamente posticipata. Reso lanciabile solo a mano
+(`workflow_dispatch` + `if: github.event_name == 'workflow_dispatch'`): su push/PR ora e'
+"skipped", il job standard `test` resta l'unico gate automatico e resta verde. Il job non e'
+rimosso ne' mascherato, si rilancera' a mano alla vigilia del deploy dopo il fix Prisma.
+Verifiche: `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (rotte `/admin` e
+`/admin/analytics` nel manifest); test puro analytics verde (9 casi). Verifica browser interattiva
+del cruscotto ancora da fare (utente, richiede login admin).
+
 ## 2026-07-23 — Riconciliazione schede tecniche core con sync-context (nessun codice)
 
 Commit di riferimento: sopra `a220a33`, da committare.

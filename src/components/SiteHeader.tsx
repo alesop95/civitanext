@@ -20,6 +20,8 @@ const NAV_LINKS = [
 const ALTRO_HREFS = [
   "/proposte",
   "/profilo",
+  "/admin",
+  "/admin/analytics",
   "/admin/proposte",
   "/accedi",
   "/registrati",
@@ -72,8 +74,8 @@ export async function SiteHeader({ activeHref }: { activeHref: string }) {
           ))}
           {isAdmin && (
             <Link
-              href="/admin/proposte"
-              className={chipClassName({ active: activeHref === "/admin/proposte" })}
+              href="/admin"
+              className={chipClassName({ active: activeHref.startsWith("/admin") })}
             >
               Admin
             </Link>
