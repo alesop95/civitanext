@@ -105,15 +105,15 @@ account YouTube, account Resend con dominio verificato, secret GitHub, e sopratt
 reale su Cloudflare (bloccato da ADR-006) di cui l'email digest ha bisogno per poter davvero
 inviare qualcosa. Dettaglio completo in "Interventi manuali in sospeso", `current-work.md`.
 
-Aggiornato il 2026-07-22: l'account Google dedicato all'associazione (non il personale dello
+Chiuso il 2026-07-23: l'account Google dedicato all'associazione (non il personale dello
 sviluppatore, per lo stesso principio di separazione identità personale/organizzazione già
-adottato per git in `.claude/rules/git-identity-and-repo.md`) esiste ora. Resta da fare solo il
-passo esterno, non di codice: creare un progetto OAuth su Google Cloud Console con quell'account,
-configurare la schermata di consenso, generare le credenziali (Client ID/Secret) con redirect URI
-`{origin}/api/auth/callback/google` (in locale `http://localhost:3000/api/auth/callback/google`,
-verificare la porta reale), e scrivere `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` in `.env`. Il codice
-del provider è già scritto (ADR-010) e non richiede altro lavoro. Aggiunto a "Interventi manuali
-in sospeso" in `current-work.md`.
+adottato per git in `.claude/rules/git-identity-and-repo.md`, esistente dal 2026-07-22) è stato
+usato per completare la configurazione OAuth su Google Cloud Console — progetto, identità
+dell'app, client, credenziali in `.env` — **e il login con Google è stato verificato funzionante
+nel browser**, sessione creata. Durante la verifica, un bug reale nel service worker (Fase 3)
+bloccava il ritorno da Google mostrando la pagina offline invece del sito; diagnosticato e
+corretto nella stessa sessione (dettaglio in `current-work.md` e
+`refactor-17-sw-oauth-redirect.md`). Procedura replicabile completa in `deployment.md`.
 
 Hardening (Fase 5, scelta dell'utente tra le voci indipendenti dal deploy) completo nel codice su
 tre dei quattro assi del `ROADMAP.md` di handoff il 2026-07-22 — rate limiting (Postgres, nessun

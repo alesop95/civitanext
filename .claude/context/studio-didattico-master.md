@@ -522,4 +522,42 @@ codice che non si puo' nemmeno provare oggi; usare GitHub Actions, gia' presente
 per la CI, da' un meccanismo che funziona davvero da subito e si sposta al Cron Trigger con una
 sola modifica quando il deploy sara' fatto, non un ripiego permanente.
 
+## 17. Quando il sospetto ovvio non regge, si cambia cosa si osserva, non cosa si crede: il service worker che rompeva "Accedi con Google"
+
+Com'era la tentazione fragile. Il primo login con Google finiva su una pagina "Sei offline" invece
+che nel sito, subito dopo aver dato il consenso. Il sospetto piu' comodo era la configurazione
+appena fatta su Google Cloud Console: un URI di reindirizzamento scritto male, un progetto
+sbagliato, un account di prova non aggiunto — tutte cose plausibili perche' erano l'ultima cosa
+toccata. Un secondo sospetto altrettanto comodo era il browser stesso: nello stesso periodo erano
+comparse nel log richieste a `/home`, `/admin`, `/restaurant`, di un tutt'altro progetto mai
+eseguito insieme a questo, e la tentazione era di legare i due fenomeni, come se un'unica causa
+imprecisata spiegasse entrambi. Inseguire il sospetto piu' comodo senza verificarlo avrebbe
+significato rifare la configurazione Google da capo per un problema che non stava li'.
+
+Il salto senior e perche' e' meglio. Invece di ripetere la stessa configurazione sperando in un
+esito diverso, il passo e' stato cambiare cosa si stava osservando: una finestra in incognito
+elimina in un colpo cronologia, estensioni e cookie di sessione, isolando esattamente se il
+browser "normale" fosse la causa. Il problema si e' riprodotto identico: quella pista era chiusa,
+con una singola prova invece di molte ipotesi. La seconda mossa e' stata leggere il log del server
+riga per riga invece di ragionare in astratto su "cosa dovrebbe succedere": la richiesta di ritorno
+da Google (`/api/auth/callback/google`) non compariva mai, in nessuno dei due tentativi — non un
+errore, un'assenza totale. Un'assenza totale nel log e' un indizio preciso: il fallimento avveniva
+prima che la richiesta lasciasse il browser per la rete, il che sposta il sospetto da "Google" o
+da "il server" a "qualcosa nel browser che intercetta la richiesta prima che parta". L'unico
+codice della pagina che intercetta ogni navigazione e' il service worker (`public/sw.js`), scritto
+in Fase 3 per il solo scopo di mostrare una pagina offline quando la rete manca davvero. Richiamare
+`fetch()` sulla stessa richiesta di navigazione quando questa arriva da un redirect di un'origine
+esterna (Google) e' un vincolo noto del browser, non documentato nel punto in cui il codice era
+stato scritto la prima volta, perche' allora nessuna navigazione arrivava mai da un redirect
+esterno. Il fix e' minimo, una riga: le rotte `/api/` non passano piu' dal fallback offline, che su
+una rotta API non avrebbe comunque senso. Le richieste a `/home`/`/admin`/`/restaurant`, nel
+frattempo, si sono rivelate un fenomeno del tutto separato e non un bug: la cronologia del browser
+associa quegli indirizzi alla porta 3000 in quanto tale, non a CivitaNext in particolare, perche'
+diversi progetti locali nel tempo hanno usato la stessa porta di default. Due sospetti comodi,
+nessuno dei due era quello giusto: il metodo che ha funzionato e' stato ridurre le variabili una
+alla volta (incognito) e leggere l'evidenza esatta (il log) invece di argomentare sulla base di
+cosa "dovrebbe" succedere.
+
+Dove leggere il dettaglio: `refactor-17-sw-oauth-redirect.md`.
+
 Dove leggere il dettaglio: `refactor-16-webinar-e-digest.md`.

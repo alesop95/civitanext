@@ -25,8 +25,17 @@ self.addEventListener("activate", (event) => {
 // dalla cache mostrerebbe uno stato di accesso non più valido invece di un contenuto offline
 // onesto. Nessuna cache aggressiva dei contenuti letti in questa prima versione: da rivedere
 // solo per pagine che non dipendono dalla sessione, se servirà davvero.
+//
+// Esclude "/api/": il ritorno da un provider OAuth (Google) verso /api/auth/callback/google e'
+// una navigazione che arriva da un redirect cross-origin, e richiamare fetch() su
+// event.request in queste condizioni puo' fallire per un vincolo del browser sulle richieste
+// reindirizzate da un'origine esterna anche quando il server di destinazione e' raggiungibile
+// (osservato: la richiesta non arriva mai al server Next, il login resta bloccato sulla pagina
+// offline). Nessun fallback offline ha senso comunque su una rotta API: un errore li' deve
+// mostrare l'errore vero, non una pagina offline finta.
 self.addEventListener("fetch", (event) => {
-  if (event.request.mode === "navigate") {
+  const url = new URL(event.request.url);
+  if (event.request.mode === "navigate" && !url.pathname.startsWith("/api/")) {
     event.respondWith(fetch(event.request).catch(() => caches.match(OFFLINE_URL)));
   }
 });

@@ -79,6 +79,97 @@ In entrambi i casi `migrate deploy` applica e registra in `_prisma_migrations`, 
 sviluppo, mai direttamente in produzione) — da riverificare se `migrate dev` torna utilizzabile
 contro un Postgres reale in rete (Neon), vedi Conseguenze di ADR-009.
 
+## Configurazione Google OAuth (procedura replicabile)
+
+Scritta perche' rifacibile da zero, non solo come diario di quanto fatto: se l'associazione
+dovesse ricreare l'app OAuth (nuovo account, progetto perso, credenziali revocate), questi sono i
+passi esatti, nell'ordine esatto, con le etichette esatte dell'interfaccia vista in italiano il
+2026-07-23. Il codice del provider Google in `src/auth.ts` e' gia' scritto (ADR-010) e non
+richiede alcuna modifica: questa procedura produce solo le due credenziali che gli servono.
+
+Primo, accedere a `console.cloud.google.com` autenticati con l'account Google dedicato
+all'associazione, non un account personale (stesso principio di separazione identita' gia'
+adottato per git in `.claude/rules/git-identity-and-repo.md`). La console mostra un banner "Prova
+Google Cloud con 300$ di crediti gratuiti": va ignorato, non va avviata alcuna prova. Creare un
+progetto e configurare OAuth sono operazioni gratuite di per se', nessuna carta di pagamento
+richiesta; il banner riguarda servizi a consumo (macchine virtuali e simili) che questo progetto
+non usa.
+
+Secondo, creare il progetto: cliccare il selettore "Seleziona un progetto" in alto a sinistra,
+poi "Nuovo progetto". Nel form, scrivere il nome (usato "CivitaNext"): l'ID progetto si genera
+automaticamente in minuscolo dal nome ("civitanext") e non e' piu' modificabile dopo la
+creazione, quindi va controllato prima di confermare. Il campo "Risorsa padre" resta su "Nessuna
+organizzazione" quando l'account Google non appartiene a un'organizzazione Google Workspace, caso
+normale per un account creato per una singola associazione. Cliccare "Crea". La console notifica
+il completamento (icona a campana in alto a destra, "Crea il progetto: CivitaNext"); cliccare
+"Seleziona progetto" nella notifica, oppure riaprire il selettore progetto e scegliere
+"CivitaNext" dalla lista, cosi' che compaia selezionato in alto a sinistra invece della dashboard
+generica.
+
+Terzo, configurare l'identita' dell'app (quella che Google chiama "Google Auth Platform", il
+successore della vecchia "schermata di consenso OAuth"): dal menu ☰ in alto a sinistra, "API e
+servizi" → "Schermata consenso OAuth". Se non ancora configurata, cliccare "Inizia": si apre un
+wizard a quattro passi. Passo 1 "Informazioni sull'app": "Nome applicazione" = `CivitaNext` (e' il
+nome mostrato agli utenti nella schermata di consenso Google), "Email per assistenza utenti" =
+l'email dell'account Google dell'associazione (es. `civitanext@gmail.com`), poi "Avanti". Passo 2
+"Pubblico": selezionare "Esterno", non "Interno" ("Interno" richiede un'organizzazione Google
+Workspace, assente su un account personale/associativo senza Workspace) — "Esterno" fa partire
+l'app in modalita' test, utilizzabile solo dagli account aggiunti come utenti di prova finche' non
+si decide di pubblicarla; passare in produzione per aprirla a chiunque potrebbe richiedere una
+verifica Google, anch'essa gratuita. Poi "Avanti". Passo 3 "Dati di contatto": stessa email
+dell'account (dove Google notifica eventuali modifiche al progetto), poi "Avanti". Passo 4 "Fine":
+spuntare "Accetto le Norme relative ai dati utente: servizi API di Google", poi "Continua", poi
+"Crea". La console mostra "Configurazione OAuth creata." e la pagina "Panoramica di OAuth" con la
+sezione "Metriche" che segnala "Non hai ancora configurato nessun client OAuth per questo
+progetto": e' normale, il client (le credenziali vere) e' il passo successivo, distinto da questo.
+
+Quarto, creare il client OAuth (le due credenziali che servono a `AUTH_GOOGLE_ID`/
+`AUTH_GOOGLE_SECRET`): dalla stessa pagina "Panoramica di OAuth", cliccare "Crea client OAuth"
+(oppure dal menu laterale "Client" → "Crea client"). Tipo di applicazione: "Applicazione web".
+Nome: un'etichetta solo per riconoscerlo in questa console (es. "CivitaNext web"), non visibile
+agli utenti finali. Nessuna "Origine JavaScript autorizzata" necessaria (serve solo per flussi
+lato browser; NextAuth usa il flusso lato server). In "URI di reindirizzamento autorizzati"
+aggiungere l'URI esatto che NextAuth usa per completare l'accesso Google, uno per ambiente: in
+sviluppo locale `http://localhost:3000/api/auth/callback/google` (verificare che `next dev` usi
+davvero la porta 3000 su questa macchina), e in produzione
+`https://<dominio-reale>/api/auth/callback/google` quando il dominio esistera' (da aggiungere in
+un secondo momento, non blocca l'uso in locale adesso). Cliccare "Crea".
+
+Quinto, recuperare le credenziali senza mai farle transitare altrove: il riquadro "Client OAuth
+creato" mostra solo l'ID client in chiaro; il client secret non e' visibile li', va preso
+cliccando "Scarica JSON" (contiene sia `client_id` sia `client_secret`). Aprire il JSON scaricato
+con un editor di testo, copiare i due valori dentro `.env` locale (nella radice del repository,
+gia' in `.gitignore` col pattern `.env*`, verificato) come `AUTH_GOOGLE_ID` e `AUTH_GOOGLE_SECRET`
+— mai in una scheda tracciata ne' in un commit, e mai passati all'agente, che non legge né scrive
+`.env` per regola del progetto. Cancellare poi il JSON scaricato (di norma nella cartella
+Download): una volta nei due campi di `.env` non serve piu' tenerne una copia, e ogni copia
+aggiuntiva del secret e' rischio senza beneficio; se si perde, si puo' sempre generarne uno nuovo
+dalla pagina "Client" della console.
+
+Nota (2026-07-23, riprodotta e risolta durante la prima verifica reale): il service worker
+dell'app (`public/sw.js`, Fase 3) intercetta le navigazioni per offrire un fallback offline. Il
+ritorno da Google verso `/api/auth/callback/google` e' anch'esso una navigazione, ma arriva da un
+redirect cross-origin (accounts.google.com → il sito): richiamare `fetch()` su quella richiesta
+dentro il service worker puo' fallire per un vincolo del browser sulle navigazioni reindirizzate
+da un'origine esterna, anche quando il server di destinazione e' raggiungibile. Il sintomo era
+netto: la pagina "Sei offline" al posto del sito dopo aver cliccato "Continua" sul consenso
+Google, riproducibile identico anche in una finestra in incognito (che esclude cronologia ed
+estensioni come causa), e nel log del server la richiesta a `/api/auth/callback/google` non
+compariva mai, nemmeno come errore — segno che il fallimento avveniva prima di raggiungere la
+rete. Gia' corretto nel codice attuale: il service worker esclude le rotte `/api/` dalla propria
+intercettazione (nessun fallback offline avrebbe senso su una rotta API comunque). Chi rifa
+questa procedura da zero con una copia del codice precedente a questo fix incontrerebbe lo stesso
+blocco esatto al primo login Google; con il codice attuale non dovrebbe piu' presentarsi. Dettaglio
+tecnico completo in `refactor-17-sw-oauth-redirect.md`.
+
+Sesto, prima di poter davvero testare l'accesso: in modalita' "Esterno"/test (passo 2 sopra),
+solo gli account elencati come utenti di prova possono completare l'accesso Google. Da "Pubblico"
+nel menu laterale → "Utenti di prova" → "Aggiungi utenti", aggiungere almeno l'account Google con
+cui si fara' il test (puo' essere l'account personale di chi sviluppa, non serve che sia
+l'account dell'associazione). Verifica finale: riavviare `next dev`, andare su `/accedi`, cliccare
+"Accedi con Google", completare il consenso con un account elencato come utente di prova, e
+verificare che si crei/autentichi l'utente nel sito.
+
 ## Variabili d'ambiente e segreti
 
 `.env` (ignorato da git, mai letto dall'agente per regola di `settings.json`): contiene

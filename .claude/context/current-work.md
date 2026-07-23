@@ -44,14 +44,38 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
-- Google OAuth (ADR-010): l'account Google dell'associazione esiste ora (2026-07-22). Resta da
-  creare il progetto OAuth su Google Cloud Console con quell'account, configurare la schermata di
-  consenso, generare Client ID/Secret con redirect URI
-  `{origin}/api/auth/callback/google` (`http://localhost:3000/api/auth/callback/google` in
-  locale, verificare la porta reale usata da `next dev`), scrivere `AUTH_GOOGLE_ID`/
-  `AUTH_GOOGLE_SECRET` in `.env`. Nessun codice da scrivere: il provider è già implementato.
-  Verifica: pulsante "Accedi con Google" su `/accedi` porta a un vero consenso Google e crea/
-  autentica l'utente.
+## Chiusa: Google OAuth (ADR-010) — configurazione esterna completata e verificata
+
+L'ultimo punto rimandato di ADR-010 (Fase 1) è chiuso il 2026-07-23: l'account Google
+dell'associazione (dal 2026-07-22) è stato usato per configurare l'app OAuth su Google Cloud
+Console passo-passo via screenshot, procedura completa e replicabile in `deployment.md`
+("Configurazione Google OAuth"). Fatto: progetto "CivitaNext" (ID `civitanext`); identità
+dell'app ("Google Auth Platform") — pubblico "Esterno", email di assistenza/contatto
+`civitanext@gmail.com`; client OAuth "CivitaNext web" (redirect URI
+`http://localhost:3000/api/auth/callback/google`); `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`
+scritti in `.env` locale dall'utente (mai passati all'agente); account di prova aggiunto.
+**Verificato nel browser**: login con Google completo, sessione creata, utente autenticato nel
+sito (avatar "AS" in header, "Esci" visibile) — non solo configurato, osservato funzionare.
+
+Durante la verifica, un bug reale e non ovvio ha bloccato il primo tentativo, diagnosticato e
+corretto nella stessa sessione: il service worker (`public/sw.js`, Fase 3) intercettava anche la
+navigazione di ritorno da Google (`/api/auth/callback/google`), una richiesta che arriva da un
+redirect cross-origin. Richiamare `fetch()` su quella richiesta dentro il service worker falliva
+per un vincolo del browser sulle navigazioni reindirizzate da un'origine esterna — non un errore
+di rete vero, ma trattato come tale dal `.catch()` del service worker, che mostrava la pagina di
+fallback offline invece del sito. La richiesta non arrivava mai al server Next (verificato nel
+log: nessuna riga per quella rotta, in nessuno dei tentativi), il che ha isolato il problema al
+service worker piuttosto che a Google, alla rete o alla configurazione OAuth stessa — confermato
+anche perché il problema si riproduceva identico in una finestra in incognito, escludendo
+cronologia/estensioni del browser normale. Fix: escludere le rotte `/api/` dall'intercettazione
+di navigazione nel service worker (nessun fallback offline ha senso su una rotta API comunque).
+Effetto collaterale distinto e chiarito con l'utente, non un bug: durante la diagnosi sono
+comparse nel log richieste a `/home`, `/admin`, `/restaurant`, `/band`, `/photographer`, rotte
+inesistenti in CivitaNext riconosciute come appartenenti a un altro progetto locale dell'utente
+mai eseguito su questa porta contemporaneamente — quasi certamente cronologia/autocompletamento
+dell'indirizzo del browser che confonde host+porta (`localhost:3000`) tra progetti diversi
+eseguiti in momenti diversi sulla stessa porta, non una contaminazione reale tra codebase. Nulla
+da segnalare all'altro progetto. Voce didattica associata: `refactor-17-sw-oauth-redirect.md`.
 
 ## Chiuse: Fase 0 e Fase 1
 
@@ -661,9 +685,11 @@ account Resend e deploy Cloudflare tutti in sospeso). Notifiche push committate 
 completano Fase 3, verifica manuale in attesa (chiavi VAPID da scrivere in `.env`). Hardening
 (Fase 5: rate limiting/validazione/moderazione, e ora anche cancellazione account GDPR ADR-018)
 completo nel codice e nei test automatici, non ancora committato; resta solo backup (Neon, da
-verificare) tra i quattro assi del gruppo hardening. Account Google dell'associazione ora
-disponibile: resta solo il passo esterno su Google Cloud Console (non di codice). Vedi
-"Interventi manuali in sospeso" in testa a questa scheda per il dettaglio di cosa resta da
-attivare a mano.
+verificare) tra i quattro assi del gruppo hardening. Google OAuth (ADR-010) chiuso il 2026-07-23:
+configurazione Google Cloud Console completata e login con Google **verificato funzionante nel
+browser** (non solo configurato), con in aggiunta un bug reale del service worker trovato e
+corretto nella stessa sessione (vedi sezione dedicata sopra e
+`refactor-17-sw-oauth-redirect.md`); non ancora committato. Vedi "Interventi manuali in sospeso"
+in testa a questa scheda per il dettaglio di cosa resta da attivare a mano.
 Vedi `memory/progress.md` per il dettaglio completo di ogni
 feature e bug, e `memory/decisions.md` per le ADR.
