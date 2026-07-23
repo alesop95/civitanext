@@ -58,6 +58,11 @@ export async function createTestThread(authorId: string, createdAt: Date = new D
   });
 }
 
+export async function createTestReply(threadId: string, authorId: string, createdAt: Date = new Date()) {
+  const prisma = getPrisma();
+  return prisma.reply.create({ data: { threadId, authorId, body: MARKER, createdAt } });
+}
+
 export async function createTestWebinar(recordedAt: Date = new Date()) {
   const prisma = getPrisma();
   return prisma.webinar.create({
@@ -140,6 +145,25 @@ export async function createTestPushSubscription(userId: string, endpoint = `${M
   });
 }
 
+export async function createTestOAuthAccount(userId: string) {
+  const prisma = getPrisma();
+  return prisma.account.create({
+    data: {
+      userId,
+      type: "oauth",
+      provider: "google",
+      providerAccountId: `${MARKER}-${randomUUID()}`,
+      access_token: "fake-access-token",
+      refresh_token: "fake-refresh-token",
+    },
+  });
+}
+
+export async function createTestAccountDeletionRequest(userId: string) {
+  const prisma = getPrisma();
+  return prisma.accountDeletionRequest.create({ data: { userId } });
+}
+
 export async function createTestQuiz(questions: Array<{ correctIndex: number; optionTexts: string[] }>) {
   const prisma = getPrisma();
   return prisma.quiz.create({
@@ -192,9 +216,31 @@ export async function resetTestData() {
   await prisma.reply.deleteMany({
     where: { OR: [{ author: { name: MARKER } }, { thread: { title: MARKER } }] },
   });
-  await prisma.thread.deleteMany({ where: { title: MARKER } });
+  // OR anche sull'autore, non solo sul titolo: i test di hardening (forum/actions.test.ts)
+  // creano thread con titoli reali distinti (per verificare l'unicita' della ricerca), non
+  // sempre MARKER.
+  await prisma.thread.deleteMany({ where: { OR: [{ title: MARKER }, { author: { name: MARKER } }] } });
   await prisma.pushSubscription.deleteMany({ where: { user: { name: MARKER } } });
-  await prisma.proposal.deleteMany({ where: { title: MARKER } });
+  // Filtro solo sull'utente, non su Skill.name: a differenza delle altre fixture, i test di
+  // competenze/actions.ts creano skill con nomi reali distinti (per verificare unicita'), non
+  // sempre MARKER.
+  await prisma.skill.deleteMany({ where: { user: { name: MARKER } } });
+  await prisma.proposal.deleteMany({
+    where: { OR: [{ title: MARKER }, { author: { name: MARKER } }] },
+  });
   await prisma.event.deleteMany({ where: { title: MARKER } });
+  // L'anonimizzazione (processAccountDeletion) cambia deliberatamente User.name via
+  // "Utente cancellato": il filtro per MARKER da solo non basterebbe piu' a trovare l'utente di
+  // test dopo che il test stesso ne ha verificato l'anonimizzazione. Il pattern dell'email
+  // anonimizzata (deterministico, vedi admin/account-deletion/actions.ts) e' il secondo aggancio.
+  await prisma.accountDeletionRequest.deleteMany({
+    where: {
+      OR: [
+        { user: { name: MARKER } },
+        { user: { email: { endsWith: "@anonimizzato.civitanext.local" } } },
+      ],
+    },
+  });
+  await prisma.user.deleteMany({ where: { email: { endsWith: "@anonimizzato.civitanext.local" } } });
   await prisma.user.deleteMany({ where: { name: MARKER } });
 }

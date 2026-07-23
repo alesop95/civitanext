@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
+import { MAX_LONG_TEXT, MAX_SHORT_TEXT } from "@/lib/validation";
 
 async function requireAdmin() {
   const session = await auth();
@@ -21,6 +22,9 @@ export async function createMentor(formData: FormData) {
   const slots = Number.isInteger(slotsRaw) && slotsRaw >= 0 ? slotsRaw : 1;
 
   if (!name || !area || !description) redirect("/admin/mentorship/nuovo?error=1");
+  if (name.length > MAX_SHORT_TEXT || area.length > MAX_SHORT_TEXT || description.length > MAX_LONG_TEXT) {
+    redirect("/admin/mentorship/nuovo?error=2");
+  }
 
   const prisma = getPrisma();
   await prisma.mentor.create({ data: { name, area, description, slots } });

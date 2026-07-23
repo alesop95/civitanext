@@ -103,6 +103,9 @@ export default async function AltroPage() {
           <Link href="/admin/webinar/nuovo" className={btnClassName({ kind: "secondary" })}>
             Nuovo webinar (admin)
           </Link>
+          <Link href="/admin/account-deletion" className={btnClassName({ kind: "secondary" })}>
+            Richieste cancellazione account (admin)
+          </Link>
         </>
       )}
     </main>

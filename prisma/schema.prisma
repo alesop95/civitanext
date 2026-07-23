@@ -70,6 +70,8 @@ model User {
   photos             Photo[]     @relation("PhotoUploader")
   documentsCreated   Document[]
   pushSubscriptions  PushSubscription[]
+  deletionRequests         AccountDeletionRequest[] @relation("AccountDeletionRequester")
+  deletionRequestsHandled  AccountDeletionRequest[] @relation("AccountDeletionProcessedBy")
 }
 
 // Collega un utente a uno o piu' provider di autenticazione (credenziali gestite a parte via
@@ -283,6 +285,24 @@ model PushSubscription {
   p256dh    String
   auth      String
   createdAt DateTime @default(now())
+}
+
+// Richiesta di cancellazione account (GDPR, ADR-018): il socio la invia da /profilo, un admin la
+// esegue a mano da /admin/account-deletion. "Cancellazione" nell'interfaccia significa
+// anonimizzazione dei dati personali (email, nome, password, tessera), non rimozione della riga
+// User ne' dei contenuti: un thread o una proposta approvata restano, potendo avere risposte o
+// discussioni di altri soci agganciate, ma l'autore diventa "Utente cancellato". La riga di
+// questa tabella resta anche dopo l'esecuzione, come traccia scritta della richiesta e di chi
+// l'ha gestita: e' proprio quella traccia, insieme alla riga User anonimizzata ma non cancellata,
+// che rende la richiesta ricollegabile in futuro se servisse dimostrare la conformita'.
+model AccountDeletionRequest {
+  id            String    @id @default(cuid())
+  userId        String
+  user          User      @relation("AccountDeletionRequester", fields: [userId], references: [id])
+  createdAt     DateTime  @default(now())
+  processedAt   DateTime?
+  processedById String?
+  processedBy   User?     @relation("AccountDeletionProcessedBy", fields: [processedById], references: [id])
 }
 
 // Sondaggio rapido in home (Fase 4). Il voto riusa Vote con targetType POLL e targetId

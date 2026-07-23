@@ -7,7 +7,7 @@ import { Waves } from "@/components/ui/Waves";
 import { Btn } from "@/components/ui/Btn";
 import { getUserReputation } from "@/lib/reputation";
 import { PushToggle } from "@/components/PushToggle";
-import { toggleDigestOptIn } from "./actions";
+import { toggleDigestOptIn, requestAccountDeletion } from "./actions";
 
 const ROLE_LABELS: Record<string, string> = {
   SUPERADMIN: "Responsabile generale",
@@ -21,6 +21,12 @@ const memberSinceFormatter = new Intl.DateTimeFormat("it-IT", {
   year: "numeric",
 });
 
+const requestedAtFormatter = new Intl.DateTimeFormat("it-IT", {
+  day: "numeric",
+  month: "long",
+  year: "numeric",
+});
+
 export default async function ProfiloPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/accedi");
@@ -28,6 +34,10 @@ export default async function ProfiloPage() {
   const prisma = getPrisma();
   const user = await prisma.user.findUnique({ where: { id: session.user.id } });
   if (!user) redirect("/accedi");
+
+  const pendingDeletion = await prisma.accountDeletionRequest.findFirst({
+    where: { userId: user.id, processedAt: null },
+  });
 
   const reputation = await getUserReputation(user.id, new Date());
   const { level, points } = reputation;
@@ -148,6 +158,32 @@ export default async function ProfiloPage() {
         <div className="border-t-2 border-dashed border-ink/20 pt-3">
           <PushToggle />
         </div>
+      </section>
+
+      <section className="flex flex-col gap-3 rounded-cn border-2 border-dashed border-ink/40 p-6 sm:max-w-md">
+        <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+          Zona pericolosa
+        </p>
+        {pendingDeletion ? (
+          <p className="font-ui text-sm text-ink-soft">
+            Richiesta di cancellazione inviata il{" "}
+            {requestedAtFormatter.format(pendingDeletion.createdAt)}, in attesa che un admin la
+            elabori.
+          </p>
+        ) : (
+          <>
+            <p className="font-ui text-sm text-ink-soft">
+              Puoi richiedere la cancellazione del tuo account. Un admin la esaminerà: i tuoi dati
+              personali (email, nome, tessera) verranno rimossi, i contenuti che hai pubblicato
+              resteranno visibili con autore &quot;Utente cancellato&quot;.
+            </p>
+            <form action={requestAccountDeletion}>
+              <Btn type="submit" kind="secondary" small>
+                Richiedi la cancellazione dell&apos;account
+              </Btn>
+            </form>
+          </>
+        )}
       </section>
     </main>
   );

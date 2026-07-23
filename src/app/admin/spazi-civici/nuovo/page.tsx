@@ -5,6 +5,11 @@ import { Btn } from "@/components/ui/Btn";
 import { OrariField } from "@/components/OrariField";
 import { createCivicSpace } from "../actions";
 
+const ERROR_MESSAGES: Record<string, string> = {
+  "1": "Tutti i campi sono obbligatori.",
+  "2": "Nome, tipo e orari fino a 200 caratteri, note fino a 5000.",
+};
+
 export default async function NuovoSpazioCivicoPage({
   searchParams,
 }: {
@@ -21,9 +26,9 @@ export default async function NuovoSpazioCivicoPage({
 
       <h1 className="font-display text-3xl font-black">Nuovo spazio civico</h1>
 
-      {error && (
+      {error && ERROR_MESSAGES[error] && (
         <p className="rounded-cn border-2 border-ink bg-accent px-3 py-2 font-ui text-sm text-white">
-          Tutti i campi sono obbligatori.
+          {ERROR_MESSAGES[error]}
         </p>
       )}
 

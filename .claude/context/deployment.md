@@ -108,6 +108,14 @@ richiede per le variabili leggibili anche lato client — usata da `PushToggle.t
 `pushManager.subscribe()`). Nessun valore reale va mai scritto in una scheda tracciata o in un
 commit: solo i nomi delle variabili e dove sono gestite.
 
+## Backup
+
+Non affrontato (quarto asse di hardening del `ROADMAP.md` di handoff, distinto dalla
+cancellazione account GDPR di ADR-018). Dipende dalle garanzie del piano gratuito Neon
+(point-in-time recovery, retention), non verificate: da confermare quando si arrivera' a questo
+punto, non un compito di codice applicativo ma di configurazione/verifica del servizio esterno
+gia' scelto in ADR-004.
+
 Secret del repository GitHub (non `.env`, gestiti in Settings → Secrets and variables → Actions),
 usati dal workflow `.github/workflows/weekly-digest.yml`: `DEPLOY_URL` (URL pubblico dell'app
 deployata, non ancora esistente: vedi "Interventi manuali in sospeso" in `current-work.md`) e

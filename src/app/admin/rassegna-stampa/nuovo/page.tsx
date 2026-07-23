@@ -7,6 +7,7 @@ import { createPressArticle } from "../actions";
 const ERROR_MESSAGES: Record<string, string> = {
   "1": "Testata, titolo e data di pubblicazione sono obbligatori.",
   "2": "Il link, se presente, deve essere un indirizzo completo (https://...).",
+  "3": "Testata e titolo fino a 200 caratteri.",
 };
 
 export default async function NuovoArticoloStampaPage({

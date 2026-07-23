@@ -4,6 +4,12 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Btn } from "@/components/ui/Btn";
 import { createThread } from "../actions";
 
+const ERROR_MESSAGES: Record<string, string> = {
+  "1": "Titolo, categoria e messaggio sono tutti obbligatori.",
+  "2": "Titolo e categoria fino a 200 caratteri, messaggio fino a 5000.",
+  "3": "Troppi thread creati di recente: riprova in qualche minuto.",
+};
+
 export default async function NuovoThreadPage({
   searchParams,
 }: {
@@ -19,9 +25,9 @@ export default async function NuovoThreadPage({
 
       <h1 className="font-display text-3xl font-black">Nuovo thread</h1>
 
-      {error && (
+      {error && ERROR_MESSAGES[error] && (
         <p className="rounded-cn border-2 border-ink bg-accent px-3 py-2 font-ui text-sm text-white">
-          Titolo, categoria e messaggio sono tutti obbligatori.
+          {ERROR_MESSAGES[error]}
         </p>
       )}
 

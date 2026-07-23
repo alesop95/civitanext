@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
+import { MAX_SHORT_TEXT } from "@/lib/validation";
 
 async function requireAdmin() {
   const session = await auth();
@@ -20,6 +21,9 @@ export async function createPressArticle(formData: FormData) {
   const publishedAtRaw = String(formData.get("publishedAt") ?? "").trim();
 
   if (!source || !title || !publishedAtRaw) redirect("/admin/rassegna-stampa/nuovo?error=1");
+  if (source.length > MAX_SHORT_TEXT || title.length > MAX_SHORT_TEXT) {
+    redirect("/admin/rassegna-stampa/nuovo?error=3");
+  }
 
   // L'input type="date" arriva come "aaaa-mm-gg"; una stringa manomessa produce una data
   // invalida che va respinta qui, non affidata al required del browser.

@@ -105,14 +105,26 @@ account YouTube, account Resend con dominio verificato, secret GitHub, e sopratt
 reale su Cloudflare (bloccato da ADR-006) di cui l'email digest ha bisogno per poter davvero
 inviare qualcosa. Dettaglio completo in "Interventi manuali in sospeso", `current-work.md`.
 
-Rimandata esplicitamente, non bloccante per testare il resto: la configurazione dell'app OAuth
-Google (creazione su Google Cloud Console, `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET`). Il codice del
-provider Google è già scritto e non richiede altro lavoro quando si riprende questo punto; manca
-solo la configurazione esterna, rimandata di proposito a quando esisterà un account Google
-dedicato all'associazione (non il personale dello sviluppatore, per lo stesso principio di
-separazione identità personale/organizzazione già adottato per git in
-`.claude/rules/git-identity-and-repo.md`). Fino ad allora il flusso di test usa solo email e
-password.
+Aggiornato il 2026-07-22: l'account Google dedicato all'associazione (non il personale dello
+sviluppatore, per lo stesso principio di separazione identità personale/organizzazione già
+adottato per git in `.claude/rules/git-identity-and-repo.md`) esiste ora. Resta da fare solo il
+passo esterno, non di codice: creare un progetto OAuth su Google Cloud Console con quell'account,
+configurare la schermata di consenso, generare le credenziali (Client ID/Secret) con redirect URI
+`{origin}/api/auth/callback/google` (in locale `http://localhost:3000/api/auth/callback/google`,
+verificare la porta reale), e scrivere `AUTH_GOOGLE_ID`/`AUTH_GOOGLE_SECRET` in `.env`. Il codice
+del provider è già scritto (ADR-010) e non richiede altro lavoro. Aggiunto a "Interventi manuali
+in sospeso" in `current-work.md`.
+
+Hardening (Fase 5, scelta dell'utente tra le voci indipendenti dal deploy) completo nel codice su
+tre dei quattro assi del `ROADMAP.md` di handoff il 2026-07-22 — rate limiting (Postgres, nessun
+Redis/KV), validazione di lunghezza massima (prima assente su tutti gli 8 file con testo libero),
+moderazione admin su forum e competenze (prima assente): nessuno di questi ha richiesto un
+confronto con l'utente, sono rafforzamenti diretti. Quarto asse, GDPR (cancellazione account),
+chiuso il 2026-07-23 (ADR-018) dopo confronto con l'utente: anonimizzazione (non cascata, i
+contenuti pubblicati restano) mediata dall'admin (nessuna esecuzione automatica), con pulizia
+profonda delle credenziali/dati di dispositivo (token OAuth, sottoscrizioni push, verification
+token residui) per evitare data leakage. Resta solo backup, dipendente dalle garanzie del piano
+gratuito Neon (da verificare, non un compito di codice).
 
 ## Idee e ipotesi da verificare
 

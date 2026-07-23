@@ -44,6 +44,14 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+- Google OAuth (ADR-010): l'account Google dell'associazione esiste ora (2026-07-22). Resta da
+  creare il progetto OAuth su Google Cloud Console con quell'account, configurare la schermata di
+  consenso, generare Client ID/Secret con redirect URI
+  `{origin}/api/auth/callback/google` (`http://localhost:3000/api/auth/callback/google` in
+  locale, verificare la porta reale usata da `next dev`), scrivere `AUTH_GOOGLE_ID`/
+  `AUTH_GOOGLE_SECRET` in `.env`. Nessun codice da scrivere: il provider è già implementato.
+  Verifica: pulsante "Accedi con Google" su `/accedi` porta a un vero consenso Google e crea/
+  autentica l'utente.
 
 ## Chiuse: Fase 0 e Fase 1
 
@@ -544,9 +552,103 @@ Definition of done:
       a questa scheda (scrivere le chiavi VAPID in `.env`, poi attivare il toggle su `/profilo` e
       far approvare una proposta di test); non dichiarata come fatta finche' non osservata davvero
 
+## Chiusa nel codice: hardening (Fase 5, tre assi su quattro)
+
+Prima voce di Fase 5 indipendente dal deploy Cloudflare, per scelta esplicita dell'utente tra
+hardening/analytics admin/ampliamento test. Tre dei quattro assi del `ROADMAP.md` di handoff
+("rate limiting su voti/post, validazione server-side, moderazione, GDPR, backup") completati
+senza bisogno di confronto con l'utente: nessuna decisione di infrastruttura esterna, solo
+ingegneria diretta. Il quarto asse (GDPR/backup) resta aperto perche' tocca scelte reali di
+prodotto (cosa succede ai contenuti di un socio che chiede la cancellazione dell'account), da
+decidere insieme, non un affinamento mecanico come gli altri tre.
+
+Rate limiting: basato su conteggio di righe Postgres esistenti (nessun Redis/KV, nessuna tabella
+dedicata), `src/lib/rate-limit.ts`. Soglie calibrate sul costo di moderazione di ogni tipo di
+contenuto: 5 thread/10 min e 20 risposte/10 min (forum), 3 proposte/60 min (aprono una coda di
+revisione admin, tetto piu' basso), 10 competenze/60 min (uso legittimo di dichiarare piu' voci in
+una sessione, tetto piu' alto). Non applicato a voti (gia' vincolati dal `@@unique` su
+utente+target) ne' a contenuto admin-only (rischio di spam trascurabile, guardia di ruolo gia'
+sufficiente).
+
+Validazione server-side: `MAX_SHORT_TEXT` (200) e `MAX_LONG_TEXT` (5000) in
+`src/lib/validation.ts`, applicati a tutti gli 8 file di action che accettavano testo libero senza
+alcun limite (verificato con un audit completo, zero eccezioni prima di oggi): forum, proposte,
+competenze, e i quattro contenuti informativi admin (mentorship, spazi civici, mappa, timeline,
+rassegna stampa).
+
+Moderazione: forum (`src/app/admin/forum/actions.ts`, `deleteThread`/`deleteReply`, cancella prima
+le risposte) e competenze (`src/app/admin/competenze/actions.ts`, `deleteSkill`) non avevano
+alcuna azione di cancellazione — verificato, zero `delete` in tutto il repo per questi due
+contenuti prima di oggi. Pulsante "Elimina" visibile solo ad ADMIN/SUPERADMIN su `/forum`,
+`/forum/[id]`, `/competenze`, accanto al contenuto invece che in una sezione admin separata (non
+esisteva e non serviva crearne una per due sole azioni).
+
+File creati: `src/lib/validation.ts`, `src/lib/rate-limit.ts`, `src/app/admin/forum/actions.ts`,
+`src/app/admin/competenze/actions.ts`, test `src/lib/rate-limit.test.ts`,
+`src/app/forum/actions.test.ts` (mai esistito), `src/app/admin/forum/actions.test.ts`,
+`src/app/proposte/actions.test.ts` (mai esistito), `src/app/competenze/actions.test.ts` (mai
+esistito), `src/app/admin/competenze/actions.test.ts`. File modificati: le 8 action con testo
+libero e le rispettive pagine `nuovo/page.tsx` (nuovi messaggi di errore per lunghezza/rate
+limit), `src/app/forum/page.tsx`, `src/app/forum/[id]/page.tsx`, `src/app/competenze/page.tsx`
+(pulsanti Elimina), `src/test/fixtures.ts` (`createTestReply`; corretto un bug di pulizia
+preesistente — `resetTestData` filtrava thread/proposal solo per titolo, non per autore, quindi
+righe con titolo non-MARKER create nei nuovi test di successo sopravvivevano e rompevano la FK
+alla cancellazione dell'utente a fine test).
+
+Definition of done:
+- [x] Rate limiting su forum (thread/risposte), proposte, competenze — soglie testate
+- [x] Validazione di lunghezza massima su tutti gli 8 file di action con testo libero
+- [x] Moderazione admin (delete) su forum e competenze, prima assente
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` (108 casi, 23 file) puliti
+- [x] GDPR (cancellazione account): chiuso il 2026-07-23, vedi sezione dedicata sotto (ADR-018)
+- [ ] Backup: **non affrontato**, dipende dalle garanzie del piano gratuito Neon (da verificare,
+      non un compito di codice), vedi `deployment.md`
+
+## Chiusa nel codice: cancellazione account GDPR (ADR-018)
+
+Chiude il quarto asse di hardening rimasto aperto. Confrontate con l'utente tre vie (cascata,
+anonimizzazione automatica, mediata dall'admin); scelto un ibrido: **anonimizzazione** (i
+contenuti pubblicati restano, solo l'identità viene sostituita con "Utente cancellato") **mediata
+dall'admin** (nessuna esecuzione automatica, il socio richiede da `/profilo` e un admin esegue da
+`/admin/account-deletion`), con enfasi esplicita dell'utente su una "pulizia profonda" contro il
+data leakage.
+
+Nuovo modello `AccountDeletionRequest`: riga mai cancellata nemmeno dopo l'esecuzione, resta come
+traccia scritta (chi ha chiesto, quando, quale admin ha eseguito, quando) e rende la richiesta
+ricollegabile alla riga `User` anonimizzata ma non rimossa. `processAccountDeletion` cancella per
+davvero (non anonimizza) tre categorie non pubbliche: righe `Account` (token OAuth Google —
+`access_token`/`refresh_token`/`id_token`, credenziali reali), righe `PushSubscription`
+(dispositivo-specifiche), `VerificationToken` residuo sulla vecchia email (nessuna foreign key
+verso `User`, non toccato da alcun cascade). Poi anonimizza `User`: email deterministica
+`deleted-<id>@anonimizzato.civitanext.local` (mantiene l'unicità richiesta dallo schema), nome
+"Utente cancellato", password/immagine/tessera/verifica email azzerate, digest disattivato.
+
+File creati: `src/app/admin/account-deletion/{actions.ts,page.tsx}`, migrazione
+`prisma/migrations/20260723093041_add_account_deletion_request/`, test
+`src/app/profilo/actions.test.ts` (mai esistito, copre anche `toggleDigestOptIn`),
+`src/app/admin/account-deletion/actions.test.ts`. File modificati: `prisma/schema.prisma`
+(+`AccountDeletionRequest`), `src/app/profilo/{actions.ts,page.tsx}` (`requestAccountDeletion`,
+sezione "Zona pericolosa"), `src/components/SiteHeader.tsx`/`src/app/altro/page.tsx` (voce
+admin), `src/test/fixtures.ts` (`createTestOAuthAccount`, `createTestAccountDeletionRequest`,
+pulizia dedicata — l'anonimizzazione cambia deliberatamente `User.name`, quindi il filtro MARKER
+da solo non basta più a trovare l'utente di test dopo che un test l'ha anonimizzato).
+
+Definition of done:
+- [x] Modello `AccountDeletionRequest` migrato (procedura ADR-009) su DB di sviluppo e di test
+- [x] `requestAccountDeletion` idempotente, guardia di sola autenticazione
+- [x] `processAccountDeletion` con guardia di ruolo: anonimizza `User`, cancella
+      Account/PushSubscription/VerificationToken, lascia intatti i contenuti (verificato da
+      unit/integration test, incluso un caso con thread reale ancora agganciato dopo
+      l'anonimizzazione)
+- [x] `npm run build`, `npx tsc --noEmit`, `npm run lint` e `npm test` (116 casi, 25 file) puliti
+- [ ] Verifica manuale nel browser: **in attesa** (richiedere la cancellazione da `/profilo` con
+      un utente di prova, eseguirla da `/admin/account-deletion`, confermare che il contenuto
+      dell'utente resti visibile con autore "Utente cancellato" e che il login precedente non
+      funzioni più); non dichiarata come fatta finche' non osservata davvero
+
 ## Riconciliazione
 
-Ultima verifica delle schede: 2026-07-22, sopra l'HEAD dopo `b330de2`. Mappa (con picker e
+Ultima verifica delle schede: 2026-07-23, sopra l'HEAD dopo `e3d18cd`. Mappa (con picker e
 geocodifica inversa), timeline e rassegna stampa committate e verificate nel browser; fondazione
 di test ADR-014 committata, job CI standard verde. Blocco Prisma/Workers rimandato al primo
 deploy con fix identificato. Feature competenze verificata nel browser e committata (`60d7f16`),
@@ -555,8 +657,13 @@ committati (`c2b5a87`). Mentorship verificata nel browser e committata (`17cd21e
 Galleria foto (ADR-016) committata (`93be748`); documenti (`b33b974`); webinar ed email digest
 (ADR-017, `b330de2`): con queste si chiudono tutte le nove voci di Fase 4, tutte complete nei test
 automatici, nessuna ancora verificata nel browser/attivata davvero (bucket R2, account YouTube,
-account Resend e deploy Cloudflare tutti in sospeso). Notifiche push (completamento di Fase 3)
-complete nel codice e nei test automatici, non ancora committate. Vedi "Interventi manuali in
-sospeso" in testa a questa scheda per il dettaglio di cosa resta da attivare a mano.
+account Resend e deploy Cloudflare tutti in sospeso). Notifiche push committate (`e3d18cd`),
+completano Fase 3, verifica manuale in attesa (chiavi VAPID da scrivere in `.env`). Hardening
+(Fase 5: rate limiting/validazione/moderazione, e ora anche cancellazione account GDPR ADR-018)
+completo nel codice e nei test automatici, non ancora committato; resta solo backup (Neon, da
+verificare) tra i quattro assi del gruppo hardening. Account Google dell'associazione ora
+disponibile: resta solo il passo esterno su Google Cloud Console (non di codice). Vedi
+"Interventi manuali in sospeso" in testa a questa scheda per il dettaglio di cosa resta da
+attivare a mano.
 Vedi `memory/progress.md` per il dettaglio completo di ogni
 feature e bug, e `memory/decisions.md` per le ADR.

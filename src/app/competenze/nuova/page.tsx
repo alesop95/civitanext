@@ -4,6 +4,12 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Btn } from "@/components/ui/Btn";
 import { createSkill } from "../actions";
 
+const ERROR_MESSAGES: Record<string, string> = {
+  "1": "La competenza è obbligatoria.",
+  "2": "Competenza e offerta fino a 200 caratteri.",
+  "3": "Troppe competenze pubblicate di recente: riprova più tardi.",
+};
+
 export default async function NuovaCompetenzaPage({
   searchParams,
 }: {
@@ -19,9 +25,9 @@ export default async function NuovaCompetenzaPage({
 
       <h1 className="font-display text-3xl font-black">Offri una competenza</h1>
 
-      {error && (
+      {error && ERROR_MESSAGES[error] && (
         <p className="rounded-cn border-2 border-ink bg-accent px-3 py-2 font-ui text-sm text-white">
-          La competenza è obbligatoria.
+          {ERROR_MESSAGES[error]}
         </p>
       )}
 

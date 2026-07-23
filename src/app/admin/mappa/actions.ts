@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
+import { MAX_SHORT_TEXT } from "@/lib/validation";
 
 async function requireAdmin() {
   const session = await auth();
@@ -24,6 +25,9 @@ export async function createMapPoint(formData: FormData) {
     Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 
   if (!title || !type || !place || !coordsValid) redirect("/admin/mappa/nuovo?error=1");
+  if (title.length > MAX_SHORT_TEXT || type.length > MAX_SHORT_TEXT || place.length > MAX_SHORT_TEXT) {
+    redirect("/admin/mappa/nuovo?error=2");
+  }
 
   const prisma = getPrisma();
   await prisma.mapPoint.create({ data: { title, type, place, lat, lng } });

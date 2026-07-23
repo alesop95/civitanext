@@ -4,6 +4,12 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Btn } from "@/components/ui/Btn";
 import { createProposal } from "../actions";
 
+const ERROR_MESSAGES: Record<string, string> = {
+  "1": "Titolo, categoria e descrizione sono tutti obbligatori.",
+  "2": "Titolo e categoria fino a 200 caratteri, descrizione fino a 5000.",
+  "3": "Troppe proposte inviate di recente: riprova più tardi.",
+};
+
 export default async function NuovaPropostaPage({
   searchParams,
 }: {
@@ -25,9 +31,9 @@ export default async function NuovaPropostaPage({
         </p>
       </div>
 
-      {error && (
+      {error && ERROR_MESSAGES[error] && (
         <p className="rounded-cn border-2 border-ink bg-accent px-3 py-2 font-ui text-sm text-white">
-          Titolo, categoria e descrizione sono tutti obbligatori.
+          {ERROR_MESSAGES[error]}
         </p>
       )}
 

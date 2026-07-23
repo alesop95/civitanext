@@ -3,10 +3,12 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Tag } from "@/components/ui/Tag";
-import { btnClassName } from "@/components/ui/Btn";
+import { Btn, btnClassName } from "@/components/ui/Btn";
+import { deleteSkill } from "@/app/admin/competenze/actions";
 
 export default async function CompetenzePage() {
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
   const prisma = getPrisma();
 
   const skills = await prisma.skill.findMany({
@@ -51,7 +53,16 @@ export default async function CompetenzePage() {
               key={skill.id}
               className="flex flex-col gap-3 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard"
             >
-              <Tag color="var(--ink)">{skill.name}</Tag>
+              <div className="flex items-start justify-between gap-3">
+                <Tag color="var(--ink)">{skill.name}</Tag>
+                {isAdmin && (
+                  <form action={deleteSkill.bind(null, skill.id)}>
+                    <Btn type="submit" kind="ghost" small>
+                      Elimina
+                    </Btn>
+                  </form>
+                )}
+              </div>
               <h2 className="font-display text-2xl font-black">{skill.user.name}</h2>
               <p className="font-ui text-sm text-ink-soft">{skill.offer}</p>
             </article>

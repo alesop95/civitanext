@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
+import { MAX_LONG_TEXT, MAX_SHORT_TEXT } from "@/lib/validation";
 
 async function requireAdmin() {
   const session = await auth();
@@ -21,6 +22,9 @@ export async function createTimelineEntry(formData: FormData) {
   const orderRaw = String(formData.get("order") ?? "").trim();
 
   if (!when || !title || !text) redirect("/admin/timeline/nuovo?error=1");
+  if (when.length > MAX_SHORT_TEXT || title.length > MAX_SHORT_TEXT || text.length > MAX_LONG_TEXT) {
+    redirect("/admin/timeline/nuovo?error=3");
+  }
 
   // Il valore del select va riconvalidato qui: un POST costruito a mano puo' contenere
   // qualsiasi stringa, e passarla com'e' a Prisma fallirebbe a runtime invece che con un

@@ -7,6 +7,7 @@ import { createTimelineEntry } from "../actions";
 const ERROR_MESSAGES: Record<string, string> = {
   "1": "Periodo, titolo, testo e tipo di voce sono obbligatori.",
   "2": "La posizione, se indicata, deve essere un numero intero.",
+  "3": "Periodo e titolo fino a 200 caratteri, testo fino a 5000.",
 };
 
 export default async function NuovaVoceTimelinePage({

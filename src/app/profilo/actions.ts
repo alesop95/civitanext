@@ -57,3 +57,21 @@ export async function unsubscribeFromPush(endpoint: string) {
     where: { endpoint, userId: session.user.id },
   });
 }
+
+// Richiesta GDPR (ADR-018): il socio la invia, un admin la esegue a mano da
+// admin/account-deletion/actions.ts. Idempotente come requestMentor: se esiste gia' una
+// richiesta non ancora elaborata per questo utente, non ne crea una seconda.
+export async function requestAccountDeletion() {
+  const session = await auth();
+  if (!session?.user?.id) return;
+
+  const prisma = getPrisma();
+  const pending = await prisma.accountDeletionRequest.findFirst({
+    where: { userId: session.user.id, processedAt: null },
+  });
+  if (!pending) {
+    await prisma.accountDeletionRequest.create({ data: { userId: session.user.id } });
+  }
+
+  revalidatePath("/profilo");
+}

@@ -5,6 +5,11 @@ import { Btn } from "@/components/ui/Btn";
 import { MapPointPickerLoader as MapPointPicker } from "@/components/MapPointPickerLoader";
 import { createMapPoint } from "../actions";
 
+const ERROR_MESSAGES: Record<string, string> = {
+  "1": "Servono titolo, tipo, luogo e coordinate valide (latitudine tra -90 e 90, longitudine tra -180 e 180).",
+  "2": "Titolo, tipo e luogo fino a 200 caratteri.",
+};
+
 export default async function NuovoPuntoMappaPage({
   searchParams,
 }: {
@@ -21,10 +26,9 @@ export default async function NuovoPuntoMappaPage({
 
       <h1 className="font-display text-3xl font-black">Nuovo punto sulla mappa</h1>
 
-      {error && (
+      {error && ERROR_MESSAGES[error] && (
         <p className="rounded-cn border-2 border-ink bg-accent px-3 py-2 font-ui text-sm text-white">
-          Servono titolo, tipo, luogo e coordinate valide (latitudine tra -90 e 90, longitudine
-          tra -180 e 180).
+          {ERROR_MESSAGES[error]}
         </p>
       )}
 

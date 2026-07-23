@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { Btn, btnClassName } from "@/components/ui/Btn";
 import { Tag } from "@/components/ui/Tag";
 import { createReply } from "../actions";
+import { deleteReply, deleteThread } from "@/app/admin/forum/actions";
 
 const dateFormatter = new Intl.DateTimeFormat("it-IT", {
   day: "numeric",
@@ -17,6 +18,7 @@ const dateFormatter = new Intl.DateTimeFormat("it-IT", {
 export default async function ThreadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
   const prisma = getPrisma();
 
   const thread = await prisma.thread.findUnique({
@@ -41,7 +43,16 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
       </Link>
 
       <article className="flex flex-col gap-3 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard">
-        <Tag color="var(--accent)">{thread.category}</Tag>
+        <div className="flex items-start justify-between gap-3">
+          <Tag color="var(--accent)">{thread.category}</Tag>
+          {isAdmin && (
+            <form action={deleteThread.bind(null, thread.id)}>
+              <Btn type="submit" kind="ghost" small>
+                Elimina thread
+              </Btn>
+            </form>
+          )}
+        </div>
         <h1 className="font-display text-3xl font-black">{thread.title}</h1>
         <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
           {thread.author.name} &middot; {dateFormatter.format(thread.createdAt)}
@@ -58,9 +69,18 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
             key={reply.id}
             className="flex flex-col gap-1 rounded-cn border-2 border-ink bg-paper-card p-4 shadow-hard"
           >
-            <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
-              {reply.author.name} &middot; {dateFormatter.format(reply.createdAt)}
-            </p>
+            <div className="flex items-start justify-between gap-3">
+              <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+                {reply.author.name} &middot; {dateFormatter.format(reply.createdAt)}
+              </p>
+              {isAdmin && (
+                <form action={deleteReply.bind(null, reply.id)}>
+                  <Btn type="submit" kind="ghost" small>
+                    Elimina
+                  </Btn>
+                </form>
+              )}
+            </div>
             <p className="font-ui text-sm">{reply.body}</p>
           </div>
         ))}

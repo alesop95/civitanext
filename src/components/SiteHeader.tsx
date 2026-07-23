@@ -42,6 +42,7 @@ const ALTRO_HREFS = [
   "/admin/documenti/nuovo",
   "/webinar",
   "/admin/webinar/nuovo",
+  "/admin/account-deletion",
 ];
 
 export async function SiteHeader({ activeHref }: { activeHref: string }) {

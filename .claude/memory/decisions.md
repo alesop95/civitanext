@@ -730,3 +730,58 @@ esiste un URL pubblico raggiungibile** (dopo il deploy Cloudflare) e finche' i s
 dell'associazione: tutti interventi manuali elencati in "Interventi manuali in sospeso"
 (`current-work.md`), non bloccanti per il codice scritto oggi. Variabili nuove documentate in
 `deployment.md`. Voce didattica associata: `refactor-16-webinar-e-digest.md`.
+
+## ADR-018 — Cancellazione account (GDPR): anonimizzazione mediata dall'admin, non cascata né riga rimossa
+
+Data: 2026-07-23
+Stato: accettata
+Contesto: quarto asse di hardening (Fase 5) del `ROADMAP.md` di handoff, "GDPR (dati soci,
+consensi)". Nessuna decisione presa finora: il progetto non aveva alcun meccanismo di
+cancellazione o anonimizzazione dei dati di un socio. Confrontate con l'utente tre vie:
+cancellazione a cascata (rimuove l'utente e tutto cio' che ha creato: thread, risposte, proposte,
+competenze, RSVP, voti, richieste mentor); anonimizzazione automatica immediata; richiesta
+mediata dall'admin con nessuna azione automatica. L'utente ha scelto un ibrido: anonimizzazione
+(non cascata) **e** mediata dall'admin, non automatica, con l'accento esplicito su una "pulizia
+profonda" per evitare qualunque data leakage.
+Decisione, in tre parti.
+Primo, anonimizzazione non cascata: la riga `User` non viene mai cancellata, i contenuti generati
+(`Thread`, `Reply`, `Proposal`, `Skill`, `Rsvp`, `Vote`, `MentorRequest`, foto/documenti caricati)
+restano intatti, perche' potrebbero avere risposte o discussioni di altri soci agganciate, o
+essere gia' pubblici (una proposta approvata e' un riferimento pubblico, non solo un dato
+personale del suo autore). Solo l'identita' viene sostituita: `email` diventa
+`deleted-<id>@anonimizzato.civitanext.local` (deterministico, mantiene l'unicita' richiesta dallo
+schema), `name` diventa "Utente cancellato", `passwordHash`/`image`/`tesseraNumero`/
+`emailVerified` diventano `null`, `digestOptIn` torna `false`. Ogni contenuto esistente mostra
+quindi "Utente cancellato" come autore, senza riferimenti rotti.
+Secondo, mediata dall'admin, non automatica: un nuovo modello `AccountDeletionRequest`
+(`src/app/profilo/actions.ts::requestAccountDeletion`, guardia di sola autenticazione,
+idempotente come `requestMentor`) registra la richiesta del socio senza eseguire nulla. Un admin
+la esegue a mano da `/admin/account-deletion`
+(`src/app/admin/account-deletion/actions.ts::processAccountDeletion`, guardia di ruolo). La riga
+della richiesta non viene cancellata nemmeno dopo l'esecuzione: resta come traccia scritta di chi
+ha chiesto cosa e quando, e di quale admin l'ha eseguita e quando — indispensabile per poter
+dimostrare la conformita' in futuro, ed e' proprio questa traccia (insieme alla riga `User`
+anonimizzata ma non rimossa) che rende la richiesta ricollegabile.
+Terzo, pulizia profonda contro il data leakage: a differenza della sola anonimizzazione dei campi
+`User`, `processAccountDeletion` cancella per davvero (non anonimizza) tre categorie di dati che
+sono credenziali o legate a un dispositivo specifico, non contenuto pubblico: le righe `Account`
+(i token OAuth di Google — `access_token`/`refresh_token`/`id_token` — sono credenziali reali, la
+loro rimozione e' il punto centrale della pulizia, non solo un effetto collaterale del cascade
+gia' presente nello schema), le righe `PushSubscription` (endpoint e chiavi legati a un browser/
+dispositivo specifico dell'utente), e ogni `VerificationToken` residuo sulla vecchia email (non ha
+una foreign key verso `User`, quindi non verrebbe toccato da nessun cascade).
+Motivazione: bilancia il diritto all'oblio (i dati personali non sono piu' recuperabili, le
+credenziali sono cancellate per davvero) con l'integrita' della cronologia condivisa (un thread o
+una proposta non svanisce lasciando un buco nella discussione di altri soci) e con la necessita'
+pratica di un'associazione di poter dimostrare, in caso di controversia, che una richiesta e'
+stata ricevuta ed eseguita. La mediazione admin (nessuna esecuzione automatica) evita che un clic
+sbagliato o un account compromesso possa scatenare una modifica irreversibile senza supervisione.
+Conseguenze: `Account` ha gia' `onDelete: Cascade` su `userId` nello schema (adapter NextAuth),
+ma la cancellazione e' comunque esplicita in `processAccountDeletion` per rendere il punto
+centrale della pulizia visibile nel codice, non implicito in una constraint. Limite noto,
+segnalato qui e non nascosto: una sessione JWT già emessa (durata massima 1 ora, ADR-010) resta
+valida fino alla sua naturale scadenza anche dopo l'anonimizzazione, perche' la strategia di
+sessione e' JWT senza un meccanismo di revoca lato server; non e' un problema nella pratica data
+la durata breve del token, ma non e' invalidazione istantanea. Backup (quarto sotto-asse del
+`ROADMAP.md`, distinto dal GDPR) rimane non affrontato: dipende dalle garanzie del piano gratuito
+Neon, da verificare quando si arrivera' a quel punto, non un compito di codice applicativo.

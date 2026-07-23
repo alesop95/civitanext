@@ -2,8 +2,9 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
-import { btnClassName } from "@/components/ui/Btn";
+import { Btn, btnClassName } from "@/components/ui/Btn";
 import { Tag } from "@/components/ui/Tag";
+import { deleteThread } from "@/app/admin/forum/actions";
 
 const dateFormatter = new Intl.DateTimeFormat("it-IT", {
   day: "numeric",
@@ -14,6 +15,7 @@ const dateFormatter = new Intl.DateTimeFormat("it-IT", {
 
 export default async function ForumPage() {
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
   const prisma = getPrisma();
 
   const threads = await prisma.thread.findMany({
@@ -53,19 +55,30 @@ export default async function ForumPage() {
       ) : (
         <section className="flex flex-col gap-4">
           {threads.map((thread) => (
-            <Link
+            <div
               key={thread.id}
-              href={`/forum/${thread.id}`}
-              className="flex flex-col gap-2 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard transition-transform hover:-translate-y-0.5"
+              className="flex items-start justify-between gap-3 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard"
             >
-              <Tag color="var(--accent)">{thread.category}</Tag>
-              <h2 className="font-display text-xl font-black">{thread.title}</h2>
-              <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
-                {thread.author.name} &middot; {dateFormatter.format(thread.createdAt)} &middot;{" "}
-                {thread._count.replies}{" "}
-                {thread._count.replies === 1 ? "risposta" : "risposte"}
-              </p>
-            </Link>
+              <Link
+                href={`/forum/${thread.id}`}
+                className="flex flex-1 flex-col gap-2 transition-transform hover:-translate-y-0.5"
+              >
+                <Tag color="var(--accent)">{thread.category}</Tag>
+                <h2 className="font-display text-xl font-black">{thread.title}</h2>
+                <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+                  {thread.author.name} &middot; {dateFormatter.format(thread.createdAt)} &middot;{" "}
+                  {thread._count.replies}{" "}
+                  {thread._count.replies === 1 ? "risposta" : "risposte"}
+                </p>
+              </Link>
+              {isAdmin && (
+                <form action={deleteThread.bind(null, thread.id)}>
+                  <Btn type="submit" kind="ghost" small>
+                    Elimina
+                  </Btn>
+                </form>
+              )}
+            </div>
           ))}
         </section>
       )}
