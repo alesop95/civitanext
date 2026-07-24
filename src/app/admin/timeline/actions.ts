@@ -12,33 +12,63 @@ async function requireAdmin() {
   if (session.user.role !== "ADMIN" && session.user.role !== "SUPERADMIN") redirect("/");
 }
 
-export async function createTimelineEntry(formData: FormData) {
-  await requireAdmin();
+type TimelineFields = {
+  when: string;
+  title: string;
+  text: string;
+  kind: "CITTA" | "ASSOCIAZIONE";
+  order: number;
+};
 
+// Validazione condivisa da creazione e modifica. Ritorna i campi puliti o un codice d'errore
+// (1 = obbligatori/tipo non valido, 2 = ordine non intero, 3 = testo troppo lungo). Il valore del
+// select va riconvalidato: un POST costruito a mano puo' contenere qualsiasi stringa.
+function parseTimelineForm(formData: FormData): TimelineFields | number {
   const when = String(formData.get("when") ?? "").trim();
   const title = String(formData.get("title") ?? "").trim();
   const text = String(formData.get("text") ?? "").trim();
   const kind = String(formData.get("kind") ?? "");
   const orderRaw = String(formData.get("order") ?? "").trim();
 
-  if (!when || !title || !text) redirect("/admin/timeline/nuovo?error=1");
+  if (!when || !title || !text) return 1;
   if (when.length > MAX_SHORT_TEXT || title.length > MAX_SHORT_TEXT || text.length > MAX_LONG_TEXT) {
-    redirect("/admin/timeline/nuovo?error=3");
+    return 3;
   }
+  if (kind !== "CITTA" && kind !== "ASSOCIAZIONE") return 1;
 
-  // Il valore del select va riconvalidato qui: un POST costruito a mano puo' contenere
-  // qualsiasi stringa, e passarla com'e' a Prisma fallirebbe a runtime invece che con un
-  // messaggio controllato.
-  if (kind !== "CITTA" && kind !== "ASSOCIAZIONE") redirect("/admin/timeline/nuovo?error=1");
-
-  // L'ordine e' esplicito perche' "when" e' testo libero non ordinabile (vedi schema).
-  // Campo vuoto = 0 (il default dello schema); un valore non numerico e' un errore.
+  // L'ordine e' esplicito perche' "when" e' testo libero non ordinabile (vedi schema). Campo vuoto
+  // = 0 (default dello schema); un valore non numerico e' un errore.
   const order = orderRaw === "" ? 0 : Number(orderRaw);
-  if (!Number.isInteger(order)) redirect("/admin/timeline/nuovo?error=2");
+  if (!Number.isInteger(order)) return 2;
 
-  const prisma = getPrisma();
-  await prisma.timelineEntry.create({ data: { when, title, text, kind, order } });
+  return { when, title, text, kind, order };
+}
 
+export async function createTimelineEntry(formData: FormData) {
+  await requireAdmin();
+  const parsed = parseTimelineForm(formData);
+  if (typeof parsed === "number") redirect(`/admin/timeline/nuovo?error=${parsed}`);
+
+  await getPrisma().timelineEntry.create({ data: parsed });
   revalidatePath("/timeline");
   redirect("/timeline");
+}
+
+export async function updateTimelineEntry(formData: FormData) {
+  await requireAdmin();
+  const id = String(formData.get("id") ?? "");
+  if (!id) redirect("/timeline");
+
+  const parsed = parseTimelineForm(formData);
+  if (typeof parsed === "number") redirect(`/admin/timeline/${id}/modifica?error=${parsed}`);
+
+  await getPrisma().timelineEntry.update({ where: { id }, data: parsed });
+  revalidatePath("/timeline");
+  redirect("/timeline");
+}
+
+export async function deleteTimelineEntry(id: string) {
+  await requireAdmin();
+  await getPrisma().timelineEntry.delete({ where: { id } });
+  revalidatePath("/timeline");
 }

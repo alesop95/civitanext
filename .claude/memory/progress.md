@@ -6,6 +6,32 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-24 — Modifica/cancella per i contenuti citta' (spazi, mappa, timeline, rassegna)
+
+Commit di riferimento: sopra gli eventi CRUD, da committare.
+File creati: `src/app/admin/timeline/TimelineFormFields.tsx`,
+`src/app/admin/timeline/[id]/modifica/page.tsx`, `src/app/admin/rassegna-stampa/PressFormFields.tsx`,
+`src/app/admin/rassegna-stampa/[id]/modifica/page.tsx`,
+`src/app/admin/spazi-civici/CivicSpaceFormFields.tsx`,
+`src/app/admin/spazi-civici/[id]/modifica/page.tsx`, `src/app/admin/mappa/[id]/modifica/page.tsx`.
+File modificati: i quattro `actions.ts` di timeline/rassegna-stampa/spazi-civici/mappa (parse
+condiviso + update + delete), le quattro `nuovo/page.tsx`, le quattro pagine pubbliche
+(`/timeline`, `/rassegna-stampa`, `/spazi-civici`, `/mappa`), `src/components/OrariField.tsx`,
+`src/components/MapPointPicker.tsx`, `src/components/MapPointPickerLoader.tsx`,
+`.claude/context/current-work.md`, questo work-log.
+Motivo/racconto: scelta dall'utente dopo l'audit, replica il pattern di modifica introdotto con gli
+eventi ai quattro contenuti informativi create-only. Ricetta uniforme: validazione estratta in
+`parseXForm` condivisa da create e update; `updateX` (id nascosto) e `deleteX` aggiunte; campi del
+form in un componente condiviso (`TimelineFormFields`/`PressFormFields`/`CivicSpaceFormFields`)
+riusato tra nuovo e modifica con `defaults`; rotta `/admin/<x>/[id]/modifica`; controlli admin
+Modifica/Elimina inline sulle pagine pubbliche (pattern delete-in-place come forum/competenze).
+Delete semplice: questi modelli sono autonomi, senza relazioni dipendenti. I due form client hanno
+un prop di default: `OrariField.defaultValue` e `MapPointPicker.defaults` (con dirty pre-attivato in
+modifica, cosi' spostare il pin non sovrascrive titolo/luogo), inoltrato da `MapPointPickerLoader`.
+`/mappa` (mappa, non elenco) ha una sezione admin "Gestione punti" sotto la mappa. Nessuna ADR,
+nessuna migrazione. Verifiche: `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (quattro
+rotte modifica nel manifest). Verifica browser da fare.
+
 ## 2026-07-24 — Eventi CRUD admin (prima schermata di modifica del progetto)
 
 Commit di riferimento: sopra i fix di questa giornata, da committare.

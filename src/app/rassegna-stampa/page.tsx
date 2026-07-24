@@ -2,7 +2,8 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
-import { btnClassName } from "@/components/ui/Btn";
+import { Btn, btnClassName } from "@/components/ui/Btn";
+import { deletePressArticle } from "@/app/admin/rassegna-stampa/actions";
 
 const dateFormatter = new Intl.DateTimeFormat("it-IT", {
   day: "numeric",
@@ -62,6 +63,21 @@ export default async function RassegnaStampaPage() {
                 >
                   Leggi l&apos;articolo
                 </a>
+              )}
+              {isAdmin && (
+                <div className="flex gap-3">
+                  <Link
+                    href={`/admin/rassegna-stampa/${article.id}/modifica`}
+                    className={btnClassName({ kind: "secondary", small: true })}
+                  >
+                    Modifica
+                  </Link>
+                  <form action={deletePressArticle.bind(null, article.id)}>
+                    <Btn type="submit" kind="ghost" small>
+                      Elimina
+                    </Btn>
+                  </form>
+                </div>
               )}
             </article>
           ))}

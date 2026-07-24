@@ -22,8 +22,8 @@ const ORE = Array.from({ length: 24 }, (_, h) => h);
 // Aiuto solo di superficie: compone la stringa standard nello stesso campo di testo libero,
 // che resta sempre modificabile a mano per i casi che i menu non esprimono (su prenotazione,
 // chiusure stagionali). Nessuna modifica al modello dati: CivicSpace.hours resta una stringa.
-export function OrariField() {
-  const [value, setValue] = useState("");
+export function OrariField({ defaultValue = "" }: { defaultValue?: string }) {
+  const [value, setValue] = useState(defaultValue);
   const [giorni, setGiorni] = useState(GIORNI_PRESET[0]);
   const [daOra, setDaOra] = useState(9);
   const [aOra, setAOra] = useState(18);

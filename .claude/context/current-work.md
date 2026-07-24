@@ -44,6 +44,52 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+## Chiusa nel codice, verifica manuale in attesa: modifica/cancella contenuti citta'
+
+Quarta voce di sviluppo applicativo, scelta dall'utente dopo l'audit: replica il pattern di
+modifica/cancellazione appena introdotto con gli eventi ai quattro contenuti informativi che erano
+create-only (spazi civici, mappa, timeline, rassegna stampa). Chiude in un colpo la lacuna
+"nessuna modifica in tutta l'app" per questi contenuti, riusando codice fresco.
+
+Ricetta identica per tutti e quattro: la validazione di ogni `actions.ts` e' stata estratta in una
+funzione `parseXForm` condivisa tra `createX` e `updateX` (stesso controllo, redirect diversi su
+errore); aggiunta `updateX` (legge un `id` nascosto) e `deleteX`; i campi del form vivono in un
+componente presentazionale condiviso (`TimelineFormFields`, `PressFormFields`,
+`CivicSpaceFormFields`) riusato da nuovo e modifica con `defaults` diversi; nuova rotta
+`/admin/<x>/[id]/modifica`; i controlli admin "Modifica"/"Elimina" compaiono inline sulle pagine
+pubbliche (stesso pattern delete-in-place gia' usato per forum e competenze), non in pagine admin
+dedicate. La cancellazione e' un semplice `delete` perche' questi modelli sono autonomi, senza
+relazioni dipendenti (a differenza di `Event` con i suoi RSVP).
+
+I due form con componente client hanno guadagnato un prop di default: `OrariField` accetta
+`defaultValue` per il campo orari; `MapPointPicker` accetta `defaults` (title/type/place/lat/lng) e
+in modifica considera i campi gia' "scritti a mano" (dirty), cosi' spostare il pin non sovrascrive
+titolo/luogo esistenti; `MapPointPickerLoader` inoltra il prop. La pagina pubblica `/mappa`, che
+mostra una mappa e non un elenco, ha guadagnato per gli admin una sezione "Gestione punti" sotto la
+mappa con Modifica/Elimina per punto. Le pagine di creazione hanno anche guadagnato un pulsante
+"Torna a ..." coerente con quello degli eventi. Nessuna nuova ADR, nessuna migrazione.
+
+File creati: `src/app/admin/timeline/TimelineFormFields.tsx`,
+`src/app/admin/timeline/[id]/modifica/page.tsx`,
+`src/app/admin/rassegna-stampa/PressFormFields.tsx`,
+`src/app/admin/rassegna-stampa/[id]/modifica/page.tsx`,
+`src/app/admin/spazi-civici/CivicSpaceFormFields.tsx`,
+`src/app/admin/spazi-civici/[id]/modifica/page.tsx`,
+`src/app/admin/mappa/[id]/modifica/page.tsx`. File modificati: i quattro `actions.ts`
+(parse condiviso + update + delete), le quattro pagine `nuovo/page.tsx` (usano il componente
+condiviso), le quattro pagine pubbliche (`/timeline`, `/rassegna-stampa`, `/spazi-civici`, `/mappa`
+con controlli admin), `src/components/OrariField.tsx` e `src/components/MapPointPicker.tsx` +
+`MapPointPickerLoader.tsx` (prop di default).
+
+Definition of done:
+- [x] `updateX`/`deleteX` con guardia di ruolo e validazione condivisa per tutti e quattro
+- [x] Rotta `/admin/<x>/[id]/modifica` con form precompilato (componente condiviso) per tutti e quattro
+- [x] Controlli admin Modifica/Elimina inline sulle pagine pubbliche
+- [x] `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (le quattro rotte modifica nel manifest)
+- [ ] Verifica manuale nel browser: **in attesa** (per ciascun contenuto: modificare una voce e
+      vedere il cambiamento sulla pagina pubblica, eliminarne una; per la mappa verificare che il
+      pin precompilato appaia e che spostarlo non cancelli titolo/luogo); non dichiarata finche' non osservata
+
 ## Chiusa nel codice, verifica manuale in attesa: eventi CRUD admin
 
 Terza voce di sviluppo applicativo, scelta dall'utente dopo l'audit dei controlli mancanti come la

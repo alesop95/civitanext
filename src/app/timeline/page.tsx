@@ -3,7 +3,8 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Tag } from "@/components/ui/Tag";
-import { btnClassName } from "@/components/ui/Btn";
+import { Btn, btnClassName } from "@/components/ui/Btn";
+import { deleteTimelineEntry } from "@/app/admin/timeline/actions";
 
 export default async function TimelinePage() {
   const session = await auth();
@@ -58,6 +59,21 @@ export default async function TimelinePage() {
               </div>
               <h2 className="font-display text-2xl font-black">{entry.title}</h2>
               <p className="font-ui text-sm text-ink-soft">{entry.text}</p>
+              {isAdmin && (
+                <div className="flex gap-3">
+                  <Link
+                    href={`/admin/timeline/${entry.id}/modifica`}
+                    className={btnClassName({ kind: "secondary", small: true })}
+                  >
+                    Modifica
+                  </Link>
+                  <form action={deleteTimelineEntry.bind(null, entry.id)}>
+                    <Btn type="submit" kind="ghost" small>
+                      Elimina
+                    </Btn>
+                  </form>
+                </div>
+              )}
             </li>
           ))}
         </ol>

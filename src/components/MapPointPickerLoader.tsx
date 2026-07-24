@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import type { MapPointDefaults } from "./MapPointPicker";
 
 // Stesso confine client/server di CivicMapLoader: Leaflet legge `window` alla costruzione,
 // quindi il picker si carica dinamicamente senza SSR da un Client Component dedicato.
@@ -16,6 +17,6 @@ const MapPointPicker = dynamic(
   },
 );
 
-export function MapPointPickerLoader() {
-  return <MapPointPicker />;
+export function MapPointPickerLoader({ defaults }: { defaults?: MapPointDefaults }) {
+  return <MapPointPicker defaults={defaults} />;
 }

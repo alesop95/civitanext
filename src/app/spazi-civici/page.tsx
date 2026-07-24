@@ -3,7 +3,8 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Tag } from "@/components/ui/Tag";
-import { btnClassName } from "@/components/ui/Btn";
+import { Btn, btnClassName } from "@/components/ui/Btn";
+import { deleteCivicSpace } from "@/app/admin/spazi-civici/actions";
 
 export default async function SpaziCiviciPage() {
   const session = await auth();
@@ -47,6 +48,21 @@ export default async function SpaziCiviciPage() {
               <h2 className="font-display text-2xl font-black">{space.name}</h2>
               <p className="font-ui text-sm font-bold text-ink-soft">{space.hours}</p>
               <p className="font-ui text-sm text-ink-soft">{space.note}</p>
+              {isAdmin && (
+                <div className="flex gap-3">
+                  <Link
+                    href={`/admin/spazi-civici/${space.id}/modifica`}
+                    className={btnClassName({ kind: "secondary", small: true })}
+                  >
+                    Modifica
+                  </Link>
+                  <form action={deleteCivicSpace.bind(null, space.id)}>
+                    <Btn type="submit" kind="ghost" small>
+                      Elimina
+                    </Btn>
+                  </form>
+                </div>
+              )}
             </article>
           ))}
         </section>

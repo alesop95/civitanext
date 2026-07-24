@@ -51,18 +51,28 @@ function placeFromAddress(data: NominatimReverse): string {
   return data.display_name?.split(",")[0]?.trim() ?? "";
 }
 
+export type MapPointDefaults = {
+  title: string;
+  type: string;
+  place: string;
+  lat: string;
+  lng: string;
+};
+
 // Possiede tutti i campi del form (name inclusi, così la server action li riceve invariati):
 // il clic sulla mappa compila le coordinate e, via Nominatim, luogo e titolo; un campo scritto
-// a mano diventa "suo" dell'utente e l'automatismo smette di toccarlo.
-export function MapPointPicker() {
-  const [title, setTitle] = useState("");
-  const [type, setType] = useState("");
-  const [place, setPlace] = useState("");
-  const [lat, setLat] = useState("");
-  const [lng, setLng] = useState("");
+// a mano diventa "suo" dell'utente e l'automatismo smette di toccarlo. In modifica riceve i
+// valori esistenti come `defaults` e li considera gia' "scritti a mano" (dirty), cosi' un
+// eventuale nuovo clic sposta il pin ma non sovrascrive il titolo/luogo gia' impostati.
+export function MapPointPicker({ defaults }: { defaults?: MapPointDefaults }) {
+  const [title, setTitle] = useState(defaults?.title ?? "");
+  const [type, setType] = useState(defaults?.type ?? "");
+  const [place, setPlace] = useState(defaults?.place ?? "");
+  const [lat, setLat] = useState(defaults?.lat ?? "");
+  const [lng, setLng] = useState(defaults?.lng ?? "");
   const [lookup, setLookup] = useState<"idle" | "loading" | "error">("idle");
-  const titleDirty = useRef(false);
-  const placeDirty = useRef(false);
+  const titleDirty = useRef(defaults !== undefined);
+  const placeDirty = useRef(defaults !== undefined);
   const inFlight = useRef<AbortController | null>(null);
 
   const latNum = Number(lat);
