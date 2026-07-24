@@ -166,8 +166,26 @@ model Proposal {
   authorId    String
   author      User           @relation(fields: [authorId], references: [id])
   status      ProposalStatus @default(REVISIONE)
+  // Attuazione (feedback loop, Fase 2.5): nota di aggiornamento libera piu' una checklist di step
+  // ordinati (ProposalStep). Riguarda le proposte APPROVATA; non e' un nuovo stato dell'enum ma un
+  // sotto-tracciamento, come nel prototipo (CN_FEEDBACK: steps + note su una proposta approvata).
+  implementationNote String?
+  implementationSteps ProposalStep[]
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+}
+
+// Un passo di attuazione di una proposta approvata (Fase 2.5). Relazionale e non JSON, coerente
+// con la scelta gia' fatta per le opzioni del quiz (ADR-011): ordine esplicito e stato done per
+// singolo passo, cosi' la checklist e' interrogabile e ogni passo si spunta a se'. onDelete
+// Cascade: cancellando la proposta spariscono i suoi passi.
+model ProposalStep {
+  id         String   @id @default(cuid())
+  proposalId String
+  proposal   Proposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  label      String
+  order      Int      @default(0)
+  done       Boolean  @default(false)
 }
 
 // Vincolo di voto unico per utente, condiviso da piu' feature (sondaggi,

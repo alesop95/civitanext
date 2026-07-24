@@ -15,7 +15,7 @@ export default async function AdminPropostePage() {
 
   const prisma = getPrisma();
 
-  const [inRevisione, inVotazione] = await Promise.all([
+  const [inRevisione, inVotazione, approvate] = await Promise.all([
     prisma.proposal.findMany({
       where: { status: "REVISIONE" },
       orderBy: { createdAt: "asc" },
@@ -25,6 +25,14 @@ export default async function AdminPropostePage() {
       where: { status: "VOTAZIONE" },
       orderBy: { createdAt: "asc" },
       include: { author: { select: { name: true } } },
+    }),
+    prisma.proposal.findMany({
+      where: { status: "APPROVATA" },
+      orderBy: { createdAt: "desc" },
+      include: {
+        author: { select: { name: true } },
+        _count: { select: { implementationSteps: true } },
+      },
     }),
   ]);
 
@@ -109,6 +117,36 @@ export default async function AdminPropostePage() {
                   Segna come approvata
                 </Btn>
               </form>
+            </article>
+          ))
+        )}
+      </section>
+
+      <section className="flex flex-col gap-4">
+        <h2 className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+          Approvate ({approvate.length})
+        </h2>
+        {approvate.length === 0 ? (
+          <p className="font-ui text-sm text-ink-soft">Nessuna proposta approvata.</p>
+        ) : (
+          approvate.map((proposal) => (
+            <article
+              key={proposal.id}
+              className="flex flex-col gap-3 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard sm:flex-row sm:items-center sm:justify-between"
+            >
+              <div className="flex flex-col gap-1">
+                <h3 className="font-display text-xl font-black">{proposal.title}</h3>
+                <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+                  {proposal.author.name} &middot; {proposal._count.implementationSteps} passi di
+                  attuazione
+                </p>
+              </div>
+              <Link
+                href={`/admin/proposte/${proposal.id}/attuazione`}
+                className={btnClassName({ kind: "secondary", small: true })}
+              >
+                Gestisci attuazione
+              </Link>
             </article>
           ))
         )}

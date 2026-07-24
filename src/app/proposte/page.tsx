@@ -21,7 +21,10 @@ export default async function PropostePage() {
   const proposals = await prisma.proposal.findMany({
     where: { status: { in: ["VOTAZIONE", "APPROVATA"] } },
     orderBy: { createdAt: "desc" },
-    include: { author: { select: { name: true } } },
+    include: {
+      author: { select: { name: true } },
+      implementationSteps: { orderBy: { order: "asc" } },
+    },
   });
 
   // Vote e' polimorfico (nessuna relazione diretta con Proposal, vedi refactor-04): il conteggio
@@ -101,6 +104,30 @@ export default async function PropostePage() {
                       Accedi per votare
                     </Link>
                   ))}
+
+                {proposal.status === "APPROVATA" &&
+                  (proposal.implementationSteps.length > 0 || proposal.implementationNote) && (
+                    <div className="flex flex-col gap-2 border-t-2 border-dashed border-ink/20 pt-3">
+                      <p className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft">
+                        Attuazione
+                      </p>
+                      {proposal.implementationSteps.length > 0 && (
+                        <ul className="flex flex-col gap-1">
+                          {proposal.implementationSteps.map((step) => (
+                            <li key={step.id} className="flex items-center gap-2 font-ui text-sm">
+                              <span aria-hidden>{step.done ? "☑" : "☐"}</span>
+                              <span className={step.done ? "text-ink" : "text-ink-soft"}>
+                                {step.label}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                      {proposal.implementationNote && (
+                        <p className="font-ui text-sm text-ink-soft">{proposal.implementationNote}</p>
+                      )}
+                    </div>
+                  )}
               </article>
             );
           })}

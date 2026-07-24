@@ -6,6 +6,28 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-24 — Attuazione proposte (feedback loop Fase 2.5, ADR-019, prima migrazione della serie)
+
+Commit di riferimento: sopra la cancellazione mentor/sondaggi, da committare.
+File creati: `prisma/migrations/20260724120000_add_proposal_step/migration.sql`,
+`src/lib/proposal-implementation.ts`, `src/lib/proposal-implementation.test.ts`,
+`src/components/ImplementationEditor.tsx`, `src/app/admin/proposte/[id]/attuazione/page.tsx`.
+File modificati: `prisma/schema.prisma` (+`ProposalStep`, +`Proposal.implementationNote`),
+`src/app/admin/proposte/actions.ts` (+`manageImplementation`), `src/app/admin/proposte/page.tsx`
+(sezione "Approvate"), `src/app/proposte/page.tsx` (checklist pubblica), `.claude/memory/decisions.md`
+(ADR-019), `.claude/context/current-work.md`, questo work-log.
+Motivo/racconto: chiude il feedback loop di Fase 2.5. Modello confrontato con l'utente e deciso
+relazionale (ADR-019): tabella `ProposalStep` (label/order/done, FK cascade) + campo
+`implementationNote` su Proposal, senza toccare l'enum (l'attuazione e' sotto-tracciamento delle
+APPROVATA). Editor client `ImplementationEditor` (add/toggle/remove passo) + nota; salvataggio con
+`manageImplementation` che valida via `parseImplementationSteps` (puro, 5 casi) e sostituisce la
+checklist in transazione (deleteMany + createMany). Admin gestisce da `/admin/proposte/[id]/attuazione`
+(link dalla nuova sezione "Approvate" di /admin/proposte); pubblico `/proposte` mostra checklist+nota
+sulle approvate. Prima migrazione della serie (20260724120000_add_proposal_step): DA APPLICARE a dev
+(`prisma migrate deploy`) e test (`test:db:migrate`) prima del commit, altrimenti il pre-commit
+`npm test` fallisce leggendo `implementationNote`. Verifiche a codice: `prisma generate`,
+`tsc --noEmit`, `lint`, `build` puliti; unit test puri verdi. Verifica browser e migrazione DB da fare.
+
 ## 2026-07-24 — Cancellazione per mentor e sondaggi (due gap delete dell'audit)
 
 Commit di riferimento: sopra il quiz CRUD admin, da committare.

@@ -785,3 +785,29 @@ sessione e' JWT senza un meccanismo di revoca lato server; non e' un problema ne
 la durata breve del token, ma non e' invalidazione istantanea. Backup (quarto sotto-asse del
 `ROADMAP.md`, distinto dal GDPR) rimane non affrontato: dipende dalle garanzie del piano gratuito
 Neon, da verificare quando si arrivera' a quel punto, non un compito di codice applicativo.
+
+## ADR-019 — Attuazione proposte (feedback loop): checklist relazionale di passi, non JSON né nuovo stato
+
+Contesto: il ROADMAP di handoff (Fase 2.5) prevede un feedback loop sull'attuazione delle proposte
+approvate, e il prototipo lo modella (`CN_FEEDBACK`) come una lista ordinata di passi, ciascuno con
+una spunta "fatto", piu' una nota di aggiornamento libera; il socio che ha votato vede a che punto e'
+la proposta. Tre vie di modellazione a confronto con l'utente: relazionale (tabella `ProposalStep`),
+campo JSON su `Proposal`, o solo nuovi stati dell'enum senza checklist granulare.
+Decisione: relazionale. Nuova tabella `ProposalStep` (`proposalId` con `onDelete: Cascade`, `label`,
+`order`, `done`) piu' un campo `Proposal.implementationNote`. L'enum `ProposalStatus` non cambia:
+l'attuazione e' un sotto-tracciamento delle proposte gia' `APPROVATA`, non un nuovo stato, coerente
+con come il prototipo mostra gli step su una proposta approvata.
+Motivazione: coerenza con la scelta gia' fatta per le opzioni del quiz (ADR-011, relazionale non
+JSON) e con la filosofia "calcola in query" del progetto; una tabella e' interrogabile (quante
+proposte hanno completato tutti i passi, quanti passi mancano) mentre un blob JSON no, e ogni passo
+si spunta a se' invece di riscrivere l'intero campo. Scartato lo stato-solo perche' perde proprio il
+valore del prototipo: la checklist granulare che comunica l'avanzamento. Scartato il JSON perche'
+controcorrente e non interrogabile, a fronte di un risparmio (una colonna invece di una tabella) che
+a questa scala non pesa.
+Conseguenze: prima migrazione di schema dopo una serie di feature di solo codice applicativo
+(`20260724120000_add_proposal_step`, procedura ADR-009: applicare a DB di sviluppo e di test). La
+gestione admin sostituisce l'intera checklist a ogni salvataggio (deleteMany + createMany in
+transazione) invece di un diff riga per riga: piu' semplice e sicuro, e i passi non hanno riferimenti
+esterni. `onDelete: Cascade` fa sparire i passi con la proposta (rilevante per il delete admin delle
+proposte, oggi solo "rifiuta" in revisione). Limite di scope segnalato: la modifica dei singoli passi
+passa dall'editor completo, non c'e' una API di toggle singolo (non serve a questa scala).

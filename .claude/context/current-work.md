@@ -44,6 +44,41 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+## Chiusa nel codice, verifica manuale in attesa: attuazione proposte (Fase 2.5, ADR-019)
+
+Ottava voce di sviluppo applicativo e chiusura del feedback loop di Fase 2.5. Modello confrontato
+con l'utente (relazionale vs JSON vs solo stati) e deciso relazionale, ADR-019: nuova tabella
+`ProposalStep` (`proposalId` cascade, `label`, `order`, `done`) piu' `Proposal.implementationNote`,
+senza toccare l'enum `ProposalStatus` (l'attuazione e' un sotto-tracciamento delle proposte gia'
+`APPROVATA`). Prima migrazione dopo una serie di feature di solo codice.
+
+Un admin gestisce la checklist di attuazione da `/admin/proposte/[id]/attuazione` (raggiungibile
+dalla nuova sezione "Approvate" di `/admin/proposte`): editor client `ImplementationEditor` (aggiungi
+passo, spunta fatto, rimuovi) piu' una nota. Salvataggio via `manageImplementation`: valida i passi
+con la funzione pura `parseImplementationSteps` (testata, 5 casi) e sostituisce l'intera checklist in
+transazione (deleteMany + createMany) aggiornando la nota. Sul pubblico `/proposte`, le proposte
+approvate mostrano la checklist con le spunte e la nota.
+
+File creati: `prisma/migrations/20260724120000_add_proposal_step/migration.sql`,
+`src/lib/proposal-implementation.ts`, `src/lib/proposal-implementation.test.ts`,
+`src/components/ImplementationEditor.tsx`,
+`src/app/admin/proposte/[id]/attuazione/page.tsx`. File modificati: `prisma/schema.prisma`
+(+`ProposalStep`, +`Proposal.implementationNote`), `src/app/admin/proposte/actions.ts`
+(+`manageImplementation`), `src/app/admin/proposte/page.tsx` (sezione "Approvate"),
+`src/app/proposte/page.tsx` (checklist pubblica).
+
+Definition of done:
+- [x] Modello `ProposalStep` + `implementationNote` scritti; migrazione creata (procedura ADR-009)
+- [x] `parseImplementationSteps` puro, coperto da unit test (5 casi, verdi)
+- [x] `manageImplementation` con guardia di ruolo, sostituzione in transazione
+- [x] Editor admin, sezione "Approvate", checklist pubblica su `/proposte`
+- [x] `npx prisma generate`, `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti
+- [ ] **Migrazione da applicare** a DB di sviluppo (`prisma migrate deploy`) e di test
+      (`test:db:migrate`) prima del commit: il pre-commit `npm test` legge `implementationNote` e
+      fallirebbe se il DB di test non e' migrato
+- [ ] Verifica manuale nel browser: **in attesa** (approvare una proposta, aggiungere passi e nota
+      da admin, spuntarne alcuni, vedere la checklist su `/proposte`); non dichiarata finche' non osservata
+
 ## Chiusa nel codice, verifica manuale in attesa: cancellazione mentor e sondaggi
 
 Settima voce di sviluppo applicativo, due piccoli gap dell'audit dove mancava il delete
