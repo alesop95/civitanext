@@ -1,10 +1,11 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Tag } from "@/components/ui/Tag";
 import { Waves } from "@/components/ui/Waves";
-import { Btn } from "@/components/ui/Btn";
+import { Btn, btnClassName } from "@/components/ui/Btn";
 import { getUserReputation } from "@/lib/reputation";
 import { PushToggle } from "@/components/PushToggle";
 import { toggleDigestOptIn, requestAccountDeletion } from "./actions";
@@ -67,6 +68,12 @@ export default async function ProfiloPage() {
           <p className="font-ui text-xs text-ink-soft">
             Membro dal {memberSinceFormatter.format(user.memberSince)}
           </p>
+          <Link
+            href="/profilo/modifica"
+            className={btnClassName({ kind: "secondary", small: true, className: "self-start" })}
+          >
+            Modifica dati
+          </Link>
         </div>
 
         {user.tesseraNumero ? (

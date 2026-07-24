@@ -6,6 +6,24 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-24 — Modifica profilo socio (nome, email, password)
+
+Commit di riferimento: sopra la modifica/cancella contenuti citta', da committare.
+File creati: `src/lib/profile-validation.ts`, `src/lib/profile-validation.test.ts`,
+`src/app/profilo/modifica/page.tsx`. File modificati: `src/app/profilo/actions.ts`,
+`src/app/profilo/page.tsx`, `.claude/context/current-work.md`, questo work-log.
+Motivo/racconto: chiude la lacuna d'audit "il socio non puo' modificare i propri dati". Pagina
+`/profilo/modifica` con form dati (nome+email) e form password, link da `/profilo`. Validazione
+pura in `profile-validation.ts` (nome non vuoto, email con "@", password >= 8) allineata alla
+registrazione, testata senza DB (3 casi). Decisione di sicurezza standard e segnalata: cambio email
+e cambio password richiedono la password attuale (bcrypt.compare) come conferma d'identita'; utenti
+solo-OAuth (nessuna passwordHash) esentati per l'email e, per la password, la impostano per la prima
+volta. Email normalizzata (trim+lowercase) e vincolata all'unicita' dello schema. Limite noto: la
+sessione JWT conserva nome/email vecchi finche' non si ricarica; `/profilo` legge dal DB e mostra
+subito i valori nuovi. Nessuna migrazione. Verifiche: `npx tsc --noEmit`, `npm run lint`,
+`npm run build` puliti (rotta `/profilo/modifica` nel manifest); unit test puri verdi. Verifica
+browser e test di integrazione da fare.
+
 ## 2026-07-24 — Modifica/cancella per i contenuti citta' (spazi, mappa, timeline, rassegna)
 
 Commit di riferimento: sopra gli eventi CRUD, da committare.

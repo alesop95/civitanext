@@ -44,6 +44,42 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+## Chiusa nel codice, verifica manuale in attesa: modifica profilo socio
+
+Quinta voce di sviluppo applicativo. Chiude la lacuna dell'audit "il socio non puo' modificare i
+propri dati": nuova pagina `/profilo/modifica` con due form, uno per nome ed email e uno per la
+password, raggiungibile da un pulsante "Modifica dati" nella card "Dati account" di `/profilo`.
+
+Validazione pura e testabile in `src/lib/profile-validation.ts` (nome non vuoto, email con "@",
+password >= 8), allineata alle regole della registrazione. Due server action in
+`src/app/profilo/actions.ts`: `updateProfileInfo` (nome + email, email normalizzata e vincolata
+all'unicita') e `changePassword`. Decisione di sicurezza standard, presa in autonomia perche' e'
+prassi consolidata e non una scelta di prodotto: il cambio email e il cambio password richiedono
+la password attuale come conferma d'identita' (previene modifiche da una sessione rubata); chi ha
+solo OAuth Google (nessuna `passwordHash`) ne e' esentato per l'email e, per la password, la sta
+impostando per la prima volta senza doverne fornire una. La pagina mostra il form password come
+"Imposta una password" per gli utenti solo-OAuth.
+
+Limite noto e segnalato: cambiando nome/email, la sessione JWT esistente conserva i vecchi valori
+finche' non si ricarica (il ricontrollo periodico o un nuovo accesso li allineano); la pagina
+`/profilo` legge dal database, quindi mostra subito i valori aggiornati, ma l'avatar/nome in header
+puo' restare indietro per poco. Nessuna migrazione di schema.
+
+File creati: `src/lib/profile-validation.ts`, `src/lib/profile-validation.test.ts`,
+`src/app/profilo/modifica/page.tsx`. File modificati: `src/app/profilo/actions.ts`
+(`updateProfileInfo`, `changePassword`), `src/app/profilo/page.tsx` (link "Modifica dati").
+
+Definition of done:
+- [x] Validazione pura coperta da unit test (3 casi, verdi)
+- [x] `updateProfileInfo` (nome, email con unicita' e conferma password) e `changePassword`
+      (conferma password attuale se presente, lunghezza minima, conferma corrispondente)
+- [x] `/profilo/modifica` con i due form e messaggi di errore/successo
+- [x] `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (rotta nel manifest)
+- [ ] Verifica manuale nel browser: **in attesa** (cambiare nome; cambiare email con password
+      giusta/sbagliata e con email gia' esistente; cambiare password; provare da un utente
+      Google-only); non dichiarata finche' non osservata
+- [ ] Test di integrazione delle action non ancora scritti (rafforzamento successivo)
+
 ## Chiusa nel codice, verifica manuale in attesa: modifica/cancella contenuti citta'
 
 Quarta voce di sviluppo applicativo, scelta dall'utente dopo l'audit: replica il pattern di
