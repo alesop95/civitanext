@@ -6,6 +6,20 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-24 — Cancellazione per mentor e sondaggi (due gap delete dell'audit)
+
+Commit di riferimento: sopra il quiz CRUD admin, da committare.
+File modificati: `src/app/admin/mentorship/actions.ts` (+`deleteMentor`),
+`src/app/admin/sondaggi/actions.ts` (+`deletePoll`), `src/app/mentorship/page.tsx`,
+`src/app/page.tsx`, `.claude/context/current-work.md`, questo work-log.
+Motivo/racconto: due piccoli gap dell'audit (mentorship e sondaggi solo create). `deleteMentor`
+elimina prima le MentorRequest (FK) poi il mentor, in transazione. `deletePoll` e' il caso sottile:
+i voti sondaggio usano il pattern polimorfico di Vote (targetType POLL, targetId = PollOption.id)
+senza FK verso PollOption, quindi si leggono gli id opzione e si eliminano in transazione voti,
+opzioni e sondaggio. Controlli admin "Elimina" inline su `/mentorship` e in home. Nessuna
+migrazione. Verifiche: `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti. Verifica browser
+da fare.
+
 ## 2026-07-24 — Quiz CRUD admin (editor domande annidate, ultima sezione admin del prototipo)
 
 Commit di riferimento: sopra la modifica profilo socio, da committare.

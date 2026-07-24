@@ -32,3 +32,19 @@ export async function createMentor(formData: FormData) {
   revalidatePath("/mentorship");
   redirect("/mentorship");
 }
+
+// Cancella un mentor e, prima, le sue richieste di incontro (FK MentorRequest.mentorId): in
+// transazione, cosi' il delete non dipende dalla regola referenziale del database. Le richieste
+// non sono contenuto pubblico, solo il collegamento socio-mentor: eliminarle con il mentor e'
+// corretto.
+export async function deleteMentor(mentorId: string) {
+  await requireAdmin();
+  const prisma = getPrisma();
+
+  await prisma.$transaction([
+    prisma.mentorRequest.deleteMany({ where: { mentorId } }),
+    prisma.mentor.delete({ where: { id: mentorId } }),
+  ]);
+
+  revalidatePath("/mentorship");
+}

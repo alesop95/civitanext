@@ -6,6 +6,7 @@ import { Tag } from "@/components/ui/Tag";
 import { Btn, btnClassName } from "@/components/ui/Btn";
 import { Avatar } from "@/components/ui/Avatar";
 import { requestMentor } from "./actions";
+import { deleteMentor } from "@/app/admin/mentorship/actions";
 
 export default async function MentorshipPage() {
   const session = await auth();
@@ -60,9 +61,16 @@ export default async function MentorshipPage() {
                     questo mese
                   </p>
                   {isAdmin && (
-                    <p className="font-ui text-xs text-ink-soft">
-                      {requestCount} {requestCount === 1 ? "richiesta" : "richieste"} di incontro
-                    </p>
+                    <div className="flex flex-wrap items-center gap-3">
+                      <p className="font-ui text-xs text-ink-soft">
+                        {requestCount} {requestCount === 1 ? "richiesta" : "richieste"} di incontro
+                      </p>
+                      <form action={deleteMentor.bind(null, mentor.id)}>
+                        <Btn type="submit" kind="ghost" small>
+                          Elimina
+                        </Btn>
+                      </form>
+                    </div>
                   )}
                 </div>
                 <div className="sm:self-center">

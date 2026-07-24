@@ -9,12 +9,14 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { VoteTargetType } from "@/generated/prisma/client";
 import { votePoll } from "@/app/sondaggi/actions";
+import { deletePoll } from "@/app/admin/sondaggi/actions";
 
 // Vetrina del design system di Fase 0: nessuna feature reale, solo il
 // vocabolario visivo (token, grafiche, componenti base) riportato dal
 // prototipo di design_handoff_civitanext/ nel codice reale dell'app.
 export default async function Home() {
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
   const prisma = getPrisma();
 
   const polls = await prisma.poll.findMany({
@@ -126,6 +128,13 @@ export default async function Home() {
                   >
                     Accedi per votare
                   </Link>
+                )}
+                {isAdmin && (
+                  <form action={deletePoll.bind(null, poll.id)} className="self-start">
+                    <Btn type="submit" kind="ghost" small>
+                      Elimina sondaggio
+                    </Btn>
+                  </form>
                 )}
               </div>
             );

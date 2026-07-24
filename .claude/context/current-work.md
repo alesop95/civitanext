@@ -44,6 +44,30 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+## Chiusa nel codice, verifica manuale in attesa: cancellazione mentor e sondaggi
+
+Settima voce di sviluppo applicativo, due piccoli gap dell'audit dove mancava il delete
+(mentorship e sondaggi erano ancora solo create). `deleteMentor` e `deletePoll` con guardia di
+ruolo, controlli admin "Elimina" inline (su `/mentorship` per mentor, in home per sondaggio).
+
+Entrambi cancellano a cascata in transazione. `deleteMentor` elimina prima le `MentorRequest`
+collegate (FK reale) poi il mentor. `deletePoll` e' il caso piu' sottile: i voti usano il pattern
+polimorfico di `Vote` (targetType POLL, targetId = PollOption.id) senza foreign key verso
+`PollOption`, quindi vanno cancellati esplicitamente prima delle opzioni; si leggono gli id delle
+opzioni del sondaggio, poi si eliminano in transazione i voti su quelle, le opzioni e il sondaggio.
+Nessuna migrazione.
+
+File modificati: `src/app/admin/mentorship/actions.ts` (+`deleteMentor`),
+`src/app/admin/sondaggi/actions.ts` (+`deletePoll`), `src/app/mentorship/page.tsx` (Elimina admin),
+`src/app/page.tsx` (Elimina sondaggio admin in home).
+
+Definition of done:
+- [x] `deleteMentor` (con richieste) e `deletePoll` (con voti e opzioni) a cascata in transazione
+- [x] Controlli admin "Elimina" inline su mentorship e home
+- [x] `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti
+- [ ] Verifica manuale nel browser: **in attesa** (eliminare un mentor con una richiesta inviata;
+      eliminare un sondaggio votato e verificare che sparisca con i suoi voti); non dichiarata finche' non osservata
+
 ## Chiusa nel codice, verifica manuale in attesa: quiz CRUD admin
 
 Sesta voce di sviluppo applicativo, ultima sezione admin del prototipo (`AdminView` quiz) mai

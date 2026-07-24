@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
+import { VoteTargetType } from "@/generated/prisma/client";
 
 async function requireAdmin() {
   const session = await auth();
@@ -32,4 +33,29 @@ export async function createPoll(formData: FormData) {
 
   revalidatePath("/");
   redirect("/");
+}
+
+// Cancella un sondaggio. I voti usano il pattern polimorfico di Vote (targetType POLL, targetId =
+// PollOption.id) senza foreign key reale verso PollOption, quindi vanno cancellati esplicitamente
+// prima delle opzioni: si leggono gli id delle opzioni del sondaggio e si eliminano in transazione
+// i voti su quelle, poi le opzioni, poi il sondaggio.
+export async function deletePoll(pollId: string) {
+  await requireAdmin();
+  const prisma = getPrisma();
+
+  const options = await prisma.pollOption.findMany({
+    where: { pollId },
+    select: { id: true },
+  });
+  const optionIds = options.map((option) => option.id);
+
+  await prisma.$transaction([
+    prisma.vote.deleteMany({
+      where: { targetType: VoteTargetType.POLL, targetId: { in: optionIds } },
+    }),
+    prisma.pollOption.deleteMany({ where: { pollId } }),
+    prisma.poll.delete({ where: { id: pollId } }),
+  ]);
+
+  revalidatePath("/");
 }
