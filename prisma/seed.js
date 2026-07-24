@@ -6,7 +6,20 @@
 // via crypto.randomUUID(), non un cuid: irrilevante, le colonne sono solo TEXT.
 require("dotenv/config");
 const crypto = require("crypto");
+const bcrypt = require("bcryptjs");
 const { Client } = require("pg");
+
+// Account di prova, uno per ruolo, per la verifica manuale nel browser. NON sono segreti di
+// produzione: sono credenziali dev usa-e-getta contro il database di sviluppo, stessa natura di
+// e2e/credentials.ts (anch'esso versionato). La password e' condivisa dai tre di proposito, per
+// comodita' di test. tesseraNumero assegnato a superadmin e socio per far vedere subito la
+// tessera; l'admin resta senza, cosi' si puo' provare "Assegna tessera" dal pannello.
+const TEST_PASSWORD = "CivitaNext2026!";
+const USERS = [
+  { email: "superadmin@civitanext.local", name: "Super Admin", role: "SUPERADMIN", tessera: "CN-0001" },
+  { email: "admin@civitanext.local", name: "Admin di prova", role: "ADMIN", tessera: null },
+  { email: "socio@civitanext.local", name: "Socio di prova", role: "UTENTE", tessera: "CN-0002" },
+];
 
 const EVENTS = [
   {
@@ -137,12 +150,40 @@ async function seedQuiz(client) {
   console.log(`Quiz: creato "${QUIZ.title}" con ${QUIZ.questions.length} domande.`);
 }
 
+async function seedUsers(client) {
+  const passwordHash = await bcrypt.hash(TEST_PASSWORD, 10);
+  let inserted = 0;
+  let updated = 0;
+  for (const user of USERS) {
+    const existing = await client.query('SELECT id FROM "User" WHERE email = $1', [user.email]);
+    if (existing.rowCount > 0) {
+      await client.query(
+        `UPDATE "User"
+         SET name = $2, role = $3, "passwordHash" = $4, "tesseraNumero" = $5, "updatedAt" = now()
+         WHERE email = $1`,
+        [user.email, user.name, user.role, passwordHash, user.tessera],
+      );
+      updated += 1;
+      continue;
+    }
+    await client.query(
+      `INSERT INTO "User"
+         (id, email, name, role, "passwordHash", "tesseraNumero", "memberSince", "createdAt", "updatedAt")
+       VALUES ($1, $2, $3, $4, $5, $6, now(), now(), now())`,
+      [crypto.randomUUID(), user.email, user.name, user.role, passwordHash, user.tessera],
+    );
+    inserted += 1;
+  }
+  console.log(`Utenti di prova: ${inserted} creati, ${updated} aggiornati (password reimpostata).`);
+}
+
 async function main() {
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
 
   await seedEvents(client);
   await seedQuiz(client);
+  await seedUsers(client);
 
   await client.end();
   console.log("Seed completato.");

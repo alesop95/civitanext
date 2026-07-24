@@ -6,6 +6,29 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-23 — Gestione soci (admin): cambio ruolo, tessera, account di prova seminati
+
+Commit di riferimento: sopra `52e84ad`, da committare.
+File creati: `src/lib/user-admin.ts`, `src/lib/user-admin.test.ts`, `src/app/admin/soci/actions.ts`,
+`src/app/admin/soci/page.tsx`. File modificati: `prisma/seed.js` (+`seedUsers`),
+`src/app/admin/page.tsx`, `src/components/SiteHeader.tsx`, `src/app/altro/page.tsx`,
+`.claude/context/current-work.md`, questo work-log. Non versionato: `_notes/CREDENZIALI-TEST.md`.
+Motivo/racconto: continuazione diretta del pannello admin, su delega dell'utente di procedere con
+la prossima feature applicativa. E' la sezione "Utenti" del prototipo e chiude la lacuna di Fase 1
+"assegnazione tessera mai costruita". Cuore della feature e la regola di sicurezza pura
+`canChangeRole` (`src/lib/user-admin.ts`): nessuno cambia il proprio ruolo (anti auto-blocco), un
+SUPERADMIN puo' tutto sugli altri, un ADMIN resta dentro {UTENTE, ADMIN} e non tocca ne' crea
+SUPERADMIN; ricontrollata lato server leggendo il ruolo reale del bersaglio, non fidandosi della
+tendina. Numero tessera progressivo `CN-NNNN` da `nextTesseraNumero` (pura). Due decisioni
+autonome segnalate: omesso l'interruttore attivo/disattivato del prototipo (nessuna colonna nello
+schema, sarebbe una feature di sospensione a se'); scelta gestione soci contro attuazione proposte,
+offrendo di cambiare. `prisma/seed.js` esteso con tre account dev stabili uno per ruolo
+(`superadmin@`/`admin@`/`socio@civitanext.local`, password condivisa dev `CivitaNext2026!`),
+idempotenti, per la verifica manuale; credenziali dev non segrete come e2e/credentials.ts.
+Verifiche: `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (rotta `/admin/soci` nel
+manifest); unit test puri verdi (10 casi user-admin). Verifica browser interattiva e test di
+integrazione delle action ancora da fare (i primi utente, i secondi rafforzamento successivo).
+
 ## 2026-07-23 — Pannello admin con analytics + sospensione job CI Cloudflare
 
 Commit di riferimento: sopra `1cb9fbf`, da committare.

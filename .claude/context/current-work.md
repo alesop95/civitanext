@@ -44,6 +44,50 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+## Chiusa nel codice, verifica manuale in attesa: gestione soci (admin)
+
+Seconda voce di sviluppo applicativo dopo il pannello admin, continuazione diretta: la sezione
+"Utenti" del prototipo (`civitanext-admin.jsx`, `CN_ADMIN_USERS`). Scelta tra le direzioni aperte
+perche' estende il pannello appena costruito e chiude una lacuna reale di Fase 1 annotata da tempo
+("l'assegnazione di una tessera resta un'azione amministrativa non ancora costruita"). Elenco
+utenti con cambio ruolo e assegnazione/revoca tessera, riservato ad `ADMIN`/`SUPERADMIN`.
+
+La regola di autorizzazione, la parte sensibile, vive in funzioni pure testabili in isolamento
+(`src/lib/user-admin.ts`, stessa filosofia di `reputation.ts`): `canChangeRole` codifica un
+invariante di sicurezza esplicito, nessuno cambia il proprio ruolo (anti auto-blocco), un
+SUPERADMIN puo' tutto sugli altri, un ADMIN opera solo dentro `{UTENTE, ADMIN}` e non tocca ne'
+crea SUPERADMIN. La guardia e' ricontrollata lato server leggendo lo stato reale del bersaglio dal
+database, non ci si fida di cosa la tendina permetteva di scegliere. Il numero tessera e'
+generato da `nextTesseraNumero` (progressivo `CN-NNNN` dal massimo esistente, funzione pura).
+
+Due decisioni prese in autonomia e segnalate come tali, entrambe reversibili: l'interruttore
+"attivo/disattivato" del prototipo e' stato omesso perche' non esiste una colonna corrispondente
+nello schema e introdurla sarebbe una scelta di prodotto a se' (sospensione account), non un
+dettaglio di questa feature; la scelta della feature stessa (gestione soci contro l'alternativa
+"attuazione proposte") e' stata fatta su delega esplicita dell'utente di procedere con la prossima
+feature applicativa, offrendo comunque di cambiare.
+
+A supporto della verifica manuale, `prisma/seed.js` ora crea anche tre account di prova stabili,
+uno per ruolo (`superadmin@`/`admin@`/`socio@civitanext.local`, password condivisa dev), idempotenti
+e reimpostabili con `node prisma/seed.js`; sono credenziali dev usa-e-getta come `e2e/credentials.ts`,
+non segreti (il file `_notes/CREDENZIALI-TEST.md`, non versionato, le riepiloga per comodita').
+
+File creati: `src/lib/user-admin.ts`, `src/lib/user-admin.test.ts`, `src/app/admin/soci/actions.ts`,
+`src/app/admin/soci/page.tsx`. File modificati: `prisma/seed.js` (+`seedUsers`), `src/app/admin/page.tsx`
+(voce "Gestione soci" nell'hub), `src/components/SiteHeader.tsx` e `src/app/altro/page.tsx`
+(link).
+
+Definition of done:
+- [x] Autorizzazione in `src/lib/user-admin.ts`, coperta da unit test puri (10 casi, verdi)
+- [x] `/admin/soci` con guardia di ruolo: cambio ruolo (tendina filtrata per attore) e tessera
+- [x] `changeUserRole`/`assignTessera`/`revokeTessera` con guardia e ricontrollo server-side
+- [x] `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (rotta `/admin/soci` nel manifest)
+- [ ] Verifica manuale nel browser: **in attesa** (login superadmin, cambiare il ruolo del socio,
+      assegnare tessera all'admin, verificare che ADMIN non possa toccare un SUPERADMIN ne' se
+      stesso); non dichiarata come fatta finche' non osservata
+- [ ] Test di integrazione delle action (con Postgres) non ancora scritti: la logica di sicurezza
+      e' coperta dai test puri, l'integrazione e' un rafforzamento successivo
+
 ## Chiusa nel codice, verifica manuale in attesa: pannello admin + analytics (Fase 5)
 
 Prima voce di sviluppo applicativo dopo la chiusura di Fase 4 e dei tre assi di hardening piu'

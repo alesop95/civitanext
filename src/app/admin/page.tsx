@@ -52,6 +52,7 @@ const HUB_GROUPS: { title: string; links: { href: string; label: string }[] }[] 
     title: "Sistema",
     links: [
       { href: "/admin/analytics", label: "Analytics" },
+      { href: "/admin/soci", label: "Gestione soci" },
       { href: "/admin/account-deletion", label: "Cancellazioni account" },
     ],
   },
