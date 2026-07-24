@@ -84,7 +84,7 @@ export default async function AdminDashboardPage() {
         <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">
           Pannello admin
         </h1>
-        <p className="max-w-lg font-ui text-base text-ink-soft">
+        <p className="font-ui text-base text-ink-soft">
           Panoramica dell&apos;attivita&apos; della community e accesso rapido alle sezioni di
           gestione.
         </p>

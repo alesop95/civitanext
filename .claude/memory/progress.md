@@ -6,6 +6,28 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-24 — Fix da verifica browser: hydration push, tendina ruolo, file input, ritorni
+
+Commit di riferimento: sopra `15135da`, da committare.
+File creati: `src/components/ui/FileField.tsx`. File modificati: `src/components/PushToggle.tsx`,
+`src/app/admin/soci/page.tsx`, `src/app/admin/analytics/page.tsx`, `src/app/admin/page.tsx`,
+`src/app/admin/documenti/nuovo/page.tsx`, `src/app/galleria/[id]/page.tsx`, questo work-log.
+Motivo/racconto: correzioni emerse dalla verifica manuale nel browser dell'utente.
+1) Bug hydration reale in `PushToggle` (`/profilo`): il supporto all'API push era rilevato in un
+   lazy initializer che legge `window`/`navigator`, assenti sul server, quindi l'HTML server (ramo
+   "non supportato") non combaciava col primo render client (toggle) → mismatch. Spostata la
+   rilevazione in un effetto post-mount con segnaposto neutro identico su server e primo render
+   client. 2) Bug tendina ruolo in `/admin/soci`: dopo il cambio ruolo la select non controllata
+   (defaultValue) mostrava ancora il ruolo vecchio perche' React la riusava dopo la rigenerazione
+   e il riordino della lista; aggiunta `key={targetRole}` che la rimonta sul valore aggiornato.
+   3) UX file input: nuovo componente client `FileField` che sostituisce la resa nativa poco
+   chiara ("Scegli file / Nessun file selezionato") con un bottone vistoso dentro la label e il
+   nome del file scelto accanto; usato in Nuovo documento e nel caricamento foto galleria.
+   4) Sostituiti i link testuali "← Pannello admin" con un bottone "Torna al pannello" (analytics
+   e soci). 5) Rimosso `max-w-lg` dai testi introduttivi admin, che andavano a capo troppo presto.
+Verifiche: `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti. Verifica browser dei fix in
+attesa (utente).
+
 ## 2026-07-23 — Gestione soci (admin): cambio ruolo, tessera, account di prova seminati
 
 Commit di riferimento: sopra `52e84ad`, da committare.

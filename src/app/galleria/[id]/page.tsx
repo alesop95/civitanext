@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { getPrisma } from "@/lib/prisma";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Btn, btnClassName } from "@/components/ui/Btn";
+import { FileField } from "@/components/ui/FileField";
 import { uploadPhoto } from "../actions";
 
 export default async function AlbumPage({
@@ -73,17 +74,14 @@ export default async function AlbumPage({
           action={uploadPhoto.bind(null, album.id)}
           className="flex flex-col gap-3 rounded-cn border-2 border-ink bg-paper-card p-6 shadow-hard"
         >
-          <label className="flex flex-col gap-1 font-ui text-sm">
-            Carica foto
-            <input
-              type="file"
-              name="photos"
-              multiple
-              accept="image/jpeg,image/png,image/webp"
-              required
-              className="rounded-cn border-2 border-ink bg-paper px-3 py-2"
-            />
-          </label>
+          <FileField
+            name="photos"
+            label="Carica foto"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            required
+            buttonLabel="Scegli foto"
+          />
           <Btn type="submit" kind="primary" className="self-start">
             Carica
           </Btn>

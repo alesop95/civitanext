@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SiteHeader } from "@/components/SiteHeader";
-import { Btn } from "@/components/ui/Btn";
+import { Btn, btnClassName } from "@/components/ui/Btn";
 import { Tag } from "@/components/ui/Tag";
 import { getPrisma } from "@/lib/prisma";
 import { assignableRolesFor, type AppRole } from "@/lib/user-admin";
@@ -38,17 +38,17 @@ export default async function AdminSociPage() {
     <main className="flex flex-1 flex-col gap-12 px-6 py-16 sm:px-16">
       <SiteHeader activeHref="/admin/soci" />
 
-      <header className="flex flex-col gap-2">
+      <header className="flex flex-col gap-4">
         <Link
           href="/admin"
-          className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft hover:text-ink"
+          className={btnClassName({ kind: "secondary", small: true, className: "self-start" })}
         >
-          &larr; Pannello admin
+          Torna al pannello
         </Link>
         <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">
           Gestione soci
         </h1>
-        <p className="max-w-lg font-ui text-base text-ink-soft">
+        <p className="font-ui text-base text-ink-soft">
           Ruolo e tessera dei soci. Il tesseramento e&apos; indipendente dal ruolo: un socio puo&apos;
           essere tesserato senza essere admin, e viceversa.
         </p>
@@ -86,7 +86,14 @@ export default async function AdminSociPage() {
                 {canManageRole ? (
                   <form action={changeUserRole} className="flex items-center gap-2">
                     <input type="hidden" name="userId" value={user.id} />
+                    {/*
+                      key legata al ruolo attuale: quando l'azione cambia il ruolo e la pagina si
+                      rigenera, la tendina (non controllata, con defaultValue) verrebbe altrimenti
+                      riusata da React con il valore scelto prima e mostrerebbe il ruolo vecchio.
+                      Cambiando la key la tendina si rimonta e riparte dal ruolo aggiornato.
+                    */}
                     <select
+                      key={targetRole}
                       name="role"
                       defaultValue={targetRole}
                       className="rounded-cn border-2 border-ink bg-paper px-3 py-2 font-ui text-sm"

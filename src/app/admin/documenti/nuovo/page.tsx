@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Btn } from "@/components/ui/Btn";
+import { FileField } from "@/components/ui/FileField";
 import { createDocument } from "../actions";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -54,16 +55,13 @@ export default async function NuovoDocumentoPage({
             <option value="BILANCI">Bilanci</option>
           </select>
         </label>
-        <label className="flex flex-col gap-1 font-ui text-sm">
-          File PDF
-          <input
-            type="file"
-            name="file"
-            accept="application/pdf"
-            required
-            className="rounded-cn border-2 border-ink bg-paper px-3 py-2"
-          />
-        </label>
+        <FileField
+          name="file"
+          label="File PDF"
+          accept="application/pdf"
+          required
+          buttonLabel="Scegli un PDF"
+        />
         <Btn type="submit" kind="primary" className="self-start">
           Pubblica documento
         </Btn>

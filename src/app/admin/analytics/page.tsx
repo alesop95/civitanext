@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { SiteHeader } from "@/components/SiteHeader";
+import { btnClassName } from "@/components/ui/Btn";
 import { StatTile } from "@/components/ui/StatTile";
 import { BarChart } from "@/components/ui/BarChart";
 import { getAdminAnalytics } from "@/lib/analytics";
@@ -22,15 +23,15 @@ export default async function AdminAnalyticsPage() {
     <main className="flex flex-1 flex-col gap-12 px-6 py-16 sm:px-16">
       <SiteHeader activeHref="/admin/analytics" />
 
-      <header className="flex flex-col gap-2">
+      <header className="flex flex-col gap-4">
         <Link
           href="/admin"
-          className="font-ui text-xs font-bold uppercase tracking-wide text-ink-soft hover:text-ink"
+          className={btnClassName({ kind: "secondary", small: true, className: "self-start" })}
         >
-          &larr; Pannello admin
+          Torna al pannello
         </Link>
         <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">Analytics</h1>
-        <p className="max-w-lg font-ui text-base text-ink-soft">
+        <p className="font-ui text-base text-ink-soft">
           Andamento della partecipazione negli ultimi {a.months} mesi. L&apos;ultima barra e&apos;
           il mese in corso.
         </p>

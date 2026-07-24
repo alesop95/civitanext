@@ -14,14 +14,28 @@ function urlBase64ToUint8Array(base64String: string) {
 }
 
 export function PushToggle() {
-  // Lazy initializer, non un effetto: durante l'hydration gira gia' nel browser (navigator e'
-  // definito), quindi non serve un giro di render in piu' solo per scoprire se l'API esiste.
-  const [supported] = useState(
-    () => typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window,
-  );
+  // Il supporto all'API va rilevato DOPO il mount, non in un lazy initializer: sul server
+  // `window`/`navigator` non esistono, quindi l'HTML server-rendered mostrerebbe un ramo (il
+  // messaggio "non supportato") e il primo render nel browser un altro (il toggle), causando un
+  // errore di hydration. Con `mounted` il primo render client coincide con quello del server
+  // (entrambi lo stato di caricamento), poi l'effetto rileva il supporto e aggiorna.
+  // mounted e supported in un solo stato: cosi' la rilevazione client-only e' un unico setState
+  // una tantum dopo il mount, non un ciclo di render (il render successivo dipende solo dal
+  // valore rilevato, non ne innesca altri).
+  const [client, setClient] = useState({ mounted: false, supported: false });
   const [subscribed, setSubscribed] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState(false);
+
+  const { mounted, supported } = client;
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- rilevazione client-only post-mount
+    setClient({
+      mounted: true,
+      supported: "serviceWorker" in navigator && "PushManager" in window,
+    });
+  }, []);
 
   useEffect(() => {
     if (!supported) return;
@@ -77,6 +91,12 @@ export function PushToggle() {
     } finally {
       setPending(false);
     }
+  }
+
+  // Prima del mount il server e il primo render client mostrano lo stesso segnaposto neutro:
+  // e' cio' che evita il mismatch di hydration.
+  if (!mounted) {
+    return <p className="font-ui text-xs text-ink-soft">Caricamento notifiche push...</p>;
   }
 
   if (!supported) {
