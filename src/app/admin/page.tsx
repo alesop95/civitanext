@@ -25,6 +25,7 @@ const HUB_GROUPS: { title: string; links: { href: string; label: string }[] }[] 
     links: [
       { href: "/admin/proposte", label: "Coda proposte" },
       { href: "/admin/sondaggi/nuovo", label: "Nuovo sondaggio" },
+      { href: "/admin/quiz", label: "Gestione quiz" },
     ],
   },
   {

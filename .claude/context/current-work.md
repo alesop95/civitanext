@@ -44,6 +44,45 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+## Chiusa nel codice, verifica manuale in attesa: quiz CRUD admin
+
+Sesta voce di sviluppo applicativo, ultima sezione admin del prototipo (`AdminView` quiz) mai
+costruita: fino a oggi i quiz esistevano solo da seed. La piu' complessa per via delle domande e
+opzioni annidate.
+
+Scope scelto e segnalato per un vincolo di integrita' reale: creazione con editor completo di
+domande e opzioni; modifica dei soli metadati (titolo, descrizione, ordine); cancellazione a
+cascata. Le domande NON sono modificabili dopo la creazione perche' un quiz gia' tentato ha
+`QuizAttempt`/`QuizAnswer` agganciati a domande e opzioni, e cambiarle invaliderebbe quei
+tentativi; per rifare le domande si elimina e si ricrea il quiz (limite documentato in pagina).
+
+L'editor `QuizEditor` (client) gestisce l'elenco domande (testo, opzioni, radio per la risposta
+corretta), con aggiunta/rimozione di domande e opzioni e riallineamento dell'indice corretto quando
+si rimuove un'opzione; serializza tutto in un campo nascosto `payload` JSON. La validazione vera e'
+pura e lato server in `src/lib/quiz-admin.ts` (`parseQuizQuestions`: almeno una domanda, testo non
+vuoto, almeno due opzioni non vuote, indice corretto valido, lunghezze), testata senza database (8
+casi). La creazione scrive Quiz + domande + opzioni in un'unica create annidata (posizione della
+domanda = `order`, opzione all'indice corretto = unica `isCorrect`). La cancellazione elimina in
+transazione, nell'ordine delle foreign key, risposte, tentativi, opzioni, domande e quiz: rimuove
+anche i tentativi dei soci (impatto sui punti reputazione, dichiarato). Nessuna migrazione.
+
+File creati: `src/lib/quiz-admin.ts`, `src/lib/quiz-admin.test.ts`, `src/components/QuizEditor.tsx`,
+`src/app/admin/quiz/actions.ts`, `src/app/admin/quiz/page.tsx`, `src/app/admin/quiz/nuovo/page.tsx`,
+`src/app/admin/quiz/[id]/modifica/page.tsx`. File modificati: `src/app/admin/page.tsx` (voce
+"Gestione quiz"), `src/components/SiteHeader.tsx` e `src/app/altro/page.tsx` (link),
+`src/app/quiz/page.tsx` (pulsante "Gestisci quiz" per gli admin).
+
+Definition of done:
+- [x] `parseQuizQuestions` puro, coperto da unit test (8 casi, verdi)
+- [x] `createQuiz` (metadati + domande annidate), `updateQuizMeta`, `deleteQuiz` a cascata, con guardia di ruolo
+- [x] Editor domande client, elenco `/admin/quiz`, pagine nuovo e modifica metadati
+- [x] `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (tre rotte nel manifest)
+- [ ] Verifica manuale nel browser: **in attesa** (creare un quiz con 2-3 domande e verificarlo su
+      `/quiz` e nello svolgimento; modificarne i metadati; eliminarlo; provare payload invalidi);
+      non dichiarata finche' non osservata
+- [ ] Modifica delle domande dopo la creazione: fuori scope in questo taglio (vincolo tentativi)
+- [ ] Test di integrazione delle action non ancora scritti (rafforzamento successivo)
+
 ## Chiusa nel codice, verifica manuale in attesa: modifica profilo socio
 
 Quinta voce di sviluppo applicativo. Chiude la lacuna dell'audit "il socio non puo' modificare i

@@ -7,6 +7,7 @@ import { Tag } from "@/components/ui/Tag";
 
 export default async function QuizPage() {
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
   const prisma = getPrisma();
 
   const quizzes = await prisma.quiz.findMany({
@@ -26,7 +27,14 @@ export default async function QuizPage() {
       <SiteHeader activeHref="/quiz" />
 
       <header className="flex flex-col gap-2">
-        <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">Quiz</h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">Quiz</h1>
+          {isAdmin && (
+            <Link href="/admin/quiz" className={btnClassName({ kind: "secondary", small: true })}>
+              Gestisci quiz
+            </Link>
+          )}
+        </div>
         <p className="max-w-lg font-ui text-base text-ink-soft">
           Quiz di educazione civica. Si può riprovare quante volte si vuole: resta il punteggio
           migliore. Completa un quiz per sbloccare il successivo.

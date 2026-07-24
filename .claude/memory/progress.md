@@ -6,6 +6,26 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-24 — Quiz CRUD admin (editor domande annidate, ultima sezione admin del prototipo)
+
+Commit di riferimento: sopra la modifica profilo socio, da committare.
+File creati: `src/lib/quiz-admin.ts`, `src/lib/quiz-admin.test.ts`, `src/components/QuizEditor.tsx`,
+`src/app/admin/quiz/actions.ts`, `src/app/admin/quiz/page.tsx`, `src/app/admin/quiz/nuovo/page.tsx`,
+`src/app/admin/quiz/[id]/modifica/page.tsx`. File modificati: `src/app/admin/page.tsx`,
+`src/components/SiteHeader.tsx`, `src/app/altro/page.tsx`, `src/app/quiz/page.tsx`,
+`.claude/context/current-work.md`, questo work-log.
+Motivo/racconto: ultima sezione admin del prototipo. Scope scelto per un vincolo di integrita':
+creazione con editor completo di domande/opzioni, modifica dei soli metadati, delete a cascata. Le
+domande non si modificano dopo la creazione (un quiz tentato ha QuizAttempt/QuizAnswer agganciati;
+per rifarle si elimina e ricrea). Editor client `QuizEditor` con add/remove domande e opzioni,
+radio per la corretta, riallineamento dell'indice quando si rimuove un'opzione, serializzazione in
+campo nascosto `payload` JSON. Validazione pura e server in `quiz-admin.ts` (`parseQuizQuestions`),
+testata senza DB (8 casi). Create con create annidata Prisma (posizione = order, indice corretto =
+isCorrect). Delete in transazione nell'ordine FK: quizAnswer, quizAttempt, quizOption, quizQuestion,
+quiz (rimuove anche i tentativi, impatto reputazione dichiarato). Nessuna migrazione. Verifiche:
+`npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (rotte `/admin/quiz`, `/admin/quiz/nuovo`,
+`/admin/quiz/[id]/modifica`); unit test puri verdi. Verifica browser e test integrazione da fare.
+
 ## 2026-07-24 — Modifica profilo socio (nome, email, password)
 
 Commit di riferimento: sopra la modifica/cancella contenuti citta', da committare.
