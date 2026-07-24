@@ -23,6 +23,8 @@ const ALTRO_HREFS = [
   "/admin",
   "/admin/analytics",
   "/admin/soci",
+  "/admin/eventi",
+  "/admin/eventi/nuovo",
   "/admin/proposte",
   "/accedi",
   "/registrati",

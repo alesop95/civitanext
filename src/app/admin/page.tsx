@@ -14,6 +14,13 @@ import { getAdminOverview } from "@/lib/analytics";
 // duplica le azioni: rimanda alle pagine che le contengono.
 const HUB_GROUPS: { title: string; links: { href: string; label: string }[] }[] = [
   {
+    title: "Eventi",
+    links: [
+      { href: "/admin/eventi", label: "Gestione eventi" },
+      { href: "/admin/eventi/nuovo", label: "Nuovo evento" },
+    ],
+  },
+  {
     title: "Partecipazione",
     links: [
       { href: "/admin/proposte", label: "Coda proposte" },

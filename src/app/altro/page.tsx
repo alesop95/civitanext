@@ -82,6 +82,9 @@ export default async function AltroPage() {
           <Link href="/admin/soci" className={btnClassName({ kind: "secondary" })}>
             Gestione soci (admin)
           </Link>
+          <Link href="/admin/eventi" className={btnClassName({ kind: "secondary" })}>
+            Gestione eventi (admin)
+          </Link>
           <Link href="/admin/proposte" className={btnClassName({ kind: "secondary" })}>
             Coda di approvazione (admin)
           </Link>

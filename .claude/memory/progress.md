@@ -6,6 +6,28 @@
 > documenti `.docx`, con il nome del documento sorgente e l'esito, così la data di allineamento
 > sopravvive a un clone.
 
+## 2026-07-24 — Eventi CRUD admin (prima schermata di modifica del progetto)
+
+Commit di riferimento: sopra i fix di questa giornata, da committare.
+File creati: `src/app/admin/eventi/actions.ts`, `src/app/admin/eventi/EventFormFields.tsx`,
+`src/app/admin/eventi/page.tsx`, `src/app/admin/eventi/nuovo/page.tsx`,
+`src/app/admin/eventi/[id]/modifica/page.tsx`. File modificati: `src/app/admin/page.tsx`,
+`src/components/SiteHeader.tsx`, `src/app/altro/page.tsx`, `src/app/eventi/page.tsx`,
+`.claude/context/current-work.md`, questo work-log.
+Motivo/racconto: scelta dall'utente dopo l'audit dei controlli UI mancanti come la lacuna piu'
+impattante — gli eventi esistevano solo da seed, nessun CRUD dall'interfaccia. E' anche la prima
+schermata di modifica del progetto (tutto era create-only), quindi introduce il pattern di form
+riusato tra nuovo e modifica (`EventFormFields`, con `defaults`). Azioni con guardia di ruolo e
+validazione condivisa `parseEventForm` (obbligatori, lunghezze, data valida), redirect `?error=`.
+Decisioni segnalate: delete in transazione esplicita che elimina gli RSVP e scollega gli album
+(eventId null) invece di dipendere dalla regola referenziale del DB; data via datetime-local
+interpretata come ora locale del server, coerente tra create/edit/riletura (fuso pubblico
+questione separata gia' esistente). Nessuna nuova ADR, nessuna migrazione (Event dalla Fase 0).
+Aggiunto anche un pulsante "Gestisci eventi" sulla pagina pubblica `/eventi` per gli admin.
+Verifiche: `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (rotte `/admin/eventi`,
+`/admin/eventi/nuovo`, `/admin/eventi/[id]/modifica` nel manifest). Verifica browser e test di
+integrazione ancora da fare.
+
 ## 2026-07-24 — Fix da verifica browser: hydration push, tendina ruolo, file input, ritorni
 
 Commit di riferimento: sopra `15135da`, da committare.

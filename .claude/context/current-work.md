@@ -44,6 +44,47 @@ insieme in un secondo momento, non uno per uno. Aggiornata a ogni feature che ne
   (`VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`) e da
   verificare nel browser (attivare il toggle su `/profilo`, far approvare una proposta di test da
   un admin, verificare che arrivi la notifica di sistema).
+## Chiusa nel codice, verifica manuale in attesa: eventi CRUD admin
+
+Terza voce di sviluppo applicativo, scelta dall'utente dopo l'audit dei controlli mancanti come la
+lacuna piu' impattante: fino a oggi gli eventi esistevano solo da seed (`prisma/seed.js`), un admin
+non poteva crearli, modificarli o cancellarli dall'interfaccia. E' anche la prima schermata di
+modifica del progetto (finora ogni contenuto era create-only), quindi introduce un pattern di form
+riusabile per gli altri contenuti quando guadagneranno la modifica.
+
+Tre rotte: `/admin/eventi` (elenco con Modifica/Elimina e conteggio RSVP), `/admin/eventi/nuovo`
+(creazione), `/admin/eventi/[id]/modifica` (modifica precompilata). I campi comuni vivono in un
+componente presentazionale condiviso `EventFormFields`, riusato da nuovo e modifica con i
+`defaults` diversi. Azioni `createEvent`/`updateEvent`/`deleteEvent` con guardia di ruolo,
+validazione condivisa (`parseEventForm`: campi obbligatori, lunghezze da `validation.ts`, data
+valida) e redirect con `?error=` come le altre create action.
+
+Decisioni prese e segnalate. La cancellazione pulisce le dipendenze in transazione esplicita: gli
+RSVP dell'evento (dato di partecipazione senza senso senza l'evento) vengono eliminati, gli album
+fotografici collegati sopravvivono scollegati (`eventId` a null), cosi' il delete non dipende dalla
+regola referenziale del database e l'intento resta leggibile. La data usa un input datetime-local
+interpretato come ora locale del server, coerente tra creazione, modifica e riletura; il fuso di
+visualizzazione pubblica resta una questione separata gia' presente (il seed usa offset espliciti).
+Nessuna nuova ADR, nessuna migrazione di schema (il modello `Event` esisteva dalla Fase 0). La
+categoria resta testo libero come `Event.category` era gia' (non un enum), coerente con lo stato
+attuale del modello.
+
+File creati: `src/app/admin/eventi/actions.ts`, `src/app/admin/eventi/EventFormFields.tsx`,
+`src/app/admin/eventi/page.tsx`, `src/app/admin/eventi/nuovo/page.tsx`,
+`src/app/admin/eventi/[id]/modifica/page.tsx`. File modificati: `src/app/admin/page.tsx` (gruppo
+"Eventi" nell'hub), `src/components/SiteHeader.tsx` e `src/app/altro/page.tsx` (link), `src/app/eventi/page.tsx`
+(pulsante "Gestisci eventi" per gli admin sulla pagina pubblica).
+
+Definition of done:
+- [x] `createEvent`/`updateEvent`/`deleteEvent` con guardia di ruolo e validazione condivisa
+- [x] Elenco `/admin/eventi`, form di creazione e modifica precompilata (componente condiviso)
+- [x] Delete che pulisce RSVP e scollega gli album in transazione
+- [x] `npx tsc --noEmit`, `npm run lint`, `npm run build` puliti (tre rotte nel manifest)
+- [ ] Verifica manuale nel browser: **in attesa** (creare un evento, vederlo su `/eventi`,
+      modificarlo, iscriversi e poi cancellarlo verificando che l'album collegato sopravviva); non
+      dichiarata come fatta finche' non osservata
+- [ ] Test di integrazione delle action non ancora scritti (rafforzamento successivo, come per soci)
+
 ## Chiusa nel codice, verifica manuale in attesa: gestione soci (admin)
 
 Seconda voce di sviluppo applicativo dopo il pannello admin, continuazione diretta: la sezione

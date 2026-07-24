@@ -15,6 +15,7 @@ const dateFormatter = new Intl.DateTimeFormat("it-IT", {
 
 export default async function EventiPage() {
   const session = await auth();
+  const isAdmin = session?.user?.role === "ADMIN" || session?.user?.role === "SUPERADMIN";
   const prisma = getPrisma();
 
   const events = await prisma.event.findMany({
@@ -27,9 +28,19 @@ export default async function EventiPage() {
       <SiteHeader activeHref="/eventi" />
 
       <header className="flex flex-col gap-2">
-        <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">
-          Eventi
-        </h1>
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <h1 className="font-display text-4xl font-black leading-tight sm:text-5xl">
+            Eventi
+          </h1>
+          {isAdmin && (
+            <Link
+              href="/admin/eventi"
+              className={btnClassName({ kind: "secondary", small: true })}
+            >
+              Gestisci eventi
+            </Link>
+          )}
+        </div>
         <p className="max-w-lg font-ui text-base text-ink-soft">
           Gli appuntamenti dell&apos;associazione a Civitanova Marche.
         </p>
